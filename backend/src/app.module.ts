@@ -1,0 +1,105 @@
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { BullModule } from '@nestjs/bullmq';
+import { LoggerModule } from 'nestjs-pino';
+import configuration from './config/configuration';
+import { RequestLoggingMiddleware } from './common/middleware/request-logging.middleware';
+import { PrismaModule } from './database/prisma.module';
+import { RedisModule } from './database/redis.module';
+import { HttpExceptionFilter } from './filters/http-exception.filter';
+import { AuthModule } from './modules/auth/auth.module';
+import { SessionsModule } from './modules/sessions/sessions.module';
+import { JwtAuthGuard } from './modules/auth/guards/jwt.guard';
+import { CsrfGuard } from './modules/auth/guards/csrf.guard';
+import { UsersModule } from './modules/users/users.module';
+import { ListingsModule } from './modules/listings/listings.module';
+import { OrdersModule } from './modules/orders/orders.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
+import { ChatModule } from './modules/chat/chat.module';
+import { TicketsModule } from './modules/tickets/tickets.module';
+import { ModerationModule } from './modules/moderation/moderation.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { TelegramModule } from './modules/telegram/telegram.module';
+import { PaymentsModule } from './modules/payments/payments.module';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration],
+      envFilePath: ['.env', '../.env'],
+    }),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? {
+                target: 'pino-pretty',
+                options: {
+                  singleLine: true,
+                  colorize: true,
+                },
+              }
+            : undefined,
+        autoLogging: true,
+      },
+    }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 100,
+      },
+    ]),
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        connection: {
+          host: configService.get<string>('redis.host', 'localhost'),
+          port: configService.get<number>('redis.port', 6379),
+          password: configService.get<string>('redis.password') || undefined,
+        },
+      }),
+    }),
+    PrismaModule,
+    RedisModule,
+    SessionsModule,
+    AuthModule,
+    UsersModule,
+    ListingsModule,
+    OrdersModule,
+    ReviewsModule,
+    ChatModule,
+    TicketsModule,
+    ModerationModule,
+    NotificationsModule,
+    TelegramModule,
+    PaymentsModule,
+  ],
+  providers: [
+    RequestLoggingMiddleware,
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: CsrfGuard,
+    },
+  ],
+})
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(RequestLoggingMiddleware).forRoutes('*');
+  }
+}

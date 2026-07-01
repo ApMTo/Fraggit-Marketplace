@@ -1,0 +1,18 @@
+{
+  "common": {
+    "appName": "Fraggit",
+    "language": "Language"
+  },
+  "pages": {
+    "home": "Home Page",
+    "login": "Login Page",
+    "register": "Register Page",
+    "dashboard": "Dashboard Page",
+    "profile": "Profile Page",
+    "listings": "Listings Page",
+    "orders": "Orders Page",
+    "chat": "Chat Page",
+    "settings": "Settings Page",
+    "admin": "Admin Page"
+  }
+}
