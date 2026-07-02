@@ -6,6 +6,9 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
+import { PrismaFilter } from './common/filters/prisma.filter';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -36,6 +39,10 @@ async function bootstrap(): Promise<void> {
       transformOptions: { enableImplicitConversion: true },
     }),
   );
+
+  app.useGlobalInterceptors(new ResponseInterceptor());
+
+  app.useGlobalFilters(new AllExceptionsFilter(), new PrismaFilter());
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Fraggit API')

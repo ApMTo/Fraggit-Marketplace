@@ -8,4 +8,5 @@ export const V = {
   passwordMinLength10: 'validation.password_min_length_10',
   usernameLength: 'validation.username_length',
   displayNameLength: 'validation.display_name_length',
+  bioMaxLength: 'validation.bio_max_length',
 } as const;

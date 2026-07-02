@@ -8,7 +8,6 @@ import configuration from './config/configuration';
 import { RequestLoggingMiddleware } from './common/middleware/request-logging.middleware';
 import { PrismaModule } from './database/prisma.module';
 import { RedisModule } from './database/redis.module';
-import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { AuthModule } from './modules/auth/auth.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt.guard';
@@ -23,6 +22,8 @@ import { ModerationModule } from './modules/moderation/moderation.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { TelegramModule } from './modules/telegram/telegram.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
+import { FilesModule } from './modules/files/files.module';
 
 @Module({
   imports: [
@@ -77,13 +78,11 @@ import { PaymentsModule } from './modules/payments/payments.module';
     NotificationsModule,
     TelegramModule,
     PaymentsModule,
+    CloudinaryModule,
+    FilesModule,
   ],
   providers: [
     RequestLoggingMiddleware,
-    {
-      provide: APP_FILTER,
-      useClass: HttpExceptionFilter,
-    },
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
