@@ -383,6 +383,56 @@ export class SubcategoriesService {
 
 
 
+  async resolveBySlugs(
+
+    categorySlug: string,
+
+    subcategorySlug: string,
+
+  ): Promise<{ categoryId: string; subcategoryId: string }> {
+
+    const category = await this.prisma.category.findUnique({
+
+      where: { slug: categorySlug },
+
+      select: { id: true },
+
+    });
+
+
+
+    if (!category) {
+
+      throw new NotFoundException('category_not_found');
+
+    }
+
+
+
+    const subcategory = await this.prisma.subcategory.findFirst({
+
+      where: { categoryId: category.id, slug: subcategorySlug },
+
+      select: { id: true },
+
+    });
+
+
+
+    if (!subcategory) {
+
+      throw new NotFoundException('subcategory_not_found');
+
+    }
+
+
+
+    return { categoryId: category.id, subcategoryId: subcategory.id };
+
+  }
+
+
+
   private async assertCategoryExists(categoryId: string): Promise<void> {
 
     const category = await this.prisma.category.findUnique({
