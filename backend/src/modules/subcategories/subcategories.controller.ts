@@ -20,7 +20,7 @@ import {
 } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { Public } from '../../decorators/public.decorator';
-import { StrictRoles } from '../auth/decorators/roles.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { CreateSubcategoryDto } from './dto/create-subcategory.dto';
@@ -59,10 +59,14 @@ export class SubcategoriesController {
   @Post('categories/:categoryId/subcategories')
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @StrictRoles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiCookieAuth('access_token')
   @ApiHeader(CSRF_HEADER)
-  @ApiOperation({ summary: 'Create subcategory (admin only)' })
+  @ApiOperation({
+    summary: 'Create subcategory (admin and above)',
+    description:
+      'Pass globalAttributeIds to include selected global category attributes in this subcategory.',
+  })
   @ApiParam({ name: 'categoryId', description: 'Category id' })
   create(
     @Param('categoryId') categoryId: string,
@@ -74,10 +78,10 @@ export class SubcategoriesController {
   @Patch('subcategories/:id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @StrictRoles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiCookieAuth('access_token')
   @ApiHeader(CSRF_HEADER)
-  @ApiOperation({ summary: 'Update subcategory (admin only)' })
+  @ApiOperation({ summary: 'Update subcategory (admin and above)' })
   @ApiParam({ name: 'id', description: 'Subcategory id' })
   update(@Param('id') id: string, @Body() dto: UpdateSubcategoryDto) {
     return this.subcategoriesService.update(id, dto);
@@ -86,10 +90,10 @@ export class SubcategoriesController {
   @Delete('subcategories/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @StrictRoles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiCookieAuth('access_token')
   @ApiHeader(CSRF_HEADER)
-  @ApiOperation({ summary: 'Delete subcategory (admin only)' })
+  @ApiOperation({ summary: 'Delete subcategory (admin and above)' })
   @ApiParam({ name: 'id', description: 'Subcategory id' })
   async remove(@Param('id') id: string): Promise<void> {
     await this.subcategoriesService.remove(id);

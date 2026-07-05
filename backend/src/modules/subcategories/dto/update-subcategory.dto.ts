@@ -1,6 +1,8 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import {
+  ArrayUnique,
+  IsArray,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -29,4 +31,14 @@ export class UpdateSubcategoryDto {
     typeof value === 'string' ? value.trim().toLowerCase() : value,
   )
   slug?: string;
+
+  @ApiPropertyOptional({
+    example: ['global-attribute-uuid'],
+    description: 'Replaces linked global category attributes for this subcategory.',
+  })
+  @IsOptional()
+  @IsArray({ message: 'validation.global_attribute_ids_must_be_array' })
+  @ArrayUnique({ message: 'validation.global_attribute_ids_must_be_unique' })
+  @IsString({ each: true, message: V.mustBeString })
+  globalAttributeIds?: string[];
 }

@@ -20,7 +20,7 @@ import {
 } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { Public } from '../../decorators/public.decorator';
-import { StrictRoles } from '../auth/decorators/roles.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { CategoriesService } from './categories.service';
@@ -58,10 +58,10 @@ export class CategoriesController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @StrictRoles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiCookieAuth('access_token')
   @ApiHeader(CSRF_HEADER)
-  @ApiOperation({ summary: 'Create category (admin only)' })
+  @ApiOperation({ summary: 'Create category (admin and above)' })
   create(@Body() dto: CreateCategoryDto) {
     return this.categoriesService.create(dto);
   }
@@ -69,10 +69,10 @@ export class CategoriesController {
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @StrictRoles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiCookieAuth('access_token')
   @ApiHeader(CSRF_HEADER)
-  @ApiOperation({ summary: 'Update category (admin only)' })
+  @ApiOperation({ summary: 'Update category (admin and above)' })
   @ApiParam({ name: 'id', description: 'Category id' })
   update(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
     return this.categoriesService.update(id, dto);
@@ -81,10 +81,10 @@ export class CategoriesController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @StrictRoles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiCookieAuth('access_token')
   @ApiHeader(CSRF_HEADER)
-  @ApiOperation({ summary: 'Delete category (admin only)' })
+  @ApiOperation({ summary: 'Delete category (admin and above)' })
   @ApiParam({ name: 'id', description: 'Category id' })
   async remove(@Param('id') id: string): Promise<void> {
     await this.categoriesService.remove(id);

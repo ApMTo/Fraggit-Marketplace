@@ -1,6 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  ArrayUnique,
+  IsArray,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 import { V } from '../../../common/constants/validation.messages';
 
 export class CreateSubcategoryDto {
@@ -27,4 +34,15 @@ export class CreateSubcategoryDto {
     return typeof value === 'string' ? value.trim().toLowerCase() : value;
   })
   slug?: string;
+
+  @ApiPropertyOptional({
+    example: ['global-attribute-uuid'],
+    description:
+      'Global category attribute IDs to include in this subcategory (e.g. Platform).',
+  })
+  @IsOptional()
+  @IsArray({ message: 'validation.global_attribute_ids_must_be_array' })
+  @ArrayUnique({ message: 'validation.global_attribute_ids_must_be_unique' })
+  @IsString({ each: true, message: V.mustBeString })
+  globalAttributeIds?: string[];
 }
