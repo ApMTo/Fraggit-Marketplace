@@ -1,4 +1,65 @@
-﻿import { Injectable } from '@nestjs/common';
+﻿import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../database/prisma.service';
+import { SubcategoriesService } from '../subcategories/subcategories.service';
+import { LOT_DETAIL_SELECT, LotDetail } from './constants/lot.select';
+import { CreateLotDto } from './dto/create-lot.dto';
+import { normalizeLotAttributes } from './utils/normalize-lot-attributes';
 
 @Injectable()
-export class ListingsService {}
+export class ListingsService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly subcategoriesService: SubcategoriesService,
+  ) {}
+
+  async createLot(sellerId: string, dto: CreateLotDto): Promise<LotDetail> {
+    await this.subcategoriesService.assertBelongsToCategory(
+      dto.subcategoryId,
+      dto.categoryId,
+    );
+
+    const definitions = await this.prisma.attributeDefinition.findMany({
+      where: { subcategoryId: dto.subcategoryId },
+      select: {
+        id: true,
+        key: true,
+        type: true,
+        required: true,
+        options: true,
+      },
+      orderBy: { sortOrder: 'asc' },
+    });
+
+    const attributeValues = normalizeLotAttributes(dto.attributes, definitions);
+
+    return this.prisma.$transaction(async (tx) => {
+      return tx.lot.create({
+        data: {
+          title: dto.title,
+          description: dto.description ?? null,
+          price: dto.price,
+          sellerId,
+          categoryId: dto.categoryId,
+          subcategoryId: dto.subcategoryId,
+          attributes: {
+            create: attributeValues,
+          },
+        },
+        select: LOT_DETAIL_SELECT,
+      });
+    });
+  }
+
+  async findById(id: string): Promise<LotDetail> {
+    const lot = await this.prisma.lot.findUnique({
+      where: { id },
+      select: LOT_DETAIL_SELECT,
+    });
+
+    if (!lot) {
+      throw new NotFoundException('lot_not_found');
+    }
+
+    return lot;
+  }
+}

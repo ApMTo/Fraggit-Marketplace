@@ -24,6 +24,9 @@ import { TelegramModule } from './modules/telegram/telegram.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
 import { FilesModule } from './modules/files/files.module';
+import { CategoriesModule } from './modules/categories/categories.module';
+import { SubcategoriesModule } from './modules/subcategories/subcategories.module';
+import { AttributeDefinitionsModule } from './modules/attribute-definitions/attribute-definitions.module';
 
 @Module({
   imports: [
@@ -80,6 +83,9 @@ import { FilesModule } from './modules/files/files.module';
     PaymentsModule,
     CloudinaryModule,
     FilesModule,
+    CategoriesModule,
+    SubcategoriesModule,
+    AttributeDefinitionsModule,
   ],
   providers: [
     RequestLoggingMiddleware,

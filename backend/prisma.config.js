@@ -1,14 +1,13 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv/config");
-const config_1 = require("prisma/config");
-exports.default = (0, config_1.defineConfig)({
+const { defineConfig } = require("prisma/config");
+
+module.exports = defineConfig({
     schema: "prisma/schema.prisma",
     migrations: {
         path: "prisma/migrations",
     },
     datasource: {
-        url: process.env["DATABASE_URL"],
+        url: process.env.DATABASE_URL ?? "postgresql://localhost:5432/fraggit",
     },
 });
-//# sourceMappingURL=prisma.config.js.map

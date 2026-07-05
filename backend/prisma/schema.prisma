@@ -10,6 +10,8 @@ enum UserRole {
   USER
   MODERATOR
   ADMIN
+  SUPER_ADMIN
+  OWNER
 }
 
 enum UserStatus {
@@ -25,7 +27,7 @@ model User {
   email        String @unique
   passwordHash String
 
-  username    String @unique
+  username    String  @unique
   displayName String
   avatarUrl   String?
   bio         String?
@@ -44,4 +46,121 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  lots      Lot[]
+}
+
+enum AttributeType {
+  TEXT
+  TEXTAREA
+  NUMBER
+  BOOLEAN
+  SELECT
+  MULTISELECT
+}
+
+model Category {
+  id   String @id @default(uuid())
+  name String
+  slug String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subcategories Subcategory[]
+  lots          Lot[]
+
+  @@index([name])
+}
+
+model Subcategory {
+  id String @id @default(uuid())
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  name String
+  slug String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attributes AttributeDefinition[]
+  lots       Lot[]
+
+  @@unique([categoryId, slug])
+  @@index([categoryId])
+}
+
+model AttributeDefinition {
+  id String @id @default(uuid())
+
+  subcategoryId String
+  subcategory   Subcategory @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
+
+  key   String
+  label String
+
+  type AttributeType
+
+  required Boolean @default(false)
+
+  options Json?
+
+  sortOrder Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  values LotAttributeValue[]
+
+  @@unique([subcategoryId, key])
+  @@index([subcategoryId])
+  @@index([subcategoryId, sortOrder])
+}
+
+model Lot {
+  id String @id @default(uuid())
+
+  title String
+
+  description String? @db.Text
+
+  price Decimal @db.Decimal(12, 2)
+
+  sellerId String
+  seller   User   @relation(fields: [sellerId], references: [id])
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  subcategoryId String
+  subcategory   Subcategory @relation(fields: [subcategoryId], references: [id])
+
+  attributes LotAttributeValue[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([subcategoryId])
+  @@index([price])
+  @@index([createdAt])
+}
+
+model LotAttributeValue {
+  id String @id @default(uuid())
+
+  lotId String
+  lot   Lot    @relation(fields: [lotId], references: [id], onDelete: Cascade)
+
+  attributeId String
+  attribute   AttributeDefinition @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+
+  value String
+
+  @@unique([lotId, attributeId])
+  @@index([lotId])
+  @@index([attributeId])
+  @@index([attributeId, value])
 }
