@@ -1,7 +1,17 @@
-﻿export default function SettingsPage() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <h1 className="text-2xl font-semibold">Settings Page</h1>
-    </main>
-  );
+﻿import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
+import { SettingsPage } from '@/features/settings/settings-page';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('pages');
+
+  return {
+    title: `${t('settings')} | Fraggit`,
+  };
+}
+
+export default async function Page() {
+  const t = await getTranslations('pages');
+
+  return <SettingsPage title={t('settings')} />;
 }

@@ -1,7 +1,24 @@
-﻿export default function LoginPage() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <h1 className="text-2xl font-semibold">Login Page</h1>
-    </main>
-  );
+﻿import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
+import { LoginPage } from '@/features/auth';
+import { getSessionUser } from '@/lib/auth.server';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('auth.login');
+
+  return {
+    title: `${t('title')} | Fraggit`,
+    description: t('subtitle'),
+  };
+}
+
+export default async function Page() {
+  const user = await getSessionUser();
+
+  if (user) {
+    redirect('/dashboard');
+  }
+
+  return <LoginPage />;
 }

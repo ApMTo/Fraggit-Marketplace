@@ -1,7 +1,17 @@
-﻿export default function AdminPage() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <h1 className="text-2xl font-semibold">Admin Page</h1>
-    </main>
-  );
+﻿import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
+import { AdminPage } from '@/features/admin/admin-page';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('pages');
+
+  return {
+    title: `${t('admin')} | Fraggit`,
+  };
+}
+
+export default async function Page() {
+  const t = await getTranslations('pages');
+
+  return <AdminPage title={t('admin')} />;
 }
