@@ -1,8 +1,6 @@
 ﻿import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { RegisterPage } from '@/features/auth';
-import { getSessionUser } from '@/lib/auth.server';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('auth.register');
@@ -14,11 +12,5 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  const user = await getSessionUser();
-
-  if (user) {
-    redirect('/dashboard');
-  }
-
   return <RegisterPage />;
 }

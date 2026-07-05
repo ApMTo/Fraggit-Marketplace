@@ -20,7 +20,11 @@ type LoginFormValues = {
   password: string;
 };
 
-export function LoginForm() {
+type LoginFormProps = {
+  redirectTo?: string;
+};
+
+export function LoginForm({ redirectTo = '/dashboard' }: LoginFormProps) {
   const t = useTranslations('auth');
   const tErrors = useTranslations('auth.errors');
   const tValidation = useTranslations('auth.validation');
@@ -47,6 +51,8 @@ export function LoginForm() {
 
       return errors;
     },
+    validateOnChange: false,
+    validateOnBlur: true,
     onSubmit: async (values, { setSubmitting, setStatus }) => {
       setStatus(undefined);
 
@@ -56,7 +62,7 @@ export function LoginForm() {
           password: values.password,
         });
         toast.success(t('login.success'));
-        router.replace('/dashboard');
+        router.replace(redirectTo);
         router.refresh();
       } catch (error) {
         setStatus({ formError: tErrors(resolveAuthErrorKey(error)) });

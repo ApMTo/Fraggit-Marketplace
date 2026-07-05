@@ -1,8 +1,10 @@
+import { cache } from 'react';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { serverFetch } from '@/lib/api-server';
 import type { AuthProfileResponse, AuthUser } from '@/types/auth';
 
-export async function getSessionUser(): Promise<AuthUser | null> {
+export const getSessionUser = cache(async (): Promise<AuthUser | null> => {
   const cookieStore = await cookies();
   const sessionId = cookieStore.get('sessionId');
 
@@ -29,4 +31,24 @@ export async function getSessionUser(): Promise<AuthUser | null> {
   }
 
   return null;
+});
+
+export async function requireSessionUser(): Promise<AuthUser> {
+  const user = await getSessionUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  return user;
+}
+
+export async function requireAdminUser(): Promise<AuthUser> {
+  const user = await requireSessionUser();
+
+  if (user.role !== 'ADMIN') {
+    redirect('/dashboard');
+  }
+
+  return user;
 }

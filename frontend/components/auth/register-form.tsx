@@ -1,8 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useFormik } from 'formik';
 import { useTranslations } from 'next-intl';
+import { MailCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { AuthLayout } from '@/components/auth/auth-layout';
 import { Button } from '@/components/ui/button';
@@ -32,6 +35,8 @@ export function RegisterForm() {
   const tErrors = useTranslations('auth.errors');
   const tValidation = useTranslations('auth.validation');
   const { register } = useAuth();
+  const router = useRouter();
+  const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
 
   const formik = useFormik<RegisterFormValues>({
     initialValues: {
@@ -74,7 +79,9 @@ export function RegisterForm() {
 
       return errors;
     },
-    onSubmit: async (values, { setSubmitting, resetForm }) => {
+    validateOnChange: false,
+    validateOnBlur: true,
+    onSubmit: async (values, { setSubmitting }) => {
       try {
         await register({
           username: values.username.trim(),
@@ -82,8 +89,7 @@ export function RegisterForm() {
           email: values.email.trim(),
           password: values.password,
         });
-        toast.success(t('register.success'));
-        resetForm();
+        setSubmittedEmail(values.email.trim());
       } catch (error) {
         toast.error(tErrors(resolveAuthErrorKey(error)));
       } finally {
@@ -91,6 +97,32 @@ export function RegisterForm() {
       }
     },
   });
+
+  if (submittedEmail) {
+    return (
+      <AuthLayout
+        title={t('register.successTitle')}
+        subtitle={t('register.success')}
+      >
+        <Card>
+          <CardContent className="flex flex-col items-center gap-6 py-10 text-center">
+            <MailCheck className="size-14 text-success" strokeWidth={1.5} />
+            <div className="space-y-2">
+              <p className="text-lg font-medium text-foreground">
+                {t('register.successTitle')}
+              </p>
+              <p className="text-sm text-muted">
+                {t('register.successDescription', { email: submittedEmail })}
+              </p>
+            </div>
+            <Button onClick={() => router.push('/login')}>
+              {t('register.goToLogin')}
+            </Button>
+          </CardContent>
+        </Card>
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout

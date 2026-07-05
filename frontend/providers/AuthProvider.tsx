@@ -32,6 +32,7 @@ type AuthContextValue = {
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  updateUser: (user: AuthUser) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -40,6 +41,13 @@ type AuthProviderProps = {
   children: ReactNode;
   initialUser: AuthUser | null;
 };
+
+function toProfileCache(user: AuthUser) {
+  return {
+    user,
+    message: { code: 'messages.profile_data' },
+  };
+}
 
 export function AuthProvider({ children, initialUser }: AuthProviderProps) {
   const queryClient = useQueryClient();
@@ -58,9 +66,7 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
       syncCsrfFromCookie();
       return authService.getMe();
     },
-    initialData: initialUser
-      ? { user: initialUser, message: { code: 'messages.profile_data' } }
-      : undefined,
+    initialData: initialUser ? toProfileCache(initialUser) : undefined,
     enabled: sessionActive,
     retry: false,
     staleTime: 5 * 60 * 1000,
@@ -70,25 +76,16 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
   const user = profile?.user ?? initialUser ?? null;
   const isLoading = sessionActive && !user && (isPending || isFetching);
 
-  const setAuthenticatedUser = useCallback(
-    async (nextUser: AuthUser) => {
+  const updateUser = useCallback(
+    (nextUser: AuthUser) => {
       setSessionActive(true);
-      queryClient.setQueryData(authKeys.me(), {
-        user: nextUser,
-        message: { code: 'messages.profile_data' },
-      });
+      queryClient.setQueryData(authKeys.me(), toProfileCache(nextUser));
     },
     [queryClient],
   );
 
   const loginMutation = useMutation({
     mutationFn: authService.login,
-    onSuccess: async () => {
-      syncCsrfFromCookie();
-      setSessionActive(true);
-      const profileData = await authService.getMe();
-      queryClient.setQueryData(authKeys.me(), profileData);
-    },
   });
 
   const registerMutation = useMutation({
@@ -109,11 +106,12 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
     async (payload: LoginPayload) => {
       await loginMutation.mutateAsync(payload);
       syncCsrfFromCookie();
+      setSessionActive(true);
       const profileData = await authService.getMe();
-      await setAuthenticatedUser(profileData.user);
+      queryClient.setQueryData(authKeys.me(), profileData);
       return profileData.user;
     },
-    [loginMutation, setAuthenticatedUser],
+    [loginMutation, queryClient],
   );
 
   const register = useCallback(
@@ -137,10 +135,15 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
   }, [logoutMutation, queryClient, router]);
 
   const refreshUser = useCallback(async () => {
-    setSessionActive(hasSessionCookie());
+    if (!hasSessionCookie()) {
+      setSessionActive(false);
+      queryClient.setQueryData(authKeys.me(), null);
+      return;
+    }
+
+    setSessionActive(true);
     await queryClient.invalidateQueries({ queryKey: authKeys.me() });
-    router.refresh();
-  }, [queryClient, router]);
+  }, [queryClient]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -151,8 +154,9 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
       register,
       logout,
       refreshUser,
+      updateUser,
     }),
-    [user, isLoading, login, register, logout, refreshUser],
+    [user, isLoading, login, register, logout, refreshUser, updateUser],
   );
 
   return (

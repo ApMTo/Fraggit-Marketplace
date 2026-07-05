@@ -1,5 +1,9 @@
 import { LoginForm } from '@/components/auth/login-form';
 
-export function LoginPage() {
-  return <LoginForm />;
+type LoginPageProps = {
+  redirectTo?: string;
+};
+
+export function LoginPage({ redirectTo = '/dashboard' }: LoginPageProps) {
+  return <LoginForm redirectTo={redirectTo} />;
 }

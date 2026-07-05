@@ -1,8 +1,7 @@
 ﻿import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { LoginPage } from '@/features/auth';
-import { getSessionUser } from '@/lib/auth.server';
+import { getSafeRedirectPath } from '@/lib/navigation';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('auth.login');
@@ -13,12 +12,12 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function Page() {
-  const user = await getSessionUser();
+type PageProps = {
+  searchParams: Promise<{ next?: string }>;
+};
 
-  if (user) {
-    redirect('/dashboard');
-  }
+export default async function Page({ searchParams }: PageProps) {
+  const { next } = await searchParams;
 
-  return <LoginPage />;
+  return <LoginPage redirectTo={getSafeRedirectPath(next)} />;
 }

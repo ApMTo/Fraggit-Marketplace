@@ -52,6 +52,9 @@
       "subtitle": "Join Fraggit and start trading game items",
       "submit": "Create account",
       "success": "Check your email to verify your account",
+      "successTitle": "Check your email",
+      "successDescription": "We sent a verification link to {email}. Open it to activate your account.",
+      "goToLogin": "Back to sign in",
       "hasAccount": "Already have an account?",
       "signIn": "Sign in",
       "passwordHint": "At least 10 characters with upper, lower, digit, and special character"

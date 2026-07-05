@@ -1,8 +1,7 @@
 ﻿import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { ProfilePage } from '@/features/profile';
-import { getSessionUser } from '@/lib/auth.server';
+import { requireSessionUser } from '@/lib/auth.server';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('pages');
@@ -13,11 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  const user = await getSessionUser();
-
-  if (!user) {
-    redirect('/login');
-  }
+  const user = await requireSessionUser();
 
   const t = await getTranslations('pages');
   const tAuth = await getTranslations('auth.fields');

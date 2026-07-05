@@ -23,7 +23,7 @@ export function VerifyEmailForm({ token }: VerifyEmailFormProps) {
   const t = useTranslations('auth.verify');
   const tErrors = useTranslations('auth.errors');
   const router = useRouter();
-  const { refreshUser } = useAuth();
+  const { updateUser } = useAuth();
   const [state, setState] = useState<VerifyState>('loading');
   const hasVerified = useRef(false);
 
@@ -36,8 +36,8 @@ export function VerifyEmailForm({ token }: VerifyEmailFormProps) {
 
     async function verifyEmail() {
       try {
-        await authService.verify(token);
-        await refreshUser();
+        const response = await authService.verify(token);
+        updateUser(response.user);
         setState('success');
         toast.success(t('success'));
       } catch (error) {
@@ -47,7 +47,7 @@ export function VerifyEmailForm({ token }: VerifyEmailFormProps) {
     }
 
     void verifyEmail();
-  }, [token, refreshUser, t, tErrors]);
+  }, [token, updateUser, t, tErrors]);
 
   return (
     <AuthLayout title={t('title')} subtitle={t('subtitle')}>
