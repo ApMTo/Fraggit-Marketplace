@@ -1,7 +1,16 @@
-﻿export default function RegisterPage() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <h1 className="text-2xl font-semibold">Register Page</h1>
-    </main>
-  );
+﻿import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
+import { RegisterPage } from '@/features/auth';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('auth.register');
+
+  return {
+    title: `${t('title')} | Fraggit`,
+    description: t('subtitle'),
+  };
+}
+
+export default async function Page() {
+  return <RegisterPage />;
 }

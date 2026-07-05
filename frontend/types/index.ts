@@ -10,3 +10,16 @@ export type PaginatedResponse<T> = {
   page: number;
   limit: number;
 };
+
+export type {
+  AuthUser,
+  AuthSessionResponse,
+  AuthMessageResponse,
+  AuthProfileResponse,
+  VerifyUserResponse,
+  LogoutResponse,
+  RegisterPayload,
+  LoginPayload,
+  UserRole,
+  ApiErrorBody,
+} from './auth';

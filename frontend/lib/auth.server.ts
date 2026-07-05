@@ -1,0 +1,54 @@
+import { cache } from 'react';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { serverFetch } from '@/lib/api-server';
+import type { AuthProfileResponse, AuthUser } from '@/types/auth';
+
+export const getSessionUser = cache(async (): Promise<AuthUser | null> => {
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get('sessionId');
+
+  if (!sessionId) {
+    return null;
+  }
+
+  const cookieHeader = cookieStore
+    .getAll()
+    .map(({ name, value }) => `${name}=${value}`)
+    .join('; ');
+
+  const { data, status } = await serverFetch<AuthProfileResponse>(
+    '/auth/me',
+    cookieHeader,
+  );
+
+  if (data?.user) {
+    return data.user;
+  }
+
+  if (status === 401) {
+    return null;
+  }
+
+  return null;
+});
+
+export async function requireSessionUser(): Promise<AuthUser> {
+  const user = await getSessionUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  return user;
+}
+
+export async function requireAdminUser(): Promise<AuthUser> {
+  const user = await requireSessionUser();
+
+  if (user.role !== 'ADMIN') {
+    redirect('/dashboard');
+  }
+
+  return user;
+}

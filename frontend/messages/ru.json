@@ -1,7 +1,12 @@
 {
   "common": {
     "appName": "Fraggit",
-    "language": "Язык"
+    "language": "Язык",
+    "theme": {
+      "label": "Тема",
+      "dark": "Тёмная",
+      "light": "Светлая"
+    }
   },
   "pages": {
     "home": "Главная страница",
@@ -14,5 +19,94 @@
     "chat": "Страница чата",
     "settings": "Страница настроек",
     "admin": "Страница администратора"
+  },
+  "auth": {
+    "logout": "Выйти",
+    "welcomeBack": "С возвращением",
+    "homeDescription": "Торгуйте игровыми предметами на современном маркетплейсе для геймеров.",
+    "fields": {
+      "email": "Email",
+      "password": "Пароль",
+      "username": "Имя пользователя",
+      "displayName": "Отображаемое имя",
+      "confirmPassword": "Подтверждение пароля"
+    },
+    "placeholders": {
+      "email": "you@example.com",
+      "password": "Введите пароль",
+      "passwordRegister": "Придумайте надёжный пароль",
+      "confirmPassword": "Повторите пароль",
+      "username": "cool_seller",
+      "displayName": "Cool Seller"
+    },
+    "login": {
+      "title": "С возвращением",
+      "subtitle": "Войдите, чтобы продолжить работу с Fraggit",
+      "submit": "Войти",
+      "success": "Вы успешно вошли",
+      "noAccount": "Нет аккаунта?",
+      "createAccount": "Создать"
+    },
+    "register": {
+      "title": "Создайте аккаунт",
+      "subtitle": "Присоединяйтесь к Fraggit и начните торговать игровыми предметами",
+      "submit": "Создать аккаунт",
+      "success": "Проверьте почту для подтверждения аккаунта",
+      "successTitle": "Проверьте почту",
+      "successDescription": "Мы отправили ссылку для подтверждения на {email}. Откройте её, чтобы активировать аккаунт.",
+      "goToLogin": "Вернуться ко входу",
+      "hasAccount": "Уже есть аккаунт?",
+      "signIn": "Войти",
+      "passwordHint": "Минимум 10 символов: заглавные, строчные, цифра и спецсимвол"
+    },
+    "verify": {
+      "title": "Подтверждение email",
+      "subtitle": "Подтверждаем ваш адрес электронной почты",
+      "loading": "Подтверждаем email…",
+      "success": "Email успешно подтверждён",
+      "successTitle": "Готово",
+      "successDescription": "Аккаунт активирован. Можно пользоваться маркетплейсом.",
+      "errorTitle": "Не удалось подтвердить",
+      "errorDescription": "Ссылка могла истечь или уже была использована.",
+      "goToDashboard": "Перейти в панель",
+      "goToLogin": "Войти",
+      "tryAgain": "Зарегистрироваться снова"
+    },
+    "validation": {
+      "usernameRequired": "Укажите имя пользователя",
+      "usernameLength": "Имя пользователя — минимум 3 символа",
+      "usernameFormat": "Только буквы, цифры и подчёркивание",
+      "displayNameRequired": "Укажите отображаемое имя",
+      "displayNameLength": "Отображаемое имя — минимум 2 символа",
+      "emailRequired": "Укажите email",
+      "invalidEmail": "Введите корректный email",
+      "passwordRequired": "Введите пароль",
+      "passwordMinLength": "Пароль — минимум 8 символов",
+      "passwordMinLength10": "Пароль — минимум 10 символов",
+      "passwordPolicy": "Нужны заглавные, строчные, цифра и спецсимвол",
+      "passwordConfirmRequired": "Подтвердите пароль",
+      "passwordMismatch": "Пароли не совпадают"
+    },
+    "errors": {
+      "generic": "Что-то пошло не так. Попробуйте снова.",
+      "email_already_exists": "Этот email уже зарегистрирован",
+      "username_already_exists": "Это имя пользователя занято",
+      "verification_already_sent": "Письмо уже отправлено. Проверьте почту.",
+      "user_already_exists": "Аккаунт с такими данными уже существует",
+      "invalid_or_expired_token": "Ссылка недействительна или истекла",
+      "invalid_registration_payload": "Некорректные данные регистрации",
+      "weak_password": "Пароль не соответствует требованиям безопасности",
+      "invalid_credentials": "Неверный email или пароль",
+      "email_not_verified": "Подтвердите email перед входом",
+      "account_deactivated": "Аккаунт деактивирован",
+      "account_blocked": "Аккаунт заблокирован",
+      "too_many_attempts": "Слишком много попыток входа. Попробуйте позже.",
+      "unauthorized": "Сессия истекла. Войдите снова.",
+      "invalid_csrf_token": "Токен безопасности истёк. Войдите снова.",
+      "invalid_refresh_token": "Сессия истекла. Войдите снова.",
+      "no_session_found": "Активная сессия не найдена",
+      "session_not_found": "Сессия не найдена",
+      "invalid_token": "Недействительная сессия. Войдите снова."
+    }
   }
 }

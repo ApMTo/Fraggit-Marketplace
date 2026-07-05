@@ -1,7 +1,17 @@
-﻿export default function ListingsPage() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <h1 className="text-2xl font-semibold">Listings Page</h1>
-    </main>
-  );
+﻿import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
+import { ListingsPage } from '@/features/listings/listings-page';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('pages');
+
+  return {
+    title: `${t('listings')} | Fraggit`,
+  };
+}
+
+export default async function Page() {
+  const t = await getTranslations('pages');
+
+  return <ListingsPage title={t('listings')} />;
 }

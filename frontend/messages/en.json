@@ -1,7 +1,12 @@
 {
   "common": {
     "appName": "Fraggit",
-    "language": "Language"
+    "language": "Language",
+    "theme": {
+      "label": "Theme",
+      "dark": "Dark",
+      "light": "Light"
+    }
   },
   "pages": {
     "home": "Home Page",
@@ -14,5 +19,94 @@
     "chat": "Chat Page",
     "settings": "Settings Page",
     "admin": "Admin Page"
+  },
+  "auth": {
+    "logout": "Sign out",
+    "welcomeBack": "Welcome back",
+    "homeDescription": "Trade game items on a modern marketplace built for gamers.",
+    "fields": {
+      "email": "Email",
+      "password": "Password",
+      "username": "Username",
+      "displayName": "Display name",
+      "confirmPassword": "Confirm password"
+    },
+    "placeholders": {
+      "email": "you@example.com",
+      "password": "Enter your password",
+      "passwordRegister": "Create a strong password",
+      "confirmPassword": "Repeat your password",
+      "username": "cool_seller",
+      "displayName": "Cool Seller"
+    },
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to continue to your Fraggit account",
+      "submit": "Sign in",
+      "success": "Signed in successfully",
+      "noAccount": "Don't have an account?",
+      "createAccount": "Create one"
+    },
+    "register": {
+      "title": "Create your account",
+      "subtitle": "Join Fraggit and start trading game items",
+      "submit": "Create account",
+      "success": "Check your email to verify your account",
+      "successTitle": "Check your email",
+      "successDescription": "We sent a verification link to {email}. Open it to activate your account.",
+      "goToLogin": "Back to sign in",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "passwordHint": "At least 10 characters with upper, lower, digit, and special character"
+    },
+    "verify": {
+      "title": "Email verification",
+      "subtitle": "We're confirming your email address",
+      "loading": "Verifying your email…",
+      "success": "Email verified successfully",
+      "successTitle": "You're all set",
+      "successDescription": "Your account is active. You can now access the marketplace.",
+      "errorTitle": "Verification failed",
+      "errorDescription": "This link may have expired or already been used.",
+      "goToDashboard": "Go to dashboard",
+      "goToLogin": "Sign in",
+      "tryAgain": "Register again"
+    },
+    "validation": {
+      "usernameRequired": "Username is required",
+      "usernameLength": "Username must be at least 3 characters",
+      "usernameFormat": "Username can only contain letters, numbers, and underscores",
+      "displayNameRequired": "Display name is required",
+      "displayNameLength": "Display name must be at least 2 characters",
+      "emailRequired": "Email is required",
+      "invalidEmail": "Enter a valid email address",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least 8 characters",
+      "passwordMinLength10": "Password must be at least 10 characters",
+      "passwordPolicy": "Password must include upper, lower, digit, and special character",
+      "passwordConfirmRequired": "Please confirm your password",
+      "passwordMismatch": "Passwords do not match"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "email_already_exists": "This email is already registered",
+      "username_already_exists": "This username is taken",
+      "verification_already_sent": "A verification email was already sent. Check your inbox.",
+      "user_already_exists": "An account with these details already exists",
+      "invalid_or_expired_token": "This verification link is invalid or expired",
+      "invalid_registration_payload": "Registration data is invalid",
+      "weak_password": "Password does not meet security requirements",
+      "invalid_credentials": "Invalid email or password",
+      "email_not_verified": "Please verify your email before signing in",
+      "account_deactivated": "Your account has been deactivated",
+      "account_blocked": "Your account has been blocked",
+      "too_many_attempts": "Too many login attempts. Try again later.",
+      "unauthorized": "Session expired. Please sign in again.",
+      "invalid_csrf_token": "Security token expired. Please sign in again.",
+      "invalid_refresh_token": "Session expired. Please sign in again.",
+      "no_session_found": "No active session found",
+      "session_not_found": "Session not found",
+      "invalid_token": "Invalid session. Please sign in again."
+    }
   }
 }
