@@ -33,6 +33,9 @@ export class UserProfileDto {
   ratingCount!: number;
 
   @ApiProperty()
+  successfulSales!: number;
+
+  @ApiProperty()
   emailVerified!: boolean;
 
   @ApiPropertyOptional({ nullable: true })
