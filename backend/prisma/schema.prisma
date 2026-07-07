@@ -47,9 +47,11 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  lots         Lot[]
-  buyerOrders  Order[] @relation("BuyerOrders")
-  sellerOrders Order[] @relation("SellerOrders")
+  lots            Lot[]
+  buyerOrders     Order[]  @relation("BuyerOrders")
+  sellerOrders    Order[]  @relation("SellerOrders")
+  reviewsWritten  Review[] @relation("ReviewsWritten")
+  reviewsReceived Review[] @relation("ReviewsReceived")
 }
 
 enum AttributeType {
@@ -244,10 +246,35 @@ model Order {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  review Review?
+
   @@index([lotId])
   @@index([buyerId])
   @@index([sellerId])
   @@index([status])
   @@index([autoApproveAt])
+  @@index([createdAt])
+}
+
+model Review {
+  id String @id @default(uuid())
+
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  reviewerId String
+  reviewer   User @relation("ReviewsWritten", fields: [reviewerId], references: [id])
+
+  revieweeId String
+  reviewee   User @relation("ReviewsReceived", fields: [revieweeId], references: [id])
+
+  rating Int
+  text   String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([revieweeId])
+  @@index([reviewerId])
   @@index([createdAt])
 }
