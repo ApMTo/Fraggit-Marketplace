@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { Request } from 'express';
 import { PrismaService } from '../../database/prisma.service';
 import { RedisService } from '../../database/redis.service';
-import { MailService } from '../mail/mail.service';
+import { MailQueueService } from '../mail/mail-queue.service';
 import { UserRole, UserStatus } from '@prisma/client';
 import { AuthSessionService } from './auth-session.service';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -36,7 +36,7 @@ export class AuthRegistrationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly redis: RedisService,
-    private readonly mail: MailService,
+    private readonly mailQueue: MailQueueService,
     private readonly authSession: AuthSessionService,
     private readonly configService: ConfigService,
   ) {
@@ -63,15 +63,16 @@ export class AuthRegistrationService {
 
     await this.savePending(token, email, username, payload);
 
-    await this.mail.sendMail(
-      email,
-      'Verify your Fraggit account',
-      EmailRenderer.renderInvitationEmail(
+    await this.mailQueue.enqueue({
+      to: email,
+      subject: 'Verify your Fraggit account',
+      html: EmailRenderer.renderInvitationEmail(
         payload.displayName,
         token,
         this.frontendUrl,
       ),
-    );
+      type: 'registration',
+    });
 
     return { message: 'verification_email_sent' };
   }

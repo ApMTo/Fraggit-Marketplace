@@ -1,19 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
-import { OrdersService } from '../orders.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { OrderQueueService } from '../order-queue.service';
 
 @Injectable()
 export class OrderAutoApprovalScheduler {
   private readonly logger = new Logger(OrderAutoApprovalScheduler.name);
 
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(private readonly orderQueueService: OrderQueueService) {}
 
-  @Cron('0 */15 * * * *')
-  async handleExpiredOrders(): Promise<void> {
-    const processed = await this.ordersService.processExpiredOrders();
-
-    if (processed > 0) {
-      this.logger.log(`Auto-approved ${processed} order(s)`);
-    }
+  @Cron(CronExpression.EVERY_HOUR)
+  async scheduleExpiredOrdersCheck(): Promise<void> {
+    await this.orderQueueService.enqueueExpiredOrdersCheck();
+    this.logger.debug('Enqueued expired orders check job');
   }
 }

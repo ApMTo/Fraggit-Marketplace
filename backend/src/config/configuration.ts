@@ -32,4 +32,10 @@ export default () => ({
         ? `Fraggit <${process.env.SMTP_USER}>`
         : 'Fraggit <no-reply@fraggit.local>'),
   },
+  mail: {
+    queue: {
+      attempts: parseInt(process.env.MAIL_QUEUE_ATTEMPTS || '5', 10),
+      retryDelayMs: parseInt(process.env.MAIL_QUEUE_RETRY_DELAY_MS || '60000', 10),
+    },
+  },
 });

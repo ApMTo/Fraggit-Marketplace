@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 import { PrismaService } from '../../database/prisma.service';
 import { RedisService } from '../../database/redis.service';
-import { MailService } from '../mail/mail.service';
+import { MailQueueService } from '../mail/mail-queue.service';
 import { SessionsService } from '../sessions/sessions.service';
 import { UserStatus } from '@prisma/client';
 import { UserAuthCacheService } from './user-auth-cache.service';
@@ -36,7 +36,7 @@ export class AuthPasswordResetService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly redis: RedisService,
-    private readonly mail: MailService,
+    private readonly mailQueue: MailQueueService,
     private readonly sessionsService: SessionsService,
     private readonly userAuthCache: UserAuthCacheService,
     private readonly configService: ConfigService,
@@ -154,15 +154,16 @@ export class AuthPasswordResetService {
       this.redis.set(`pwd:email:${user.email}`, token, this.RESET_TTL),
     ]);
 
-    await this.mail.sendMail(
-      user.email,
-      'Reset your Fraggit password',
-      EmailRenderer.renderPasswordResetEmail(
+    await this.mailQueue.enqueue({
+      to: user.email,
+      subject: 'Reset your Fraggit password',
+      html: EmailRenderer.renderPasswordResetEmail(
         user.displayName,
         token,
         this.frontendUrl,
       ),
-    );
+      type: 'password_reset',
+    });
 
     this.logger.log(`auth.password_reset_requested user=${user.id}`);
   }

@@ -39,6 +39,17 @@ export class MailService {
   }
 
   async sendMail(to: string, subject: string, html: string): Promise<void> {
+    await this.sendMailOrThrow(to, subject, html, { throwOnSmtpError: false });
+  }
+
+  async sendMailOrThrow(
+    to: string,
+    subject: string,
+    html: string,
+    options: { throwOnSmtpError?: boolean } = {},
+  ): Promise<void> {
+    const throwOnSmtpError = options.throwOnSmtpError ?? true;
+
     if (!this.smtpConfigured || !this.transporter) {
       const verifyUrl = html.match(/https?:\/\/[^\s<"]+/i)?.[0];
       this.logger.warn(
@@ -53,16 +64,24 @@ export class MailService {
       'Fraggit <no-reply@fraggit.local>',
     );
 
-    const result = await this.transporter.sendMail({
-      from,
-      to,
-      subject,
-      html,
-    });
+    try {
+      const result = await this.transporter.sendMail({
+        from,
+        to,
+        subject,
+        html,
+      });
 
-    this.logger.info(
-      { to, subject, messageId: result.messageId, from },
-      'Email sent',
-    );
+      this.logger.info(
+        { to, subject, messageId: result.messageId, from },
+        'Email sent',
+      );
+    } catch (error) {
+      this.logger.error({ to, subject, error }, 'Failed to send email');
+
+      if (throwOnSmtpError) {
+        throw error;
+      }
+    }
   }
 }
