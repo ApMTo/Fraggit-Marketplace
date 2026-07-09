@@ -4,6 +4,8 @@ export const CATEGORY_PUBLIC_SELECT = {
   id: true,
   name: true,
   slug: true,
+  iconUrl: true,
+  previewUrl: true,
 } satisfies Prisma.CategorySelect;
 
 export const CATEGORY_ADMIN_SELECT = {

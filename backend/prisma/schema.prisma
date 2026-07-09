@@ -71,6 +71,9 @@ model Category {
   name String @unique
   slug String @unique
 
+  iconUrl    String?
+  previewUrl String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
