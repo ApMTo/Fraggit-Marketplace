@@ -5,5 +5,5 @@ export type SendMailJobData = {
   to: string;
   subject: string;
   html: string;
-  type?: 'registration' | 'password_reset';
+  type?: 'registration' | 'password_reset' | 'chat_notification';
 };

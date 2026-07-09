@@ -21,6 +21,8 @@ import { FindOrdersQueryDto, OrderRole } from './dto/find-orders.query.dto';
 import { SubmitCredentialsDto } from './dto/submit-credentials.dto';
 import { OrderCompletionService } from './services/order-completion.service';
 import { OrderPaymentService } from './services/order-payment.service';
+import { ChatService } from '../chat/chat.service';
+import { generateOrderNumber } from './utils/generate-order-number.util';
 
 export type OrderListResult = {
   items: OrderListItem[];
@@ -35,6 +37,7 @@ export class OrdersService {
     private readonly prisma: PrismaService,
     private readonly orderPaymentService: OrderPaymentService,
     private readonly orderCompletionService: OrderCompletionService,
+    private readonly chatService: ChatService,
   ) {}
 
   async createOrder(buyerId: string, dto: CreateOrderDto): Promise<OrderDetail> {
@@ -42,6 +45,7 @@ export class OrdersService {
       where: { id: dto.lotId },
       select: {
         id: true,
+        title: true,
         sellerId: true,
         price: true,
         stock: true,
@@ -75,7 +79,7 @@ export class OrdersService {
       throw new ConflictException(payment.reason);
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const order = await this.prisma.$transaction(async (tx) => {
       const currentLot = await tx.lot.findUnique({
         where: { id: lot.id },
         select: { stock: true, status: true, price: true },
@@ -90,6 +94,7 @@ export class OrdersService {
       }
 
       const newStock = currentLot.stock - 1;
+      const orderNumber = await generateOrderNumber(tx);
 
       await tx.lot.update({
         where: { id: lot.id },
@@ -101,6 +106,7 @@ export class OrdersService {
 
       return tx.order.create({
         data: {
+          orderNumber,
           lotId: lot.id,
           buyerId,
           sellerId: lot.sellerId,
@@ -110,6 +116,17 @@ export class OrdersService {
         select: ORDER_DETAIL_SELECT,
       });
     });
+
+    await this.chatService.onOrderCreated({
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      buyerId: order.buyerId,
+      sellerId: order.sellerId,
+      listingId: lot.id,
+      listingTitle: lot.title,
+    });
+
+    return order;
   }
 
   async findOrders(

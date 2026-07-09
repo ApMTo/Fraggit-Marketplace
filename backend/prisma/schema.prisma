@@ -52,6 +52,9 @@ model User {
   sellerOrders    Order[]  @relation("SellerOrders")
   reviewsWritten  Review[] @relation("ReviewsWritten")
   reviewsReceived Review[] @relation("ReviewsReceived")
+
+  conversationParticipants ConversationParticipant[]
+  sentMessages             Message[]                 @relation("SentMessages")
 }
 
 enum AttributeType {
@@ -225,6 +228,8 @@ enum OrderStatus {
 model Order {
   id String @id @default(uuid())
 
+  orderNumber String @unique
+
   lotId String
   lot   Lot    @relation(fields: [lotId], references: [id])
 
@@ -254,6 +259,92 @@ model Order {
   @@index([status])
   @@index([autoApproveAt])
   @@index([createdAt])
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  SYSTEM
+}
+
+model Conversation {
+  id String @id @default(uuid())
+
+  pairKey String? @unique
+
+  lastMessageAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@index([lastMessageAt])
+}
+
+model ConversationParticipant {
+  id String @id @default(uuid())
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  lastReadMessageId String?
+  lastReadMessage   Message?  @relation("ParticipantLastRead", fields: [lastReadMessageId], references: [id], onDelete: SetNull)
+  lastReadAt        DateTime?
+
+  hiddenAt DateTime?
+
+  joinedAt DateTime @default(now())
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@index([userId, conversationId])
+}
+
+model Message {
+  id String @id @default(uuid())
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  senderId String?
+  sender   User?   @relation("SentMessages", fields: [senderId], references: [id], onDelete: SetNull)
+
+  type MessageType
+
+  content String? @db.Text
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  attachments              MessageAttachment[]
+  lastReadByParticipants   ConversationParticipant[] @relation("ParticipantLastRead")
+
+  @@index([conversationId, createdAt])
+  @@index([conversationId, createdAt, id])
+  @@index([senderId])
+}
+
+model MessageAttachment {
+  id String @id @default(uuid())
+
+  messageId String
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  url      String
+  mimeType String
+  size     Int
+  width    Int?
+  height   Int?
+
+  createdAt DateTime @default(now())
+
+  @@index([messageId])
 }
 
 model Review {

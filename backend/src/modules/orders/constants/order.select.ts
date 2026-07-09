@@ -21,6 +21,7 @@ export const ORDER_USER_SELECT = {
 
 export const ORDER_DETAIL_SELECT = {
   id: true,
+  orderNumber: true,
   lotId: true,
   buyerId: true,
   sellerId: true,
@@ -43,6 +44,7 @@ export type OrderDetail = Prisma.OrderGetPayload<{
 
 export const ORDER_LIST_SELECT = {
   id: true,
+  orderNumber: true,
   lotId: true,
   buyerId: true,
   sellerId: true,
