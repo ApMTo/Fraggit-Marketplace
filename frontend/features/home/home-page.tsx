@@ -1,49 +1,130 @@
-import { BrandButton, SecondaryButton } from '@/components/ui/nav-button';
+import { getTranslations } from 'next-intl/server';
+import { LANDING_BENEFITS } from './data/benefits';
+import { LANDING_CATEGORIES } from './data/categories';
+import { LANDING_FAQ } from './data/faq';
+import { LANDING_STEPS } from './data/steps';
+import { CategoriesSection } from './components/categories-section';
+import { CtaSection } from './components/cta-section';
+import { FaqSection } from './components/faq-section';
+import { HeroSection } from './components/hero-section';
+import { HowItWorksSection } from './components/how-it-works-section';
+import { LandingFooter } from './components/landing-footer';
+import { WhyFraggitSection } from './components/why-fraggit-section';
+import { getLandingLinks } from './lib/get-landing-links';
 
 type HomePageProps = {
-  subtitle: string;
-  dashboardLabel: string;
-  registerLabel: string;
-  loginLabel: string;
   isAuthenticated: boolean;
+  userDisplayName?: string;
 };
 
-export function HomePage({
-  subtitle,
-  dashboardLabel,
-  registerLabel,
-  loginLabel,
+export async function HomePage({
   isAuthenticated,
+  userDisplayName,
 }: HomePageProps) {
-  return (
-    <div className="mx-auto flex w-full max-w-[1240px] flex-col px-5 py-16 sm:py-24">
-      <div className="marketing-hero relative flex flex-col items-center gap-8 px-6 py-16 text-center sm:px-10 sm:py-20">
-        <div className="relative z-10 space-y-4">
-          <h1 className="font-display text-4xl font-semibold tracking-[-0.02em] text-foreground sm:text-5xl lg:text-6xl">
-            <span className="text-brand-gradient">Fraggit</span>
-          </h1>
-          <p className="mx-auto max-w-lg text-lg leading-relaxed text-muted">
-            {subtitle}
-          </p>
-        </div>
+  const t = await getTranslations('landing');
+  const links = getLandingLinks({ isAuthenticated });
 
-        <div className="relative z-10">
-          {isAuthenticated ? (
-            <BrandButton href="/dashboard" size="lg">
-              {dashboardLabel}
-            </BrandButton>
-          ) : (
-            <div className="flex flex-wrap justify-center gap-3">
-              <SecondaryButton href="/register" size="lg">
-                {registerLabel}
-              </SecondaryButton>
-              <BrandButton href="/login" size="lg">
-                {loginLabel}
-              </BrandButton>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+  const heroSubtitle =
+    isAuthenticated && userDisplayName
+      ? t('hero.welcomeBack', { name: userDisplayName })
+      : t('hero.subtitle');
+
+  const currentYear = new Date().getFullYear();
+
+  return (
+    <>
+      <HeroSection
+        title={t('hero.title')}
+        subtitle={heroSubtitle}
+        startShoppingLabel={t('hero.startShopping')}
+        becomeSellerLabel={t('hero.becomeSeller')}
+        links={links}
+        preview={{
+          title: t('hero.preview.title'),
+          dealStatus: t('hero.preview.dealStatus'),
+          sellerRating: t('hero.preview.sellerRating'),
+          reviewsLabel: t('hero.preview.reviews'),
+          priceLabel: t('hero.preview.price'),
+          items: {
+            account: t('hero.preview.items.account'),
+            currency: t('hero.preview.items.currency'),
+            service: t('hero.preview.items.service'),
+          },
+        }}
+      />
+
+      <CategoriesSection
+        title={t('categories.title')}
+        subtitle={t('categories.subtitle')}
+        categories={LANDING_CATEGORIES}
+        listingsHref={links.startShopping}
+        getCategoryName={(key) =>
+          t(`categories.items.${key}.name` as Parameters<typeof t>[0])
+        }
+        getCategoryDescription={(key) =>
+          t(`categories.items.${key}.description` as Parameters<typeof t>[0])
+        }
+      />
+
+      <WhyFraggitSection
+        title={t('benefits.title')}
+        subtitle={t('benefits.subtitle')}
+        benefits={LANDING_BENEFITS}
+        getBenefitTitle={(key) =>
+          t(`benefits.items.${key}.title` as Parameters<typeof t>[0])
+        }
+        getBenefitDescription={(key) =>
+          t(`benefits.items.${key}.description` as Parameters<typeof t>[0])
+        }
+      />
+
+      <HowItWorksSection
+        title={t('howItWorks.title')}
+        subtitle={t('howItWorks.subtitle')}
+        steps={LANDING_STEPS}
+        getStepTitle={(key) =>
+          t(`howItWorks.steps.${key}.title` as Parameters<typeof t>[0])
+        }
+        getStepDescription={(key) =>
+          t(`howItWorks.steps.${key}.description` as Parameters<typeof t>[0])
+        }
+      />
+
+      <FaqSection
+        title={t('faq.title')}
+        subtitle={t('faq.subtitle')}
+        items={LANDING_FAQ}
+        getQuestion={(key) =>
+          t(`faq.items.${key}.question` as Parameters<typeof t>[0])
+        }
+        getAnswer={(key) =>
+          t(`faq.items.${key}.answer` as Parameters<typeof t>[0])
+        }
+      />
+
+      <CtaSection
+        title={t('cta.title')}
+        subtitle={t('cta.subtitle')}
+        startShoppingLabel={t('cta.startShopping')}
+        createAccountLabel={t('cta.createAccount')}
+        links={links}
+      />
+
+      <LandingFooter
+        tagline={t('footer.tagline')}
+        copyright={t('footer.copyright', { year: currentYear })}
+        links={[
+          { label: t('footer.about'), href: '#about' },
+          { label: t('footer.privacy'), href: '#privacy' },
+          { label: t('footer.terms'), href: '#terms' },
+          { label: t('footer.support'), href: '#support' },
+          { label: t('footer.contacts'), href: '#contacts' },
+        ]}
+        socialLinks={[
+          { label: t('footer.telegram'), href: 'https://t.me/fraggit' },
+          { label: t('footer.discord'), href: 'https://discord.gg/fraggit' },
+        ]}
+      />
+    </>
   );
 }
