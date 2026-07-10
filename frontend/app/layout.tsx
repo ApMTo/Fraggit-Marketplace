@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Inter, Space_Grotesk } from 'next/font/google';
 import { getLocale, getMessages } from 'next-intl/server';
 import { Toaster } from 'react-hot-toast';
 import { AppShell } from '@/components/layout/app-shell';
@@ -11,13 +11,14 @@ import { QueryProvider } from '@/providers/QueryProvider';
 import { IntlProvider } from '@/providers/IntlProvider';
 import './globals.css';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const spaceGrotesk = Space_Grotesk({
+  variable: '--font-display',
   subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
 });
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const inter = Inter({
+  variable: '--font-body',
   subsets: ['latin'],
 });
 
@@ -41,7 +42,7 @@ export default async function RootLayout({
       lang={locale}
       data-theme={theme}
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${spaceGrotesk.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <IntlProvider locale={locale} messages={messages}>
@@ -53,7 +54,7 @@ export default async function RootLayout({
                   position="top-right"
                   toastOptions={{
                     className:
-                      '!bg-surface !text-foreground !border !border-border',
+                      '!bg-surface !text-foreground !border !border-border !rounded-[var(--radius-md)] !shadow-[var(--shadow-lg)]',
                   }}
                 />
               </AuthProvider>

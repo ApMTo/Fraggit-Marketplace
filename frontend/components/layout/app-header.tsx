@@ -14,20 +14,20 @@ export function AppHeader() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+    <header className="glass-header sticky top-0 z-50 border-b border-border">
+      <div className="mx-auto flex h-[68px] max-w-[1240px] items-center justify-between gap-4 px-5">
         <Logo />
 
         <nav className="flex items-center gap-2 sm:gap-3">
           <HeaderPreferences />
 
           {isLoading ? (
-            <span className="size-8 animate-pulse rounded-full bg-surface-elevated" />
+            <span className="size-8 animate-pulse rounded-[var(--radius-md)] bg-surface-elevated" />
           ) : isAuthenticated && user ? (
             <>
               <Link
                 href="/profile"
-                className="hidden items-center gap-2 rounded-full px-3 py-2 text-sm text-muted transition-colors hover:bg-surface-elevated hover:text-foreground sm:flex"
+                className="hidden items-center gap-2 rounded-[var(--radius-sm)] px-3 py-2 text-sm text-muted transition-[background-color,color,box-shadow] duration-300 hover:bg-surface-elevated hover:text-foreground sm:flex"
               >
                 <UserRound className="size-4 text-brand-cyan" />
                 <span>{user.displayName}</span>
