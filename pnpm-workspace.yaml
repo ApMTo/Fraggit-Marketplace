@@ -2,4 +2,24 @@ packages:
   - backend
   - frontend
 
-onlyBuiltDependencies: '@prisma/engines prisma'
+allowBuilds:
+  '@parcel/watcher': true
+  '@prisma/engines': true
+  '@scarf/scarf': true
+  '@swc/core': true
+  argon2: true
+  msgpackr-extract: true
+  prisma: true
+  sharp: true
+  unrs-resolver: true
+
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - '@prisma/engines'
+  - '@scarf/scarf'
+  - '@swc/core'
+  - argon2
+  - msgpackr-extract
+  - prisma
+  - sharp
+  - unrs-resolver

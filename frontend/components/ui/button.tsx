@@ -12,16 +12,15 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 const sizeClasses: Record<ButtonSize, string> = {
   sm: 'h-9 px-4 text-sm',
   md: 'h-11 px-6 text-sm',
-  lg: 'h-12 px-8 text-base',
+  lg: 'h-[52px] px-8 text-base',
 };
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: 'btn-primary rounded-full',
-  secondary: 'btn-secondary rounded-full',
-  ghost:
-    'rounded-full text-muted hover:bg-accent hover:text-accent-foreground active:scale-[0.98]',
+  primary: 'btn-primary',
+  secondary: 'btn-secondary',
+  ghost: 'btn-ghost',
   destructive:
-    'rounded-full bg-destructive text-white hover:opacity-90 active:scale-[0.98]',
+    'rounded-[var(--radius-sm)] bg-destructive font-semibold text-white shadow-[var(--shadow-md)] hover:opacity-90 active:scale-[0.965]',
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -41,7 +40,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         disabled={disabled || isLoading}
-        className={`inline-flex cursor-pointer items-center justify-center gap-2 font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:pointer-events-none disabled:opacity-50 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+        className={`inline-flex cursor-pointer items-center justify-center gap-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:pointer-events-none disabled:opacity-50 ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
         {...props}
       >
         {isLoading ? (

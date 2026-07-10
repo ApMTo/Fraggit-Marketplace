@@ -63,7 +63,7 @@ export function DropdownMenu({
         aria-haspopup="menu"
         aria-controls={menuId}
         onClick={() => setOpen((value) => !value)}
-        className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3 py-2 text-sm text-foreground transition-colors hover:bg-surface-hover"
+        className="dropdown-trigger inline-flex cursor-pointer items-center gap-1.5 px-3 py-2 text-sm text-foreground"
       >
         {trigger}
         <ChevronDown
@@ -75,7 +75,7 @@ export function DropdownMenu({
         <div
           id={menuId}
           role="menu"
-          className={`dropdown-panel absolute top-[calc(100%+0.5rem)] z-50 min-w-[10rem] overflow-hidden rounded-xl p-1 ${
+          className={`dropdown-panel absolute top-[calc(100%+0.75rem)] z-50 min-w-[10rem] overflow-hidden p-1.5 ${
             align === 'end' ? 'right-0' : 'left-0'
           }`}
         >
@@ -102,7 +102,7 @@ export function DropdownItem({
       type="button"
       role="menuitem"
       onClick={onSelect}
-      className={`flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+      className={`flex w-full cursor-pointer items-center gap-2 rounded-[var(--radius-sm)] px-3 py-2 text-left text-sm transition-[background-color,color] duration-300 ${
         isActive
           ? 'bg-accent text-accent-foreground'
           : 'text-foreground hover:bg-surface-hover'

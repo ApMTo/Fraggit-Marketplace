@@ -10,9 +10,9 @@ export function DashboardPage({
   username,
 }: DashboardPageProps) {
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-10 sm:px-6">
+    <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-6 px-5 py-10">
       <div className="space-y-1">
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground">
+        <h1 className="page-title text-3xl">
           {title}
         </h1>
         <p className="text-muted">

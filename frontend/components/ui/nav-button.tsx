@@ -8,7 +8,7 @@ type BrandButtonProps = ComponentProps<typeof Link> & {
 const sizeClasses = {
   sm: 'h-9 px-4 text-sm',
   md: 'h-11 px-6 text-sm',
-  lg: 'h-12 px-8 text-base',
+  lg: 'h-[52px] px-8 text-base',
 };
 
 export function BrandButton({

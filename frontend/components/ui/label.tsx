@@ -5,7 +5,7 @@ export type LabelProps = LabelHTMLAttributes<HTMLLabelElement>;
 export function Label({ className = '', ...props }: LabelProps) {
   return (
     <label
-      className={`text-sm font-medium text-foreground ${className}`}
+      className={`text-xs font-semibold uppercase tracking-[0.03em] text-muted ${className}`}
       {...props}
     />
   );
