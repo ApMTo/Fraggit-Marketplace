@@ -6,6 +6,19 @@
       "label": "Theme",
       "dark": "Dark",
       "light": "Light"
+    },
+    "nav": {
+      "menu": "Menu",
+      "openMenu": "Open menu",
+      "closeMenu": "Close menu",
+      "home": "Home",
+      "listings": "Listings",
+      "dashboard": "Dashboard",
+      "orders": "Orders",
+      "chat": "Chat",
+      "profile": "Profile",
+      "settings": "Settings",
+      "admin": "Admin"
     }
   },
   "landing": {
@@ -17,19 +30,7 @@
       "subtitle": "Fraggit is a modern marketplace for digital goods, accounts, and services with a secure escrow system.",
       "welcomeBack": "Welcome back, {name}. Continue buying and selling on Fraggit.",
       "startShopping": "Start shopping",
-      "becomeSeller": "Become a seller",
-      "preview": {
-        "title": "Popular listings",
-        "dealStatus": "Deal protected",
-        "sellerRating": "Seller rating",
-        "reviews": "{count} reviews",
-        "price": "Price",
-        "items": {
-          "account": "Steam account · 50+ games",
-          "currency": "In-game currency · 10,000 coins",
-          "service": "Rank boost · to Immortal"
-        }
-      }
+      "becomeSeller": "Become a seller"
     },
     "categories": {
       "title": "Popular categories",

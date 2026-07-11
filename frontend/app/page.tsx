@@ -16,10 +16,5 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Page() {
   const user = await getSessionUser();
 
-  return (
-    <HomePage
-      isAuthenticated={Boolean(user)}
-      userDisplayName={user?.displayName}
-    />
-  );
+  return <HomePage isAuthenticated={Boolean(user)} />;
 }

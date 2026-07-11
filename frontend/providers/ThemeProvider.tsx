@@ -2,15 +2,18 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
+  useState,
   type ReactNode,
 } from 'react';
-import { type Theme } from '@/lib/theme';
+import { setThemeCookie, type Theme } from '@/lib/theme';
 
 type ThemeContextValue = {
   theme: Theme;
+  setTheme: (theme: Theme) => void;
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -20,12 +23,19 @@ type ThemeProviderProps = {
   theme: Theme;
 };
 
-export function ThemeProvider({ children, theme }: ThemeProviderProps) {
+export function ThemeProvider({ children, theme: initialTheme }: ThemeProviderProps) {
+  const [theme, setThemeState] = useState(initialTheme);
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-  const value = useMemo(() => ({ theme }), [theme]);
+  const setTheme = useCallback((nextTheme: Theme) => {
+    setThemeState(nextTheme);
+    setThemeCookie(nextTheme);
+  }, []);
+
+  const value = useMemo(() => ({ theme, setTheme }), [theme, setTheme]);
 
   return (
     <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
