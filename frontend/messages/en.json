@@ -174,6 +174,152 @@
     "settings": "Settings Page",
     "admin": "Admin Page"
   },
+  "admin": {
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "categoryNotFound": "Category not found.",
+      "categoryNameExists": "A category with this name already exists.",
+      "categorySlugExists": "A category with this slug already exists.",
+      "categoryHasLots": "Cannot delete a category that has listings.",
+      "invalidSlug": "Invalid slug format.",
+      "subcategoryNotFound": "Subcategory not found.",
+      "subcategorySlugExists": "A subcategory with this slug already exists.",
+      "subcategoryHasLots": "Cannot delete a subcategory that has listings.",
+      "invalidGlobalAttributeIds": "One or more selected global attributes are invalid.",
+      "attributeNotFound": "Custom field not found.",
+      "attributeKeyExists": "A field with this key already exists.",
+      "attributeKeyConflictsWithGlobal": "This key conflicts with a global field.",
+      "attributeOptionsRequired": "Options are required for SELECT and MULTISELECT fields.",
+      "attributeOptionsNotAllowed": "Options are not allowed for this field type.",
+      "insufficientRole": "You do not have permission to perform this action."
+    },
+    "validation": {
+      "nameRequired": "Name is required.",
+      "nameLength": "Name must be between 2 and 100 characters.",
+      "slugLength": "Slug must be at most 100 characters.",
+      "keyRequired": "Key is required.",
+      "keyLength": "Key must be between 2 and 50 characters.",
+      "keyFormat": "Key must start with a letter and contain only lowercase letters, numbers, and underscores.",
+      "labelRequired": "Label is required.",
+      "labelLength": "Label must be between 2 and 100 characters.",
+      "optionsRequired": "At least one option is required.",
+      "sortOrderInvalid": "Sort order must be a non-negative integer."
+    },
+    "confirm": {
+      "title": "Confirm deletion",
+      "confirm": "Delete",
+      "cancel": "Cancel",
+      "deleteCategory": "Delete category \"{name}\"? This action cannot be undone.",
+      "deleteSubcategory": "Delete subcategory \"{name}\"? This action cannot be undone.",
+      "deleteAttribute": "Delete custom field \"{name}\"? This action cannot be undone."
+    },
+    "categories": {
+      "subtitle": "Manage marketplace categories, subcategories, and custom fields.",
+      "createCategory": "New category",
+      "loadError": "Failed to load categories",
+      "loadErrorHint": "Check your connection and try refreshing the page.",
+      "selectPrompt": {
+        "title": "Select a category",
+        "description": "Choose a category from the tree or create a new one."
+      },
+      "tree": {
+        "title": "Category tree",
+        "emptyTitle": "No categories yet",
+        "emptyDescription": "Create your first category to get started."
+      },
+      "detail": {
+        "editCategory": "Edit",
+        "deleteCategory": "Delete",
+        "subcategories": "Subcategories",
+        "createSubcategory": "Add subcategory",
+        "noSubcategories": "No subcategories in this category.",
+        "createGlobalAttribute": "Add global field",
+        "noGlobalAttributes": "No global custom fields",
+        "noGlobalAttributesHint": "Global fields can be linked to subcategories."
+      },
+      "subcategoryDetail": {
+        "subtitle": "Subcategory",
+        "editSubcategory": "Edit",
+        "deleteSubcategory": "Delete",
+        "linkedGlobalAttributes": "Linked global fields",
+        "noLinkedGlobalAttributes": "No global fields linked to this subcategory.",
+        "createAttribute": "Add field",
+        "noAttributes": "No custom fields",
+        "noAttributesHint": "Add subcategory-specific fields or link global fields when editing the subcategory."
+      },
+      "form": {
+        "createTitle": "Create category",
+        "editTitle": "Edit category",
+        "name": "Name",
+        "slug": "Slug",
+        "slugPlaceholder": "Auto-generated if empty",
+        "icon": "Icon",
+        "preview": "Preview image",
+        "fileHint": "JPEG, PNG, or WebP up to 5 MB",
+        "cancel": "Cancel",
+        "create": "Create",
+        "save": "Save",
+        "createSuccess": "Category created.",
+        "updateSuccess": "Category updated."
+      },
+      "subcategoryForm": {
+        "createTitle": "Create subcategory",
+        "editTitle": "Edit subcategory",
+        "name": "Name",
+        "slug": "Slug",
+        "slugPlaceholder": "Auto-generated if empty",
+        "globalAttributes": "Link global fields",
+        "globalAttributesHint": "Select which global custom fields apply to this subcategory.",
+        "cancel": "Cancel",
+        "create": "Create",
+        "save": "Save",
+        "createSuccess": "Subcategory created.",
+        "updateSuccess": "Subcategory updated."
+      },
+      "attributeForm": {
+        "createTitle": "Create custom field",
+        "editTitle": "Edit custom field",
+        "label": "Label",
+        "key": "Key",
+        "keyPlaceholder": "e.g. platform",
+        "type": "Type",
+        "sortOrder": "Sort order",
+        "required": "Required",
+        "requiredHint": "Buyers must fill in this field when creating a listing.",
+        "options": "Options",
+        "optionsPlaceholder": "One option per line",
+        "optionsHint": "Required for SELECT and MULTISELECT types.",
+        "cancel": "Cancel",
+        "create": "Create",
+        "save": "Save",
+        "createSuccess": "Custom field created.",
+        "updateSuccess": "Custom field updated."
+      },
+      "attributes": {
+        "title": "Custom fields",
+        "columns": {
+          "label": "Label",
+          "key": "Key",
+          "type": "Type",
+          "required": "Required",
+          "sortOrder": "Order",
+          "scope": "Scope",
+          "actions": "Actions"
+        },
+        "yes": "Yes",
+        "no": "No",
+        "global": "Global",
+        "subcategory": "Subcategory",
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "delete": {
+        "categorySuccess": "Category deleted.",
+        "subcategorySuccess": "Subcategory deleted.",
+        "attributeSuccess": "Custom field deleted."
+      }
+    }
+  },
   "auth": {
     "logout": "Sign out",
     "welcomeBack": "Welcome back",

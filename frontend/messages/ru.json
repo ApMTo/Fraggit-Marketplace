@@ -174,6 +174,152 @@
     "settings": "Страница настроек",
     "admin": "Страница администратора"
   },
+  "admin": {
+    "errors": {
+      "generic": "Что-то пошло не так. Попробуйте снова.",
+      "categoryNotFound": "Категория не найдена.",
+      "categoryNameExists": "Категория с таким названием уже существует.",
+      "categorySlugExists": "Категория с таким slug уже существует.",
+      "categoryHasLots": "Нельзя удалить категорию с объявлениями.",
+      "invalidSlug": "Некорректный формат slug.",
+      "subcategoryNotFound": "Подкатегория не найдена.",
+      "subcategorySlugExists": "Подкатегория с таким slug уже существует.",
+      "subcategoryHasLots": "Нельзя удалить подкатегорию с объявлениями.",
+      "invalidGlobalAttributeIds": "Один или несколько выбранных глобальных полей недействительны.",
+      "attributeNotFound": "Пользовательское поле не найдено.",
+      "attributeKeyExists": "Поле с таким ключом уже существует.",
+      "attributeKeyConflictsWithGlobal": "Ключ конфликтует с глобальным полем.",
+      "attributeOptionsRequired": "Для типов SELECT и MULTISELECT необходимы варианты.",
+      "attributeOptionsNotAllowed": "Для этого типа поля варианты не допускаются.",
+      "insufficientRole": "У вас нет прав для выполнения этого действия."
+    },
+    "validation": {
+      "nameRequired": "Название обязательно.",
+      "nameLength": "Название должно содержать от 2 до 100 символов.",
+      "slugLength": "Slug должен содержать не более 100 символов.",
+      "keyRequired": "Ключ обязателен.",
+      "keyLength": "Ключ должен содержать от 2 до 50 символов.",
+      "keyFormat": "Ключ должен начинаться с буквы и содержать только строчные буквы, цифры и подчёркивания.",
+      "labelRequired": "Метка обязательна.",
+      "labelLength": "Метка должна содержать от 2 до 100 символов.",
+      "optionsRequired": "Необходим хотя бы один вариант.",
+      "sortOrderInvalid": "Порядок сортировки должен быть неотрицательным целым числом."
+    },
+    "confirm": {
+      "title": "Подтверждение удаления",
+      "confirm": "Удалить",
+      "cancel": "Отмена",
+      "deleteCategory": "Удалить категорию «{name}»? Это действие необратимо.",
+      "deleteSubcategory": "Удалить подкатегорию «{name}»? Это действие необратимо.",
+      "deleteAttribute": "Удалить поле «{name}»? Это действие необратимо."
+    },
+    "categories": {
+      "subtitle": "Управление категориями, подкатегориями и пользовательскими полями.",
+      "createCategory": "Новая категория",
+      "loadError": "Не удалось загрузить категории",
+      "loadErrorHint": "Проверьте подключение и обновите страницу.",
+      "selectPrompt": {
+        "title": "Выберите категорию",
+        "description": "Выберите категорию в дереве или создайте новую."
+      },
+      "tree": {
+        "title": "Дерево категорий",
+        "emptyTitle": "Категорий пока нет",
+        "emptyDescription": "Создайте первую категорию, чтобы начать."
+      },
+      "detail": {
+        "editCategory": "Изменить",
+        "deleteCategory": "Удалить",
+        "subcategories": "Подкатегории",
+        "createSubcategory": "Добавить подкатегорию",
+        "noSubcategories": "В этой категории нет подкатегорий.",
+        "createGlobalAttribute": "Добавить глобальное поле",
+        "noGlobalAttributes": "Нет глобальных полей",
+        "noGlobalAttributesHint": "Глобальные поля можно привязать к подкатегориям."
+      },
+      "subcategoryDetail": {
+        "subtitle": "Подкатегория",
+        "editSubcategory": "Изменить",
+        "deleteSubcategory": "Удалить",
+        "linkedGlobalAttributes": "Привязанные глобальные поля",
+        "noLinkedGlobalAttributes": "К этой подкатегории не привязаны глобальные поля.",
+        "createAttribute": "Добавить поле",
+        "noAttributes": "Нет пользовательских полей",
+        "noAttributesHint": "Добавьте поля для подкатегории или привяжите глобальные поля при редактировании."
+      },
+      "form": {
+        "createTitle": "Создать категорию",
+        "editTitle": "Редактировать категорию",
+        "name": "Название",
+        "slug": "Slug",
+        "slugPlaceholder": "Сгенерируется автоматически, если пусто",
+        "icon": "Иконка",
+        "preview": "Превью",
+        "fileHint": "JPEG, PNG или WebP до 5 МБ",
+        "cancel": "Отмена",
+        "create": "Создать",
+        "save": "Сохранить",
+        "createSuccess": "Категория создана.",
+        "updateSuccess": "Категория обновлена."
+      },
+      "subcategoryForm": {
+        "createTitle": "Создать подкатегорию",
+        "editTitle": "Редактировать подкатегорию",
+        "name": "Название",
+        "slug": "Slug",
+        "slugPlaceholder": "Сгенерируется автоматически, если пусто",
+        "globalAttributes": "Привязать глобальные поля",
+        "globalAttributesHint": "Выберите глобальные поля, которые применяются к этой подкатегории.",
+        "cancel": "Отмена",
+        "create": "Создать",
+        "save": "Сохранить",
+        "createSuccess": "Подкатегория создана.",
+        "updateSuccess": "Подкатегория обновлена."
+      },
+      "attributeForm": {
+        "createTitle": "Создать поле",
+        "editTitle": "Редактировать поле",
+        "label": "Метка",
+        "key": "Ключ",
+        "keyPlaceholder": "например, platform",
+        "type": "Тип",
+        "sortOrder": "Порядок",
+        "required": "Обязательное",
+        "requiredHint": "Покупатель должен заполнить это поле при создании объявления.",
+        "options": "Варианты",
+        "optionsPlaceholder": "Один вариант на строку",
+        "optionsHint": "Обязательно для типов SELECT и MULTISELECT.",
+        "cancel": "Отмена",
+        "create": "Создать",
+        "save": "Сохранить",
+        "createSuccess": "Поле создано.",
+        "updateSuccess": "Поле обновлено."
+      },
+      "attributes": {
+        "title": "Пользовательские поля",
+        "columns": {
+          "label": "Метка",
+          "key": "Ключ",
+          "type": "Тип",
+          "required": "Обяз.",
+          "sortOrder": "Порядок",
+          "scope": "Область",
+          "actions": "Действия"
+        },
+        "yes": "Да",
+        "no": "Нет",
+        "global": "Глобальное",
+        "subcategory": "Подкатегория",
+        "edit": "Изменить",
+        "delete": "Удалить"
+      },
+      "delete": {
+        "categorySuccess": "Категория удалена.",
+        "subcategorySuccess": "Подкатегория удалена.",
+        "attributeSuccess": "Поле удалено."
+      }
+    }
+  },
   "auth": {
     "logout": "Выйти",
     "welcomeBack": "С возвращением",

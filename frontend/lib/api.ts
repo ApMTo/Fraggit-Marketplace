@@ -104,6 +104,10 @@ function getRefreshPromise(): Promise<AuthSessionResponse | null> {
 }
 
 api.interceptors.request.use((config) => {
+  if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+    config.headers.set('Content-Type', 'multipart/form-data');
+  }
+
   attachCsrfHeader(config);
   return config;
 });

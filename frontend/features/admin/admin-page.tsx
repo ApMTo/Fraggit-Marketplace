@@ -1,9 +1,9 @@
-import { PlaceholderPage } from '@/features/shared/placeholder-page';
+import { CategoriesAdminPage } from '@/features/admin/categories-admin-page';
 
 type AdminPageProps = {
   title: string;
 };
 
 export function AdminPage({ title }: AdminPageProps) {
-  return <PlaceholderPage title={title} />;
+  return <CategoriesAdminPage title={title} />;
 }

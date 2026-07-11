@@ -2,7 +2,9 @@ import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { serverFetch } from '@/lib/api-server';
-import type { AuthProfileResponse, AuthUser } from '@/types/auth';
+import type { AuthProfileResponse, AuthUser, UserRole } from '@/types/auth';
+
+const ADMIN_ROLES = new Set<UserRole>(['ADMIN', 'SUPER_ADMIN', 'OWNER']);
 
 export const getSessionUser = cache(async (): Promise<AuthUser | null> => {
   const cookieStore = await cookies();
@@ -46,7 +48,7 @@ export async function requireSessionUser(): Promise<AuthUser> {
 export async function requireAdminUser(): Promise<AuthUser> {
   const user = await requireSessionUser();
 
-  if (user.role !== 'ADMIN') {
+  if (!ADMIN_ROLES.has(user.role)) {
     redirect('/dashboard');
   }
 
