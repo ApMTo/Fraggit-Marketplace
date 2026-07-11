@@ -1,7 +1,4 @@
-import {
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 import { ChatReadService } from './chat-read.service';
 import { ConversationService } from './conversation.service';
@@ -29,7 +26,9 @@ describe('ChatReadService', () => {
     };
 
     conversationService = {
-      assertUserIsParticipant: jest.fn().mockResolvedValue(['user-1', 'user-2']),
+      assertUserIsParticipant: jest
+        .fn()
+        .mockResolvedValue(['user-1', 'user-2']),
     };
 
     service = new ChatReadService(

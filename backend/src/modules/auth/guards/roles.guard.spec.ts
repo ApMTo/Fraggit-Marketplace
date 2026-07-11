@@ -35,7 +35,9 @@ describe('RolesGuard', () => {
   it('throws when user role is missing', () => {
     reflector.getAllAndOverride.mockReturnValue(undefined);
 
-    expect(() => guard.canActivate(createContext())).toThrow(ForbiddenException);
+    expect(() => guard.canActivate(createContext())).toThrow(
+      ForbiddenException,
+    );
   });
 
   it('allows hierarchy-based access', () => {

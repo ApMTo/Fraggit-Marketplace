@@ -21,7 +21,10 @@ export class ChatRateLimitService {
     }
 
     if (count > CHAT_RATE_LIMIT_MAX_MESSAGES) {
-      throw new HttpException('chat_rate_limit_exceeded', HttpStatus.TOO_MANY_REQUESTS);
+      throw new HttpException(
+        'chat_rate_limit_exceeded',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
     }
   }
 }

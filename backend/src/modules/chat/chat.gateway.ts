@@ -9,6 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { UsePipes, ValidationPipe } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
+import type { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { PinoLogger } from 'nestjs-pino';
 import { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CHAT_WS_EVENTS } from './constants/chat.constants';
@@ -21,11 +22,12 @@ import { ChatNotificationService } from './services/chat-notification.service';
 import { ConversationService } from './services/conversation.service';
 import { MessageService } from './services/message.service';
 
-type AuthenticatedSocket = Socket & {
-  data: {
-    user: AuthUser;
-  };
-};
+type AuthenticatedSocket = Socket<
+  DefaultEventsMap,
+  DefaultEventsMap,
+  DefaultEventsMap,
+  { user?: AuthUser }
+>;
 
 @WebSocketGateway({
   namespace: '/chat',
@@ -67,9 +69,18 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           online: true,
         });
 
-      this.logger.info({ userId: user.id, socketId: client.id }, 'Chat connected');
-    } catch (error) {
-      this.logger.warn({ socketId: client.id, error }, 'Chat connection rejected');
+      this.logger.info(
+        { userId: user.id, socketId: client.id },
+        'Chat connected',
+      );
+    } catch (error: unknown) {
+      this.logger.warn(
+        {
+          socketId: client.id,
+          err: error instanceof Error ? error.message : String(error),
+        },
+        'Chat connection rejected',
+      );
       client.emit(CHAT_WS_EVENTS.ERROR, { code: 'chat_auth_failed' });
       client.disconnect(true);
     }
@@ -96,7 +107,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
     }
 
-    this.logger.info({ userId: user.id, socketId: client.id }, 'Chat disconnected');
+    this.logger.info(
+      { userId: user.id, socketId: client.id },
+      'Chat disconnected',
+    );
   }
 
   @SubscribeMessage(CHAT_WS_EVENTS.HEARTBEAT)
@@ -132,10 +146,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
 
     for (const participantId of participantIds) {
-      this.server.to(this.userRoom(participantId)).emit(
-        CHAT_WS_EVENTS.MESSAGE_NEW,
-        { message },
-      );
+      this.server
+        .to(this.userRoom(participantId))
+        .emit(CHAT_WS_EVENTS.MESSAGE_NEW, { message });
     }
 
     client.emit(CHAT_WS_EVENTS.MESSAGE_SENT, { message });
@@ -176,15 +189,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const otherParticipantId = participantIds.find((id) => id !== user.id);
 
     if (otherParticipantId) {
-      this.server.to(this.userRoom(otherParticipantId)).emit(
-        CHAT_WS_EVENTS.MESSAGE_READ_ACK,
-        {
+      this.server
+        .to(this.userRoom(otherParticipantId))
+        .emit(CHAT_WS_EVENTS.MESSAGE_READ_ACK, {
           conversationId: dto.conversationId,
           readerUserId: user.id,
           lastReadMessageId: result.lastReadMessageId,
           lastReadAt: result.lastReadAt,
-        },
-      );
+        });
     }
 
     client.emit(CHAT_WS_EVENTS.MESSAGE_READ_ACK, result);

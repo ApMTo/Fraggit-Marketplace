@@ -5,8 +5,9 @@ export function calculateUpdatedRating(
 ): { rating: number; ratingCount: number } {
   const ratingCount = currentCount + 1;
   const rating =
-    Math.round(((currentRating * currentCount + newRating) / ratingCount) * 100) /
-    100;
+    Math.round(
+      ((currentRating * currentCount + newRating) / ratingCount) * 100,
+    ) / 100;
 
   return { rating, ratingCount };
 }

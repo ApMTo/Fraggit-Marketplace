@@ -63,7 +63,8 @@ export class ListingsController {
   @ApiHeader(CSRF_HEADER)
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
-    summary: 'Create a new lot with dynamic attributes and optional proof photos',
+    summary:
+      'Create a new lot with dynamic attributes and optional proof photos',
     description:
       'Accepts multipart form-data. Field "attributes" must be a JSON string. ' +
       'Optional field "photos" accepts up to 5 images (jpeg, png, webp, max 5MB each).',
@@ -126,7 +127,10 @@ export class ListingsController {
   @ApiParam({ name: 'categorySlug', example: 'pubg' })
   @ApiParam({ name: 'subcategorySlug', example: 'accounts' })
   @ApiResponse({ status: 200, description: 'Paginated lot list' })
-  @ApiResponse({ status: 404, description: 'Category or subcategory not found' })
+  @ApiResponse({
+    status: 404,
+    description: 'Category or subcategory not found',
+  })
   findMany(
     @Param('categorySlug') categorySlug: string,
     @Param('subcategorySlug') subcategorySlug: string,
@@ -177,7 +181,8 @@ export class ListingsController {
         },
         keepImageIds: {
           type: 'string',
-          description: 'JSON array of existing lot image ids to keep, in display order',
+          description:
+            'JSON array of existing lot image ids to keep, in display order',
           example: '["image-uuid-1","image-uuid-2"]',
         },
         photos: {

@@ -26,7 +26,7 @@ export function normalizeLotAttributes(
 
   const definitionById = new Map(
     definitions.map((definition) => [definition.id, definition]),
-  ); 
+  );
 
   for (const input of inputs) {
     if (!definitionById.has(input.attributeId)) {
@@ -78,7 +78,9 @@ function normalizeValue(
       return normalizeMultiselectValue(definition, rawValue);
 
     default:
-      throw new BadRequestException(`unsupported_attribute_type:${definition.key}`);
+      throw new BadRequestException(
+        `unsupported_attribute_type:${definition.key}`,
+      );
   }
 }
 
@@ -172,7 +174,9 @@ function normalizeMultiselectValue(
 
   for (const value of uniqueValues) {
     if (!optionSet.has(value)) {
-      throw new BadRequestException(`invalid_attribute_option:${definition.key}`);
+      throw new BadRequestException(
+        `invalid_attribute_option:${definition.key}`,
+      );
     }
   }
 
@@ -187,7 +191,9 @@ function parseMultiselectRawValue(
     if (!rawValue.every((item) => typeof item === 'string')) {
       throw new BadRequestException(`invalid_attribute_value:${key}`);
     }
-    return rawValue.map((item) => item.trim()).filter((item) => item.length > 0);
+    return rawValue
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
   }
 
   if (typeof rawValue === 'string') {
@@ -202,7 +208,9 @@ function parseMultiselectRawValue(
         Array.isArray(parsed) &&
         parsed.every((item): item is string => typeof item === 'string')
       ) {
-        return parsed.map((item) => item.trim()).filter((item) => item.length > 0);
+        return parsed
+          .map((item) => item.trim())
+          .filter((item) => item.length > 0);
       }
     } catch {
       return [trimmed];

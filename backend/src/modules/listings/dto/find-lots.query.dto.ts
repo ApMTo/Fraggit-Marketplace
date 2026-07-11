@@ -11,6 +11,7 @@ import {
   Min,
 } from 'class-validator';
 import { V } from '../../../common/constants/validation.messages';
+import { trimOptionalSearch } from '../../../common/utils/dto-transform.util';
 
 export enum LotSort {
   DEFAULT = 'default',
@@ -19,7 +20,9 @@ export enum LotSort {
   PRICE_DESC = 'price_desc',
 }
 
-function parseFilters(value: unknown): Record<string, string | number | boolean> | undefined {
+function parseFilters(
+  value: unknown,
+): Record<string, string | number | boolean> | undefined {
   if (value === undefined || value === null || value === '') {
     return undefined;
   }
@@ -34,7 +37,11 @@ function parseFilters(value: unknown): Record<string, string | number | boolean>
 
   try {
     const parsed: unknown = JSON.parse(value);
-    if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+    if (
+      typeof parsed === 'object' &&
+      parsed !== null &&
+      !Array.isArray(parsed)
+    ) {
       return parsed as Record<string, string | number | boolean>;
     }
     return undefined;
@@ -44,13 +51,13 @@ function parseFilters(value: unknown): Record<string, string | number | boolean>
 }
 
 export class FindLotsQueryDto {
-  @ApiPropertyOptional({ description: 'Search by title, description, or attribute values' })
+  @ApiPropertyOptional({
+    description: 'Search by title, description, or attribute values',
+  })
   @IsOptional()
   @IsString({ message: V.mustBeString })
   @MaxLength(200, { message: 'validation.search_max_length' })
-  @Transform(({ value }) =>
-    typeof value === 'string' ? value.trim() || undefined : value,
-  )
+  @Transform(trimOptionalSearch)
   search?: string;
 
   @ApiPropertyOptional({
@@ -59,7 +66,7 @@ export class FindLotsQueryDto {
     example: '{"platform":"XBOX","rank":"Diamond"}',
   })
   @IsOptional()
-  @Transform(({ value }) => parseFilters(value) ?? {})
+  @Transform(({ value }: { value: unknown }) => parseFilters(value) ?? {})
   @IsObject({ message: 'validation.lot_filters_must_be_object' })
   filters: Record<string, string | number | boolean> = {};
 

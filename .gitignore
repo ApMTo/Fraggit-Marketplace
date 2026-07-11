@@ -31,6 +31,10 @@ Thumbs.db
 
 # Testing
 coverage/
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/
+frontend/playwright/.cache/
 
 # Prisma
 backend/prisma/migrations/**/migration_lock.toml

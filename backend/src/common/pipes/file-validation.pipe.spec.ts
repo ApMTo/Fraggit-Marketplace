@@ -6,11 +6,13 @@ const IMAGE_OPTIONS = {
   allowedMimeTypes: ['image/png', 'image/jpeg'],
 };
 
-function createFile(overrides: Partial<{
-  originalname: string;
-  mimetype: string;
-  size: number;
-}> = {}) {
+function createFile(
+  overrides: Partial<{
+    originalname: string;
+    mimetype: string;
+    size: number;
+  }> = {},
+) {
   return {
     originalname: 'photo.png',
     mimetype: 'image/png',
@@ -23,15 +25,17 @@ describe('FileValidationPipe', () => {
   it('returns undefined for optional pipe when value is missing', () => {
     const pipe = new FileValidationPipe({ ...IMAGE_OPTIONS, optional: true });
 
-    expect(pipe.transform(undefined, { type: 'custom' } as never)).toBeUndefined();
+    expect(
+      pipe.transform(undefined, { type: 'custom' } as never),
+    ).toBeUndefined();
   });
 
   it('throws when required file is missing', () => {
     const pipe = new FileValidationPipe(IMAGE_OPTIONS);
 
-    expect(() => pipe.transform(undefined, { type: 'custom' } as never)).toThrow(
-      BadRequestException,
-    );
+    expect(() =>
+      pipe.transform(undefined, { type: 'custom' } as never),
+    ).toThrow(BadRequestException);
   });
 
   it('validates a single file', () => {

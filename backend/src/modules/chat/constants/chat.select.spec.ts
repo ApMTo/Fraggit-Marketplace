@@ -3,7 +3,9 @@ import { buildMessagePreviewText } from './chat.select';
 
 describe('buildMessagePreviewText', () => {
   it('returns trimmed text for TEXT messages', () => {
-    expect(buildMessagePreviewText(MessageType.TEXT, '  hello  ')).toBe('hello');
+    expect(buildMessagePreviewText(MessageType.TEXT, '  hello  ')).toBe(
+      'hello',
+    );
   });
 
   it('returns empty string for empty TEXT content', () => {
@@ -11,7 +13,9 @@ describe('buildMessagePreviewText', () => {
   });
 
   it('returns image label for IMAGE messages', () => {
-    expect(buildMessagePreviewText(MessageType.IMAGE, null)).toBe('Изображение');
+    expect(buildMessagePreviewText(MessageType.IMAGE, null)).toBe(
+      'Изображение',
+    );
   });
 
   it('returns system label for SYSTEM messages', () => {

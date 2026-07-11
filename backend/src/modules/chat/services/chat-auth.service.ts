@@ -64,7 +64,7 @@ export class ChatAuthService {
 
     const role =
       typeof user.role === 'string' && ROLE_VALUES.has(user.role)
-        ? (user.role as UserRole)
+        ? user.role
         : UserRole.USER;
 
     return {
@@ -82,11 +82,11 @@ export class ChatAuthService {
     }
   }
 
-  async assertParticipant(
+  assertParticipant(
     conversationId: string,
     userId: string,
     participantUserIds: string[],
-  ): Promise<void> {
+  ): void {
     if (!participantUserIds.includes(userId)) {
       throw new ForbiddenException('chat_forbidden');
     }

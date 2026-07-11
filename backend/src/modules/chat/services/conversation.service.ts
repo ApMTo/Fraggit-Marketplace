@@ -111,11 +111,7 @@ export class ConversationService {
       (participant) => participant.userId,
     );
 
-    await this.chatAuth.assertParticipant(
-      conversationId,
-      userId,
-      participantIds,
-    );
+    this.chatAuth.assertParticipant(conversationId, userId, participantIds);
 
     return participantIds;
   }
@@ -178,7 +174,9 @@ export class ConversationService {
     const conversationIds = rows.map((row) => row.id);
     const unreadMap = await this.getUnreadCounts(userId, conversationIds);
 
-    const items = rows.map((row) => this.mapConversationRow(userId, row, unreadMap));
+    const items = rows.map((row) =>
+      this.mapConversationRow(userId, row, unreadMap),
+    );
 
     return {
       items,

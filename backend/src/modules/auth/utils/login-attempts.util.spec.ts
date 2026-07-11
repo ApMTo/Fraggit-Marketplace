@@ -34,7 +34,10 @@ describe('login-attempts.util', () => {
       redisService.get.mockResolvedValue('1');
 
       await expect(
-        checkLoginBlocked(redisService as unknown as RedisService, 'user@test.com'),
+        checkLoginBlocked(
+          redisService as unknown as RedisService,
+          'user@test.com',
+        ),
       ).rejects.toThrow(UnauthorizedException);
     });
 
@@ -42,7 +45,10 @@ describe('login-attempts.util', () => {
       redisService.get.mockResolvedValue(null);
 
       await expect(
-        checkLoginBlocked(redisService as unknown as RedisService, 'user@test.com'),
+        checkLoginBlocked(
+          redisService as unknown as RedisService,
+          'user@test.com',
+        ),
       ).resolves.toBeUndefined();
     });
   });
@@ -86,8 +92,12 @@ describe('login-attempts.util', () => {
         'user@test.com',
       );
 
-      expect(redisService.del).toHaveBeenCalledWith('auth:login:fail:user@test.com');
-      expect(redisService.del).toHaveBeenCalledWith('auth:login:block:user@test.com');
+      expect(redisService.del).toHaveBeenCalledWith(
+        'auth:login:fail:user@test.com',
+      );
+      expect(redisService.del).toHaveBeenCalledWith(
+        'auth:login:block:user@test.com',
+      );
     });
   });
 });

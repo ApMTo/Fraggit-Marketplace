@@ -81,7 +81,7 @@ export class UserAuthCacheService {
       user: {
         id: user.id,
         email: user.email,
-        role: user.role as UserRole,
+        role: user.role,
         username: user.username,
         displayName: user.displayName,
       },

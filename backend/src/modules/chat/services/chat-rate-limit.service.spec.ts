@@ -30,9 +30,13 @@ describe('ChatRateLimitService', () => {
   it('allows first message and sets expire window', async () => {
     client.incr.mockResolvedValue(1);
 
-    await expect(service.assertCanSendMessage('user-1')).resolves.toBeUndefined();
+    await expect(
+      service.assertCanSendMessage('user-1'),
+    ).resolves.toBeUndefined();
 
-    expect(client.incr).toHaveBeenCalledWith(`${CHAT_RATE_LIMIT_KEY_PREFIX}user-1`);
+    expect(client.incr).toHaveBeenCalledWith(
+      `${CHAT_RATE_LIMIT_KEY_PREFIX}user-1`,
+    );
     expect(client.expire).toHaveBeenCalledWith(
       `${CHAT_RATE_LIMIT_KEY_PREFIX}user-1`,
       CHAT_RATE_LIMIT_WINDOW_SECONDS,
@@ -42,7 +46,9 @@ describe('ChatRateLimitService', () => {
   it('allows messages within the limit without resetting expire', async () => {
     client.incr.mockResolvedValue(CHAT_RATE_LIMIT_MAX_MESSAGES);
 
-    await expect(service.assertCanSendMessage('user-1')).resolves.toBeUndefined();
+    await expect(
+      service.assertCanSendMessage('user-1'),
+    ).resolves.toBeUndefined();
     expect(client.expire).not.toHaveBeenCalled();
   });
 

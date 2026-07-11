@@ -1,4 +1,3 @@
-import { AttributeType } from '@prisma/client';
 import {
   applicableAttributesWhere,
   parseAttributeOptions,
@@ -12,7 +11,7 @@ describe('attribute-definition.select helpers', () => {
 
     it('returns null for invalid options', () => {
       expect(parseAttributeOptions(null)).toBeNull();
-      expect(parseAttributeOptions(['', 123 as unknown as string])).toBeNull();
+      expect(parseAttributeOptions(['', 123])).toBeNull();
     });
   });
 

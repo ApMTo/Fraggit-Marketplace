@@ -63,10 +63,9 @@ describe('ChatOrderService', () => {
       listingTitle: 'Rare skin',
     });
 
-    expect(conversationService.findOrCreateDirectConversation).toHaveBeenCalledWith(
-      'buyer-1',
-      'seller-1',
-    );
+    expect(
+      conversationService.findOrCreateDirectConversation,
+    ).toHaveBeenCalledWith('buyer-1', 'seller-1');
     expect(messageService.sendSystemMessage).toHaveBeenCalledWith({
       conversationId: 'conv-1',
       metadata: expect.objectContaining({

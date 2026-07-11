@@ -27,7 +27,11 @@ describe('build-lot-list-query', () => {
     it('normalizes number filter', () => {
       expect(
         normalizeFilterValue(
-          definition({ key: 'level', type: AttributeType.NUMBER, options: null }),
+          definition({
+            key: 'level',
+            type: AttributeType.NUMBER,
+            options: null,
+          }),
           '15',
         ),
       ).toBe('15');
@@ -81,8 +85,12 @@ describe('build-lot-list-query', () => {
   describe('buildLotListOrderBy', () => {
     it('maps sort options to prisma order', () => {
       expect(buildLotListOrderBy(LotSort.PRICE_ASC)).toEqual({ price: 'asc' });
-      expect(buildLotListOrderBy(LotSort.PRICE_DESC)).toEqual({ price: 'desc' });
-      expect(buildLotListOrderBy(LotSort.DEFAULT)).toEqual({ createdAt: 'desc' });
+      expect(buildLotListOrderBy(LotSort.PRICE_DESC)).toEqual({
+        price: 'desc',
+      });
+      expect(buildLotListOrderBy(LotSort.DEFAULT)).toEqual({
+        createdAt: 'desc',
+      });
     });
   });
 });

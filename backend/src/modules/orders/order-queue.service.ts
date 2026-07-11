@@ -13,12 +13,16 @@ export class OrderQueueService {
   async enqueueExpiredOrdersCheck(): Promise<void> {
     const hourBucket = new Date().toISOString().slice(0, 13);
 
-    await this.orderQueue.add(ORDER_JOB_PROCESS_EXPIRED, {}, {
-      jobId: `expired-orders-${hourBucket}`,
-      removeOnComplete: true,
-      removeOnFail: false,
-      attempts: 3,
-      backoff: { type: 'fixed', delay: 60_000 },
-    });
+    await this.orderQueue.add(
+      ORDER_JOB_PROCESS_EXPIRED,
+      {},
+      {
+        jobId: `expired-orders-${hourBucket}`,
+        removeOnComplete: true,
+        removeOnFail: false,
+        attempts: 3,
+        backoff: { type: 'fixed', delay: 60_000 },
+      },
+    );
   }
 }

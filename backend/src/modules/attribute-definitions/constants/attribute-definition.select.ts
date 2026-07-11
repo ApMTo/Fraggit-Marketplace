@@ -1,4 +1,4 @@
-import { AttributeType, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 export const ATTRIBUTE_DEFINITION_PUBLIC_SELECT = {
   id: true,

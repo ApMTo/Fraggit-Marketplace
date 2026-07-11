@@ -76,7 +76,7 @@ export class MessageService {
     const hasMore = rows.length > query.limit;
     const pageRows = hasMore ? rows.slice(0, query.limit) : rows;
     const items = pageRows.reverse();
-    const nextBeforeMessageId = hasMore ? items[0]?.id ?? null : null;
+    const nextBeforeMessageId = hasMore ? (items[0]?.id ?? null) : null;
 
     return {
       items,

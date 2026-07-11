@@ -9,11 +9,13 @@ describe('CsrfGuard', () => {
   let reflector: { getAllAndOverride: jest.Mock };
   let sessionsService: { getSession: jest.Mock };
 
-  const createContext = (overrides: {
-    method?: string;
-    cookies?: Record<string, string>;
-    headers?: Record<string, string>;
-  } = {}): ExecutionContext =>
+  const createContext = (
+    overrides: {
+      method?: string;
+      cookies?: Record<string, string>;
+      headers?: Record<string, string>;
+    } = {},
+  ): ExecutionContext =>
     ({
       getHandler: () => ({}),
       getClass: () => ({}),
@@ -41,11 +43,16 @@ describe('CsrfGuard', () => {
     reflector.getAllAndOverride.mockReturnValue(true);
 
     await expect(guard.canActivate(createContext())).resolves.toBe(true);
-    expect(reflector.getAllAndOverride).toHaveBeenCalledWith(IS_PUBLIC_KEY, expect.any(Array));
+    expect(reflector.getAllAndOverride).toHaveBeenCalledWith(
+      IS_PUBLIC_KEY,
+      expect.any(Array),
+    );
   });
 
   it('allows safe HTTP methods', async () => {
-    await expect(guard.canActivate(createContext({ method: 'GET' }))).resolves.toBe(true);
+    await expect(
+      guard.canActivate(createContext({ method: 'GET' })),
+    ).resolves.toBe(true);
   });
 
   it('allows requests without session cookie', async () => {

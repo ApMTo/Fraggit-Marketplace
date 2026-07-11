@@ -29,7 +29,7 @@ export class FileValidationPipe implements PipeTransform<
 
   transform(
     value: UploadedFile | UploadedFile[] | FilesObject | undefined,
-    metadata: ArgumentMetadata,
+    _metadata: ArgumentMetadata,
   ) {
     if (!value) {
       if (this.options.optional) return undefined;
@@ -72,7 +72,7 @@ export class FileValidationPipe implements PipeTransform<
     );
   }
 
-  private validateFile(file: UploadedFile, fieldName?: string) {
+  private validateFile(file: UploadedFile, _fieldName?: string) {
     if (file.size > this.options.maxSizeInBytes) {
       throw new BadRequestException('file_size_exceeded');
     }

@@ -41,8 +41,7 @@ export class AuthRegistrationService {
     private readonly configService: ConfigService,
   ) {
     this.frontendUrl =
-      this.configService.get<string>('frontendUrl') ??
-      'http://localhost:3000';
+      this.configService.get<string>('frontendUrl') ?? 'http://localhost:3000';
   }
 
   async register(dto: RegisterUserDto) {

@@ -8,6 +8,7 @@ import {
   HttpException,
   Logger,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { Prisma } from '@prisma/client';
 
 @Catch(Prisma.PrismaClientKnownRequestError)
@@ -16,7 +17,7 @@ export class PrismaFilter implements ExceptionFilter {
 
   catch(exception: Prisma.PrismaClientKnownRequestError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse();
+    const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<{ method?: string; url?: string }>();
 
     let httpException: HttpException;
@@ -26,9 +27,13 @@ export class PrismaFilter implements ExceptionFilter {
         const target = exception.meta?.target as string[] | undefined;
 
         if (target?.includes('name')) {
-          httpException = new ConflictException('organization_name_already_exists');
+          httpException = new ConflictException(
+            'organization_name_already_exists',
+          );
         } else if (target?.includes('ownerId')) {
-          httpException = new ConflictException('user_already_owns_organization');
+          httpException = new ConflictException(
+            'user_already_owns_organization',
+          );
         } else if (target?.includes('userId') && target?.includes('jobId')) {
           httpException = new ConflictException('already_applied_to_job');
         } else {

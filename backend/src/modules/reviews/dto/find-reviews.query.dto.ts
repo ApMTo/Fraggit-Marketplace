@@ -4,7 +4,9 @@ import { IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
 import { V } from '../../../common/constants/validation.messages';
 
 export class FindReviewsQueryDto {
-  @ApiPropertyOptional({ description: 'Filter reviews received by this user (seller)' })
+  @ApiPropertyOptional({
+    description: 'Filter reviews received by this user (seller)',
+  })
   @IsOptional()
   @IsUUID('4', { message: V.invalidUuid })
   sellerId?: string;

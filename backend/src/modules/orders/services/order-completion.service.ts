@@ -1,10 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { OrderStatus } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
-import {
-  ORDER_DETAIL_SELECT,
-  OrderDetail,
-} from '../constants/order.select';
+import { ORDER_DETAIL_SELECT, OrderDetail } from '../constants/order.select';
 
 @Injectable()
 export class OrderCompletionService {
