@@ -13,6 +13,11 @@ function parseRole(value: unknown): UserRole {
   return value as UserRole;
 }
 
+function extractAccessToken(req: Request): string | null {
+  const token: unknown = req.cookies?.access_token;
+  return typeof token === 'string' ? token : null;
+}
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
@@ -20,9 +25,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private readonly userAuthCache: UserAuthCacheService,
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([
-        (req: Request) => req.cookies?.access_token as string | undefined,
-      ]),
+      jwtFromRequest: ExtractJwt.fromExtractors([extractAccessToken]),
       ignoreExpiration: false,
       secretOrKey: configService.getOrThrow<string>('jwt.accessSecret'),
     });

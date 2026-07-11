@@ -113,9 +113,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     );
   }
 
+  private requireUser(client: AuthenticatedSocket): AuthUser {
+    const user = client.data.user;
+    if (!user) {
+      client.emit(CHAT_WS_EVENTS.ERROR, { code: 'chat_auth_failed' });
+      client.disconnect(true);
+      throw new Error('Unauthenticated socket');
+    }
+    return user;
+  }
+
   @SubscribeMessage(CHAT_WS_EVENTS.HEARTBEAT)
   async handleHeartbeat(@ConnectedSocket() client: AuthenticatedSocket) {
-    const user = client.data.user;
+    const user = this.requireUser(client);
     await this.chatPresenceService.refreshOnline(user.id);
     return { ok: true, userId: user.id };
   }
@@ -132,7 +142,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() dto: WsSendTextMessageDto,
   ) {
-    const user = client.data.user;
+    const user = this.requireUser(client);
 
     const message = await this.messageService.sendTextMessage({
       senderId: user.id,
@@ -173,7 +183,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() dto: WsMarkReadDto,
   ) {
-    const user = client.data.user;
+    const user = this.requireUser(client);
 
     const result = await this.chatReadService.markAsRead(
       user.id,
