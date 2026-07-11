@@ -99,7 +99,9 @@ export function buildLotListWhere(
   return { AND: conditions };
 }
 
-export function buildLotListOrderBy(sort: LotSort): Prisma.LotOrderByWithRelationInput {
+export function buildLotListOrderBy(
+  sort: LotSort,
+): Prisma.LotOrderByWithRelationInput {
   switch (sort) {
     case LotSort.PRICE_ASC:
       return { price: 'asc' };

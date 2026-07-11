@@ -25,8 +25,12 @@ export class ChatNotificationProcessor extends WorkerHost {
       return;
     }
 
-    const { recipientUserId, recipientEmail, senderDisplayName, conversationId } =
-      job.data;
+    const {
+      recipientUserId,
+      recipientEmail,
+      senderDisplayName,
+      conversationId,
+    } = job.data;
 
     const isOnline = await this.chatPresence.isOnline(recipientUserId);
 

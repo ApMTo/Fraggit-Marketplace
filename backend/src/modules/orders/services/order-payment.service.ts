@@ -2,8 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 
 export type PaymentResult =
-  | { success: true }
-  | { success: false; reason: string };
+  { success: true } | { success: false; reason: string };
 
 /**
  * Payment abstraction for order creation.
@@ -12,11 +11,11 @@ export type PaymentResult =
  */
 @Injectable()
 export class OrderPaymentService {
-  async processPayment(
+  processPayment(
     _buyerId: string,
     _lotId: string,
     _amount: Prisma.Decimal,
   ): Promise<PaymentResult> {
-    return { success: true };
+    return Promise.resolve({ success: true });
   }
 }

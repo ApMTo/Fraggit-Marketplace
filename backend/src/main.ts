@@ -53,7 +53,8 @@ async function bootstrap(): Promise<void> {
     .addCookieAuth('access_token', {
       type: 'apiKey',
       in: 'cookie',
-      description: 'JWT access token set by POST /auth/login or GET /auth/verify/:token',
+      description:
+        'JWT access token set by POST /auth/login or GET /auth/verify/:token',
     })
     .addApiKey(
       {
@@ -76,4 +77,4 @@ async function bootstrap(): Promise<void> {
   logger.log(`Swagger docs available at http://localhost:${port}/api/docs`);
 }
 
-bootstrap();
+void bootstrap();

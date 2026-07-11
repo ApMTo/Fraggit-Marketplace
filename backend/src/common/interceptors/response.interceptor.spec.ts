@@ -1,5 +1,5 @@
 import { of } from 'rxjs';
-import { ResponseInterceptor } from './response.interceptor.js';
+import { ResponseInterceptor } from './response.interceptor';
 
 describe('ResponseInterceptor', () => {
   it('wraps handler data in a success envelope', (done) => {

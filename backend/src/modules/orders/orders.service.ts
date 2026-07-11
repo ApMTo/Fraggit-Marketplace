@@ -7,9 +7,7 @@
 } from '@nestjs/common';
 import { LotStatus, OrderStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
-import {
-  ORDER_AUTO_APPROVAL_MS,
-} from './constants/order.constants';
+import { ORDER_AUTO_APPROVAL_MS } from './constants/order.constants';
 import {
   ORDER_DETAIL_SELECT,
   ORDER_LIST_SELECT,
@@ -40,7 +38,10 @@ export class OrdersService {
     private readonly chatService: ChatService,
   ) {}
 
-  async createOrder(buyerId: string, dto: CreateOrderDto): Promise<OrderDetail> {
+  async createOrder(
+    buyerId: string,
+    dto: CreateOrderDto,
+  ): Promise<OrderDetail> {
     const lot = await this.prisma.lot.findUnique({
       where: { id: dto.lotId },
       select: {
@@ -225,10 +226,7 @@ export class OrdersService {
     });
   }
 
-  async confirmByBuyer(
-    buyerId: string,
-    orderId: string,
-  ): Promise<OrderDetail> {
+  async confirmByBuyer(buyerId: string, orderId: string): Promise<OrderDetail> {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
       select: {

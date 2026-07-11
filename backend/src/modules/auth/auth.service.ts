@@ -23,7 +23,7 @@ export class AuthService {
   }
 
   verifyUser(token: string, req: Request) {
-    return this.registrationService.verifyRegistrationToken(token, req); 
+    return this.registrationService.verifyRegistrationToken(token, req);
   }
 
   login(data: LoginUserDto, req: Request) {

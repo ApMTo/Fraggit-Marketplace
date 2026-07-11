@@ -50,7 +50,9 @@ describe('ChatService', () => {
 
   beforeEach(() => {
     conversationService = {
-      listConversations: jest.fn().mockResolvedValue({ items: [], total: 0, page: 1, limit: 20 }),
+      listConversations: jest
+        .fn()
+        .mockResolvedValue({ items: [], total: 0, page: 1, limit: 20 }),
       findOrCreateDirectConversation: jest
         .fn()
         .mockResolvedValue({ id: 'conv-1', created: true }),

@@ -15,10 +15,10 @@ export class TokenService {
 
   async generateTokens(payload: UserPayload) {
     const refreshTokenId = randomUUID();
-    const accessSecret = this.configService.getOrThrow<string>('jwt.accessSecret');
-    const refreshSecret = this.configService.getOrThrow<string>(
-      'jwt.refreshSecret',
-    );
+    const accessSecret =
+      this.configService.getOrThrow<string>('jwt.accessSecret');
+    const refreshSecret =
+      this.configService.getOrThrow<string>('jwt.refreshSecret');
 
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: '20m',

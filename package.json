@@ -10,10 +10,33 @@
     "build": "pnpm run --recursive build",
     "build:backend": "pnpm --filter @fraggit/backend build",
     "build:frontend": "pnpm --filter @fraggit/frontend build",
-    "lint": "pnpm run --recursive lint"
+    "lint": "pnpm run --recursive lint",
+    "lint:fix": "pnpm run --recursive lint:fix",
+    "typecheck": "pnpm run --recursive typecheck",
+    "test": "pnpm run --recursive test",
+    "prepare": "husky",
+    "test:backend": "pnpm --filter @fraggit/backend test",
+    "test:frontend": "pnpm --filter @fraggit/frontend test",
+    "test:cov": "pnpm run --recursive test:cov",
+    "test:e2e": "pnpm run test:e2e:backend && pnpm run test:e2e:frontend",
+    "test:e2e:backend": "pnpm --filter @fraggit/backend test:e2e",
+    "test:e2e:frontend": "pnpm --filter @fraggit/frontend test:e2e"
   },
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2"
+  },
+  "lint-staged": {
+    "backend/**/*.{ts,js,mjs}": [
+      "pnpm --dir backend exec eslint --fix",
+      "pnpm --dir backend exec prettier --write"
+    ],
+    "frontend/**/*.{ts,tsx,js,jsx,mjs}": [
+      "pnpm --dir frontend exec eslint --fix"
+    ]
   }
 }

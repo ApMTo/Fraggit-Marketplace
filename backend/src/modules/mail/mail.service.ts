@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import nodemailer, { Transporter } from 'nodemailer';
+import type SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { PinoLogger } from 'nestjs-pino';
 
 @Injectable()
@@ -65,19 +66,19 @@ export class MailService {
     );
 
     try {
-      const result = await this.transporter.sendMail({
+      const result = (await this.transporter.sendMail({
         from,
         to,
         subject,
         html,
-      });
+      })) as SMTPTransport.SentMessageInfo;
 
       this.logger.info(
         { to, subject, messageId: result.messageId, from },
         'Email sent',
       );
-    } catch (error) {
-      this.logger.error({ to, subject, error }, 'Failed to send email');
+    } catch (error: unknown) {
+      this.logger.error({ to, subject, err: error }, 'Failed to send email');
 
       if (throwOnSmtpError) {
         throw error;

@@ -26,9 +26,7 @@ import {
 } from '../../common/decorators/current-user.decorator';
 import { FileValidationPipe } from '../../common/pipes/file-validation.pipe';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import {
-  UserProfileResponseDto,
-} from './responses/user.response';
+import { UserProfileResponseDto } from './responses/user.response';
 import { UsersService } from './users.service';
 
 const CSRF_HEADER = {
@@ -94,11 +92,7 @@ export class UsersController {
     @Body() dto: UpdateProfileDto,
     @UploadedFile(avatarValidationPipe) avatar?: Express.Multer.File,
   ) {
-    const profile = await this.usersService.updateProfile(
-      user.id,
-      dto,
-      avatar,
-    );
+    const profile = await this.usersService.updateProfile(user.id, dto, avatar);
 
     return {
       message: { code: 'messages.profile_updated' },
