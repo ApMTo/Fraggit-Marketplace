@@ -8,6 +8,159 @@
       "light": "Light"
     }
   },
+  "landing": {
+    "meta": {
+      "description": "Fraggit is a modern marketplace for digital goods, accounts, and services with a secure escrow system."
+    },
+    "hero": {
+      "title": "Buy and sell digital goods safely",
+      "subtitle": "Fraggit is a modern marketplace for digital goods, accounts, and services with a secure escrow system.",
+      "welcomeBack": "Welcome back, {name}. Continue buying and selling on Fraggit.",
+      "startShopping": "Start shopping",
+      "becomeSeller": "Become a seller",
+      "preview": {
+        "title": "Popular listings",
+        "dealStatus": "Deal protected",
+        "sellerRating": "Seller rating",
+        "reviews": "{count} reviews",
+        "price": "Price",
+        "items": {
+          "account": "Steam account · 50+ games",
+          "currency": "In-game currency · 10,000 coins",
+          "service": "Rank boost · to Immortal"
+        }
+      }
+    },
+    "categories": {
+      "title": "Popular categories",
+      "subtitle": "Find the digital product you need across hundreds of categories",
+      "items": {
+        "gamingAccounts": {
+          "name": "Gaming accounts",
+          "description": "Steam, Epic, Riot, and more"
+        },
+        "telegram": {
+          "name": "Telegram",
+          "description": "Accounts, channels, and premium"
+        },
+        "discord": {
+          "name": "Discord",
+          "description": "Servers, Nitro, and accounts"
+        },
+        "inGameCurrency": {
+          "name": "In-game currency",
+          "description": "Gold, credits, and in-game coins"
+        },
+        "services": {
+          "name": "Services",
+          "description": "Boosting, leveling, and in-game help"
+        },
+        "digitalGoods": {
+          "name": "Digital goods",
+          "description": "Keys, licenses, and digital content"
+        },
+        "socialMedia": {
+          "name": "Social media",
+          "description": "Accounts and social media services"
+        },
+        "subscriptions": {
+          "name": "Subscriptions",
+          "description": "Streaming, software, and services"
+        }
+      }
+    },
+    "benefits": {
+      "title": "Why Fraggit",
+      "subtitle": "A platform built for safe digital goods trading",
+      "items": {
+        "secureDeal": {
+          "title": "Secure escrow",
+          "description": "Funds are held by the platform until the buyer confirms receipt."
+        },
+        "verifiedSellers": {
+          "title": "Verified sellers",
+          "description": "Ratings, reviews, and sales history help you choose reliable sellers."
+        },
+        "fastDeals": {
+          "title": "Fast deals",
+          "description": "Most transactions are completed in just a few minutes."
+        },
+        "moderation": {
+          "title": "Moderation",
+          "description": "Disputes are reviewed by the platform administration."
+        },
+        "support": {
+          "title": "Support",
+          "description": "Help for users at every stage of a deal."
+        }
+      }
+    },
+    "howItWorks": {
+      "title": "How it works",
+      "subtitle": "A simple and transparent buying process",
+      "steps": {
+        "findProduct": {
+          "title": "Find a product",
+          "description": "Browse the catalog or search for what you need"
+        },
+        "payOrder": {
+          "title": "Pay for your order",
+          "description": "Funds are reserved on the platform until the deal is complete"
+        },
+        "receiveProduct": {
+          "title": "Receive the product",
+          "description": "The seller delivers the digital good via a secure chat"
+        },
+        "confirmReceipt": {
+          "title": "Confirm receipt",
+          "description": "Check the product and confirm everything is correct"
+        },
+        "sellerPaid": {
+          "title": "Seller gets paid",
+          "description": "After confirmation, funds are released to the seller"
+        }
+      }
+    },
+    "faq": {
+      "title": "FAQ",
+      "subtitle": "Answers to common questions about the platform",
+      "items": {
+        "secureDeal": {
+          "question": "How does secure escrow work?",
+          "answer": "When you pay, funds are reserved on the platform. The seller delivers the product, you verify it and confirm receipt. Only then are funds released to the seller."
+        },
+        "sellerPayment": {
+          "question": "When does the seller get paid?",
+          "answer": "The seller receives payment after the buyer confirms receipt. If a dispute arises, payout is paused until moderation resolves it."
+        },
+        "dispute": {
+          "question": "What if a dispute arises?",
+          "answer": "Open a dispute on the order page and describe the issue. The moderation team will review evidence from both sides and make a decision."
+        },
+        "becomeSeller": {
+          "question": "How do I become a seller?",
+          "answer": "Create an account, verify your email, and publish your first listing. Ratings and reviews will help you build buyer trust quickly."
+        }
+      }
+    },
+    "cta": {
+      "title": "Start buying and selling digital goods today",
+      "subtitle": "Join Fraggit and trade with confidence",
+      "startShopping": "Start shopping",
+      "createAccount": "Create account"
+    },
+    "footer": {
+      "tagline": "A modern marketplace for digital goods and services",
+      "about": "About",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "support": "Support",
+      "contacts": "Contacts",
+      "telegram": "Telegram",
+      "discord": "Discord",
+      "copyright": "© {year} Fraggit. All rights reserved."
+    }
+  },
   "pages": {
     "home": "Home Page",
     "login": "Login Page",

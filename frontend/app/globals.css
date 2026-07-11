@@ -222,6 +222,21 @@
     background-size: 44px 44px;
     mask-image: radial-gradient(60% 60% at 50% 40%, #000, transparent);
   }
+
+  .landing-card-hover:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--glow-blue);
+  }
+
+  .landing-faq-item summary {
+    outline: none;
+  }
+
+  .landing-faq-item summary:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-lg);
+  }
 }
 
 @layer components {

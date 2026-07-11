@@ -1,9 +1,4 @@
-type LandingLinks = {
-  startShopping: string;
-  becomeSeller: string;
-  createAccount: string;
-  dashboard: string;
-};
+import type { LandingLinks } from '../types';
 
 type GetLandingLinksOptions = {
   isAuthenticated: boolean;
