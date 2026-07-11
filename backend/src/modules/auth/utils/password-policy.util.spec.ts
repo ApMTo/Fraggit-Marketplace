@@ -12,8 +12,12 @@ describe('password-policy.util', () => {
     });
 
     it('rejects weak passwords', () => {
-      expect(() => enforcePasswordPolicy('weakpass')).toThrow(BadRequestException);
-      expect(() => enforcePasswordPolicy('NoSpecial1')).toThrow(BadRequestException);
+      expect(() => enforcePasswordPolicy('weakpass')).toThrow(
+        BadRequestException,
+      );
+      expect(() => enforcePasswordPolicy('NoSpecial1')).toThrow(
+        BadRequestException,
+      );
     });
   });
 

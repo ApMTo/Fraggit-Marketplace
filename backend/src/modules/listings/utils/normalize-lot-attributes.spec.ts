@@ -48,9 +48,9 @@ describe('normalizeLotAttributes', () => {
   });
 
   it('throws when required attribute is missing', () => {
-    expect(() => normalizeLotAttributes([], [baseDefinition({ required: true })])).toThrow(
-      'attribute_required:platform',
-    );
+    expect(() =>
+      normalizeLotAttributes([], [baseDefinition({ required: true })]),
+    ).toThrow('attribute_required:platform');
   });
 
   it('normalizes boolean and number values', () => {

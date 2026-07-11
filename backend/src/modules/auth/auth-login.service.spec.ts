@@ -31,8 +31,12 @@ describe('AuthLoginService', () => {
     );
 
     jest.spyOn(loginAttempts, 'checkLoginBlocked').mockResolvedValue(undefined);
-    jest.spyOn(loginAttempts, 'registerFailedLoginAttempt').mockResolvedValue(undefined);
-    jest.spyOn(loginAttempts, 'clearFailedLoginAttempts').mockResolvedValue(undefined);
+    jest
+      .spyOn(loginAttempts, 'registerFailedLoginAttempt')
+      .mockResolvedValue(undefined);
+    jest
+      .spyOn(loginAttempts, 'clearFailedLoginAttempts')
+      .mockResolvedValue(undefined);
     jest.spyOn(passwordPolicy, 'verifyPassword').mockResolvedValue(true);
   });
 
@@ -69,7 +73,10 @@ describe('AuthLoginService', () => {
     prisma.user.findUnique.mockResolvedValue(null);
 
     await expect(
-      service.login({ email: 'missing@test.com', password: 'pass' }, req as never),
+      service.login(
+        { email: 'missing@test.com', password: 'pass' },
+        req as never,
+      ),
     ).rejects.toThrow(UnauthorizedException);
 
     expect(loginAttempts.registerFailedLoginAttempt).toHaveBeenCalled();
@@ -109,7 +116,10 @@ describe('AuthLoginService', () => {
     jest.spyOn(passwordPolicy, 'verifyPassword').mockResolvedValue(false);
 
     await expect(
-      service.login({ email: 'user@test.com', password: 'wrong' }, req as never),
+      service.login(
+        { email: 'user@test.com', password: 'wrong' },
+        req as never,
+      ),
     ).rejects.toMatchObject({ response: { code: 'invalid_credentials' } });
   });
 });

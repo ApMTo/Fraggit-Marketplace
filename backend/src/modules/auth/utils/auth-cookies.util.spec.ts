@@ -30,8 +30,16 @@ describe('auth-cookies.util', () => {
       'refresh',
       expect.objectContaining({ path: '/api/auth/refresh' }),
     );
-    expect(res.cookie).toHaveBeenCalledWith('deviceId', 'device-1', expect.any(Object));
-    expect(res.cookie).toHaveBeenCalledWith('sessionId', 'session-1', expect.any(Object));
+    expect(res.cookie).toHaveBeenCalledWith(
+      'deviceId',
+      'device-1',
+      expect.any(Object),
+    );
+    expect(res.cookie).toHaveBeenCalledWith(
+      'sessionId',
+      'session-1',
+      expect.any(Object),
+    );
     expect(res.cookie).toHaveBeenCalledWith(
       'XSRF-TOKEN',
       'csrf-1',
@@ -42,11 +50,26 @@ describe('auth-cookies.util', () => {
   it('clears all auth cookies', () => {
     clearAuthCookies(req);
 
-    expect(res.clearCookie).toHaveBeenCalledWith('access_token', expect.any(Object));
-    expect(res.clearCookie).toHaveBeenCalledWith('refresh_token', expect.any(Object));
-    expect(res.clearCookie).toHaveBeenCalledWith('deviceId', expect.any(Object));
-    expect(res.clearCookie).toHaveBeenCalledWith('sessionId', expect.any(Object));
-    expect(res.clearCookie).toHaveBeenCalledWith('XSRF-TOKEN', expect.any(Object));
+    expect(res.clearCookie).toHaveBeenCalledWith(
+      'access_token',
+      expect.any(Object),
+    );
+    expect(res.clearCookie).toHaveBeenCalledWith(
+      'refresh_token',
+      expect.any(Object),
+    );
+    expect(res.clearCookie).toHaveBeenCalledWith(
+      'deviceId',
+      expect.any(Object),
+    );
+    expect(res.clearCookie).toHaveBeenCalledWith(
+      'sessionId',
+      expect.any(Object),
+    );
+    expect(res.clearCookie).toHaveBeenCalledWith(
+      'XSRF-TOKEN',
+      expect.any(Object),
+    );
   });
 
   it('does nothing when response is missing', () => {

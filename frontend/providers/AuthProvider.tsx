@@ -4,7 +4,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -55,10 +54,12 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
   const [sessionActive, setSessionActive] = useState(
     () => Boolean(initialUser) || hasSessionCookie(),
   );
+  const [prevInitialUser, setPrevInitialUser] = useState(initialUser);
 
-  useEffect(() => {
+  if (initialUser !== prevInitialUser) {
+    setPrevInitialUser(initialUser);
     setSessionActive(hasSessionCookie());
-  }, [initialUser]);
+  }
 
   const { data: profile, isPending, isFetching } = useQuery({
     queryKey: authKeys.me(),

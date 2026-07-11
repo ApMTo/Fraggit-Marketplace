@@ -65,7 +65,9 @@ describe('ChatNotificationService', () => {
     );
 
     expect(chatPresence.isOnline).not.toHaveBeenCalled();
-    expect(chatNotificationQueue.enqueueOfflineNotification).not.toHaveBeenCalled();
+    expect(
+      chatNotificationQueue.enqueueOfflineNotification,
+    ).not.toHaveBeenCalled();
   });
 
   it('skips email queue when recipient is online', async () => {
@@ -74,7 +76,9 @@ describe('ChatNotificationService', () => {
     await service.notifyAboutNewMessage(message, 'Alice');
 
     expect(chatPresence.isOnline).toHaveBeenCalledWith('user-2');
-    expect(chatNotificationQueue.enqueueOfflineNotification).not.toHaveBeenCalled();
+    expect(
+      chatNotificationQueue.enqueueOfflineNotification,
+    ).not.toHaveBeenCalled();
   });
 
   it('enqueues offline notification when recipient is offline', async () => {
@@ -82,7 +86,9 @@ describe('ChatNotificationService', () => {
 
     await service.notifyAboutNewMessage(message, 'Alice');
 
-    expect(chatNotificationQueue.enqueueOfflineNotification).toHaveBeenCalledWith({
+    expect(
+      chatNotificationQueue.enqueueOfflineNotification,
+    ).toHaveBeenCalledWith({
       recipientUserId: 'user-2',
       recipientEmail: 'bob@test.com',
       senderDisplayName: 'Alice',
@@ -110,6 +116,8 @@ describe('ChatNotificationService', () => {
     expect(mailQueue.enqueue.mock.calls[0][0].html).toContain(
       'https://fraggit.test/chat/conv-1',
     );
-    expect(mailQueue.enqueue.mock.calls[0][0].html).toContain('hi &lt;b&gt;x&lt;/b&gt;');
+    expect(mailQueue.enqueue.mock.calls[0][0].html).toContain(
+      'hi &lt;b&gt;x&lt;/b&gt;',
+    );
   });
 });

@@ -103,7 +103,8 @@ describe('ChatGateway', () => {
       }),
     } as never;
 
-    (gateway as unknown as { __emit: jest.Mock; __to: jest.Mock }).__emit = emit;
+    (gateway as unknown as { __emit: jest.Mock; __to: jest.Mock }).__emit =
+      emit;
     (gateway as unknown as { __emit: jest.Mock; __to: jest.Mock }).__to = to;
   });
 

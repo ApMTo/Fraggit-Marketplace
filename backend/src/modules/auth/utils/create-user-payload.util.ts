@@ -3,15 +3,12 @@ import { UserRole } from '../enums/roles.enum';
 
 type UserLike = {
   email: string;
-  role: UserRole | string;
+  role: string;
   username: string;
   displayName: string;
 };
 
-export function createUserPayload(
-  userId: string,
-  user: UserLike,
-): UserPayload {
+export function createUserPayload(userId: string, user: UserLike): UserPayload {
   return {
     userId,
     email: user.email,

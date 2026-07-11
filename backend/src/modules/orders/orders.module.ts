@@ -11,10 +11,7 @@ import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 
 @Module({
-  imports: [
-    BullModule.registerQueue({ name: ORDER_QUEUE }),
-    ChatModule,
-  ],
+  imports: [BullModule.registerQueue({ name: ORDER_QUEUE }), ChatModule],
   controllers: [OrdersController],
   providers: [
     OrdersService,

@@ -106,7 +106,11 @@ export class AttributeDefinitionsService {
   ): Promise<AttributeDefinitionAdmin> {
     const { categoryId } = await this.resolveSubcategoryContext(subcategoryId);
     this.assertOptionsForType(dto.type, dto.options);
-    await this.assertSubcategoryKeyAvailable(categoryId, subcategoryId, dto.key);
+    await this.assertSubcategoryKeyAvailable(
+      categoryId,
+      subcategoryId,
+      dto.key,
+    );
 
     try {
       return await this.prisma.attributeDefinition.create({
@@ -137,7 +141,7 @@ export class AttributeDefinitionsService {
     const nextOptions =
       dto.options !== undefined
         ? dto.options
-        : parseAttributeOptions(current.options) ?? undefined;
+        : (parseAttributeOptions(current.options) ?? undefined);
 
     this.assertOptionsForType(nextType, nextOptions);
 
@@ -284,10 +288,7 @@ export class AttributeDefinitionsService {
     }
   }
 
-  private assertOptionsForType(
-    type: AttributeType,
-    options?: string[],
-  ): void {
+  private assertOptionsForType(type: AttributeType, options?: string[]): void {
     const requiresOptions =
       type === AttributeType.SELECT || type === AttributeType.MULTISELECT;
 

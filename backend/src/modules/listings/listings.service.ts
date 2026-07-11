@@ -268,7 +268,9 @@ export class ListingsService {
       await this.attributeDefinitionsService.findApplicableForSubcategory(
         subcategoryId,
       );
-    const definitionByKey = new Map(definitions.map((definition) => [definition.key, definition]));
+    const definitionByKey = new Map(
+      definitions.map((definition) => [definition.key, definition]),
+    );
 
     const resolved: ResolvedAttributeFilter[] = [];
 

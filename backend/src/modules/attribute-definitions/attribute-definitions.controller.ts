@@ -81,7 +81,8 @@ export class AttributeDefinitionsController {
   @ApiCookieAuth('access_token')
   @ApiHeader(CSRF_HEADER)
   @ApiOperation({
-    summary: 'Create global attribute definition for a category (admin and above)',
+    summary:
+      'Create global attribute definition for a category (admin and above)',
     description:
       'Global attributes apply to all subcategories (e.g. Platform for Accounts and Activation).',
   })
@@ -100,7 +101,8 @@ export class AttributeDefinitionsController {
   @ApiCookieAuth('access_token')
   @ApiHeader(CSRF_HEADER)
   @ApiOperation({
-    summary: 'Create subcategory-specific attribute definition (admin and above)',
+    summary:
+      'Create subcategory-specific attribute definition (admin and above)',
   })
   @ApiParam({ name: 'subcategoryId', description: 'Subcategory id' })
   createForSubcategory(

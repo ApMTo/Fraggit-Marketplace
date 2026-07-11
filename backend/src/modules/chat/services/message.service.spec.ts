@@ -70,7 +70,9 @@ describe('MessageService', () => {
     };
 
     conversationService = {
-      assertUserIsParticipant: jest.fn().mockResolvedValue(['user-1', 'user-2']),
+      assertUserIsParticipant: jest
+        .fn()
+        .mockResolvedValue(['user-1', 'user-2']),
     };
 
     chatRateLimit = {
@@ -108,7 +110,9 @@ describe('MessageService', () => {
       // take = limit + 1, ordered desc
       prisma.message.findMany.mockResolvedValue([newer, mid, older]);
 
-      const result = await service.listMessages('user-1', 'conv-1', { limit: 2 });
+      const result = await service.listMessages('user-1', 'conv-1', {
+        limit: 2,
+      });
 
       expect(conversationService.assertUserIsParticipant).toHaveBeenCalledWith(
         'conv-1',

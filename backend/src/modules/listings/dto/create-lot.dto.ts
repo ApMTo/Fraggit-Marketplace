@@ -14,6 +14,11 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { V } from '../../../common/constants/validation.messages';
+import {
+  defaultStock,
+  trimOptionalNullableText,
+  trimString,
+} from '../../../common/utils/dto-transform.util';
 import { LotAttributeInputDto } from './lot-attribute-input.dto';
 
 function parseAttributes(value: unknown): unknown {
@@ -35,13 +40,15 @@ function parseAttributes(value: unknown): unknown {
 }
 
 export class CreateLotDto {
-  @ApiProperty({ example: 'PUBG account level 78', minLength: 3, maxLength: 200 })
+  @ApiProperty({
+    example: 'PUBG account level 78',
+    minLength: 3,
+    maxLength: 200,
+  })
   @IsString({ message: V.mustBeString })
   @MinLength(3, { message: 'validation.lot_title_min_length' })
   @MaxLength(200, { message: 'validation.lot_title_max_length' })
-  @Transform(({ value }) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
+  @Transform(trimString)
   title!: string;
 
   @ApiPropertyOptional({
@@ -51,13 +58,7 @@ export class CreateLotDto {
   @IsOptional()
   @IsString({ message: V.mustBeString })
   @MaxLength(5000, { message: 'validation.lot_description_max_length' })
-  @Transform(({ value }) => {
-    if (value === undefined || value === null) {
-      return undefined;
-    }
-    const trimmed = String(value).trim();
-    return trimmed === '' ? null : trimmed;
-  })
+  @Transform(trimOptionalNullableText)
   description?: string | null;
 
   @ApiProperty({ example: 49.99, minimum: 1 })
@@ -76,12 +77,7 @@ export class CreateLotDto {
   @Type(() => Number)
   @IsInt({ message: 'validation.stock_must_be_integer' })
   @Min(1, { message: 'validation.stock_min_value' })
-  @Transform(({ value }) => {
-    if (value === undefined || value === null || value === '') {
-      return 1;
-    }
-    return value;
-  })
+  @Transform(defaultStock)
   stock?: number;
 
   @ApiProperty({ example: 'clxyz123categoryid' })
@@ -96,9 +92,10 @@ export class CreateLotDto {
 
   @ApiProperty({
     type: [LotAttributeInputDto],
-    description: 'JSON array of attribute values. Pass as string in multipart form-data.',
+    description:
+      'JSON array of attribute values. Pass as string in multipart form-data.',
   })
-  @Transform(({ value }) => parseAttributes(value))
+  @Transform(({ value }: { value: unknown }) => parseAttributes(value))
   @IsArray({ message: 'validation.lot_attributes_must_be_array' })
   @ValidateNested({ each: true })
   @Type(() => LotAttributeInputDto)

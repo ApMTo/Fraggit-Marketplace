@@ -16,8 +16,7 @@ export default () => ({
       process.env.JWT_SECRET ||
       'change-me-access-in-production',
     refreshSecret:
-      process.env.JWT_REFRESH_SECRET ||
-      'change-me-refresh-in-production',
+      process.env.JWT_REFRESH_SECRET || 'change-me-refresh-in-production',
     accessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '20m',
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '14d',
   },
@@ -35,7 +34,10 @@ export default () => ({
   mail: {
     queue: {
       attempts: parseInt(process.env.MAIL_QUEUE_ATTEMPTS || '5', 10),
-      retryDelayMs: parseInt(process.env.MAIL_QUEUE_RETRY_DELAY_MS || '60000', 10),
+      retryDelayMs: parseInt(
+        process.env.MAIL_QUEUE_RETRY_DELAY_MS || '60000',
+        10,
+      ),
     },
   },
 });

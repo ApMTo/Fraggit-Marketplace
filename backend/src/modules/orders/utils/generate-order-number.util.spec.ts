@@ -6,7 +6,9 @@ describe('generateOrderNumber', () => {
       $queryRaw: jest.fn().mockResolvedValue([{ nextval: BigInt(42) }]),
     };
 
-    await expect(generateOrderNumber(prisma as never)).resolves.toBe('FR-00042');
+    await expect(generateOrderNumber(prisma as never)).resolves.toBe(
+      'FR-00042',
+    );
   });
 
   it('handles missing sequence value', async () => {
@@ -14,6 +16,8 @@ describe('generateOrderNumber', () => {
       $queryRaw: jest.fn().mockResolvedValue([{}]),
     };
 
-    await expect(generateOrderNumber(prisma as never)).resolves.toBe('FR-00000');
+    await expect(generateOrderNumber(prisma as never)).resolves.toBe(
+      'FR-00000',
+    );
   });
 });

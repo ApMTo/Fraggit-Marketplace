@@ -36,10 +36,11 @@ export class ChatService {
   }
 
   async startConversation(user: AuthUser, dto: StartConversationDto) {
-    const result = await this.conversationService.findOrCreateDirectConversation(
-      user.id,
-      dto.participantUserId,
-    );
+    const result =
+      await this.conversationService.findOrCreateDirectConversation(
+        user.id,
+        dto.participantUserId,
+      );
 
     return result;
   }
@@ -102,9 +103,7 @@ export class ChatService {
     );
   }
 
-  onOrderCreated(
-    params: Parameters<ChatOrderService['onOrderCreated']>[0],
-  ) {
+  onOrderCreated(params: Parameters<ChatOrderService['onOrderCreated']>[0]) {
     return this.chatOrderService.onOrderCreated(params);
   }
 }

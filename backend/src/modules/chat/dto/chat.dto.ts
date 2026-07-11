@@ -42,7 +42,8 @@ export class FindConversationsQueryDto {
 
 export class FindMessagesQueryDto {
   @ApiPropertyOptional({
-    description: 'Return messages older than this message id (cursor pagination)',
+    description:
+      'Return messages older than this message id (cursor pagination)',
   })
   @IsOptional()
   @IsUUID('4', { message: V.invalidUuid })

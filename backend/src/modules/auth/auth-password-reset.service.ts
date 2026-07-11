@@ -42,8 +42,7 @@ export class AuthPasswordResetService {
     private readonly configService: ConfigService,
   ) {
     this.frontendUrl =
-      this.configService.get<string>('frontendUrl') ??
-      'http://localhost:3000';
+      this.configService.get<string>('frontendUrl') ?? 'http://localhost:3000';
   }
 
   async requestReset(dto: ForgotPasswordDto) {
@@ -146,11 +145,7 @@ export class AuthPasswordResetService {
     };
 
     await Promise.all([
-      this.redis.set(
-        `pwd:${token}`,
-        JSON.stringify(payload),
-        this.RESET_TTL,
-      ),
+      this.redis.set(`pwd:${token}`, JSON.stringify(payload), this.RESET_TTL),
       this.redis.set(`pwd:email:${user.email}`, token, this.RESET_TTL),
     ]);
 
@@ -168,7 +163,9 @@ export class AuthPasswordResetService {
     this.logger.log(`auth.password_reset_requested user=${user.id}`);
   }
 
-  private async loadPending(token: string): Promise<PendingPasswordReset | null> {
+  private async loadPending(
+    token: string,
+  ): Promise<PendingPasswordReset | null> {
     const raw = await this.redis.get(`pwd:${token}`);
     if (!raw) return null;
 

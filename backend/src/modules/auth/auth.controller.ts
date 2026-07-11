@@ -145,7 +145,10 @@ export class AuthController {
   @ApiOperation({ summary: 'Refresh access token' })
   @ApiResponse({ status: 201, type: AuthSessionResponseDto })
   refresh(@Req() req: Request) {
-    const { deviceId, sessionId } = req.cookies;
+    const { deviceId, sessionId } = req.cookies as {
+      deviceId?: string;
+      sessionId?: string;
+    };
     if (!deviceId || !sessionId) {
       throw new UnauthorizedException({ code: 'errors.no_session_found' });
     }
@@ -160,7 +163,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Logout current session' })
   @ApiResponse({ status: 200, type: LogoutResponseDto })
   logout(@Req() req: Request & { user: { id: string } }) {
-    const { sessionId } = req.cookies;
+    const { sessionId } = req.cookies as { sessionId?: string };
     if (!sessionId) {
       throw new UnauthorizedException({ code: 'errors.no_session_found' });
     }

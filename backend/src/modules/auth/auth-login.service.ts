@@ -54,7 +54,10 @@ export class AuthLoginService {
       throw new UnauthorizedException({ code: 'account_blocked' });
     }
 
-    if (!user.emailVerified || user.status === UserStatus.PENDING_VERIFICATION) {
+    if (
+      !user.emailVerified ||
+      user.status === UserStatus.PENDING_VERIFICATION
+    ) {
       throw new UnauthorizedException({ code: 'email_not_verified' });
     }
 

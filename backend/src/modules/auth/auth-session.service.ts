@@ -11,10 +11,7 @@ import { PrismaService } from '../../database/prisma.service';
 import { SessionsService } from '../sessions/sessions.service';
 import { TokenService } from '../token/token.service';
 import { createUserPayload } from './utils/create-user-payload.util';
-import {
-  clearAuthCookies,
-  setAuthCookies,
-} from './utils/auth-cookies.util';
+import { clearAuthCookies, setAuthCookies } from './utils/auth-cookies.util';
 import { getClientIp } from './utils/get-client-ip.util';
 
 @Injectable()
@@ -62,7 +59,9 @@ export class AuthSessionService {
       csrfToken,
     );
 
-    this.logger.log(`auth.session_created user=${user.id} session=${sessionId}`);
+    this.logger.log(
+      `auth.session_created user=${user.id} session=${sessionId}`,
+    );
 
     return {
       accessToken: tokens.accessToken,
@@ -147,7 +146,9 @@ export class AuthSessionService {
       newCsrfToken,
     );
 
-    this.logger.log(`auth.refresh_success user=${user.id} session=${sessionId}`);
+    this.logger.log(
+      `auth.refresh_success user=${user.id} session=${sessionId}`,
+    );
 
     return {
       accessToken: newTokens.accessToken,

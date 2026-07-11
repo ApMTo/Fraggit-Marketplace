@@ -23,8 +23,9 @@ describe('OrderCompletionService', () => {
     };
 
     const prisma = {
-      $transaction: jest.fn(async (callback: (client: typeof tx) => Promise<unknown>) =>
-        callback(tx),
+      $transaction: jest.fn(
+        async (callback: (client: typeof tx) => Promise<unknown>) =>
+          callback(tx),
       ),
     };
 
@@ -67,7 +68,9 @@ describe('OrderCompletionService', () => {
     });
     tx.order.findUniqueOrThrow.mockResolvedValue(approvedOrder);
 
-    await expect(service.approveOrder('order-1')).resolves.toEqual(approvedOrder);
+    await expect(service.approveOrder('order-1')).resolves.toEqual(
+      approvedOrder,
+    );
 
     expect(tx.order.update).toHaveBeenCalledWith({
       where: { id: 'order-1' },
