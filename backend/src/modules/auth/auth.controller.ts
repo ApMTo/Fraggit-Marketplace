@@ -22,6 +22,7 @@ import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 import { Public } from '../../decorators/public.decorator';
 import { AuthService } from './auth.service';
+import { clearAuthCookies } from './utils/auth-cookies.util';
 import { JwtAuthGuard } from './guards/jwt.guard';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
@@ -150,9 +151,16 @@ export class AuthController {
       sessionId?: string;
     };
     if (!deviceId || !sessionId) {
+      clearAuthCookies(req);
       throw new UnauthorizedException({ code: 'errors.no_session_found' });
     }
-    return this.authService.refresh(sessionId, deviceId, req);
+
+    try {
+      return this.authService.refresh(sessionId, deviceId, req);
+    } catch (error) {
+      clearAuthCookies(req);
+      throw error;
+    }
   }
 
   @Post('logout')

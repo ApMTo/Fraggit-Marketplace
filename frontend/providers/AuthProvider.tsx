@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -14,7 +15,8 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { hasSessionCookie } from '@/lib/cookies';
+import { onSessionInvalidated } from '@/lib/auth-session';
+import { clearClientAuthCookies, hasSessionCookie } from '@/lib/cookies';
 import { clearCsrfToken, syncCsrfFromCookie } from '@/lib/csrf';
 import { authKeys, authService } from '@/services/auth.service';
 import type {
@@ -39,6 +41,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 type AuthProviderProps = {
   children: ReactNode;
   initialUser: AuthUser | null;
+  initialSessionActive?: boolean;
 };
 
 function toProfileCache(user: AuthUser) {
@@ -48,17 +51,50 @@ function toProfileCache(user: AuthUser) {
   };
 }
 
-export function AuthProvider({ children, initialUser }: AuthProviderProps) {
+export function AuthProvider({
+  children,
+  initialUser,
+  initialSessionActive = false,
+}: AuthProviderProps) {
   const queryClient = useQueryClient();
   const router = useRouter();
   const [sessionActive, setSessionActive] = useState(
-    () => Boolean(initialUser) || hasSessionCookie(),
+    () =>
+      Boolean(initialUser) ||
+      initialSessionActive ||
+      hasSessionCookie(),
   );
   const [prevInitialUser, setPrevInitialUser] = useState(initialUser);
+  const [prevInitialSessionActive, setPrevInitialSessionActive] =
+    useState(initialSessionActive);
 
-  if (initialUser !== prevInitialUser) {
+  const stopSessionQuery = useCallback(async () => {
+    await queryClient.cancelQueries({ queryKey: authKeys.me() });
+    queryClient.removeQueries({ queryKey: authKeys.me() });
+  }, [queryClient]);
+
+  const handleSessionInvalidated = useCallback(async () => {
+    clearCsrfToken();
+    clearClientAuthCookies();
+    setSessionActive(false);
+    await stopSessionQuery();
+    router.push('/login');
+    router.refresh();
+  }, [router, stopSessionQuery]);
+
+  useEffect(() => {
+    return onSessionInvalidated(handleSessionInvalidated);
+  }, [handleSessionInvalidated]);
+
+  if (
+    initialUser !== prevInitialUser ||
+    initialSessionActive !== prevInitialSessionActive
+  ) {
     setPrevInitialUser(initialUser);
-    setSessionActive(hasSessionCookie());
+    setPrevInitialSessionActive(initialSessionActive);
+    setSessionActive(
+      Boolean(initialUser) || initialSessionActive || hasSessionCookie(),
+    );
   }
 
   const { data: profile, isPending, isFetching } = useQuery({
@@ -97,9 +133,9 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
     mutationFn: authService.logout,
     onSettled: async () => {
       clearCsrfToken();
+      clearClientAuthCookies();
       setSessionActive(false);
-      queryClient.setQueryData(authKeys.me(), null);
-      await queryClient.invalidateQueries({ queryKey: authKeys.all });
+      await stopSessionQuery();
     },
   });
 
@@ -127,13 +163,14 @@ export function AuthProvider({ children, initialUser }: AuthProviderProps) {
       await logoutMutation.mutateAsync();
     } catch {
       clearCsrfToken();
+      clearClientAuthCookies();
       setSessionActive(false);
-      queryClient.setQueryData(authKeys.me(), null);
+      await stopSessionQuery();
     } finally {
       router.push('/login');
       router.refresh();
     }
-  }, [logoutMutation, queryClient, router]);
+  }, [logoutMutation, router, stopSessionQuery]);
 
   const refreshUser = useCallback(async () => {
     if (!hasSessionCookie()) {

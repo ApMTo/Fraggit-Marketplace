@@ -14,43 +14,22 @@ import { getLandingLinks } from './lib/get-landing-links';
 
 type HomePageProps = {
   isAuthenticated: boolean;
-  userDisplayName?: string;
 };
 
-export async function HomePage({
-  isAuthenticated,
-  userDisplayName,
-}: HomePageProps) {
+export async function HomePage({ isAuthenticated }: HomePageProps) {
   const t = await getTranslations('landing');
   const links = getLandingLinks({ isAuthenticated });
-
-  const heroSubtitle =
-    isAuthenticated && userDisplayName
-      ? t('hero.welcomeBack', { name: userDisplayName })
-      : t('hero.subtitle');
-
+  
   const currentYear = new Date().getFullYear();
 
   return (
     <>
       <HeroSection
         title={t('hero.title')}
-        subtitle={heroSubtitle}
+        subtitle={t('hero.subtitle')}
         startShoppingLabel={t('hero.startShopping')}
         becomeSellerLabel={t('hero.becomeSeller')}
         links={links}
-        preview={{
-          title: t('hero.preview.title'),
-          dealStatus: t('hero.preview.dealStatus'),
-          sellerRating: t('hero.preview.sellerRating'),
-          reviewsLabel: t('hero.preview.reviews'),
-          priceLabel: t('hero.preview.price'),
-          items: {
-            account: t('hero.preview.items.account'),
-            currency: t('hero.preview.items.currency'),
-            service: t('hero.preview.items.service'),
-          },
-        }}
       />
 
       <CategoriesSection

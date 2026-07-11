@@ -1,7 +1,12 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import { notifySessionInvalidated } from '@/lib/auth-session';
 import { getClientApiBaseUrl } from '@/lib/api-base';
 import { unwrapApiResponse } from '@/lib/api-response';
-import { clearCsrfToken, getCsrfToken, setCsrfToken } from '@/lib/csrf';
+import {
+  clearClientAuthCookies,
+  hasRefreshCredentials,
+} from '@/lib/cookies';
+import { clearCsrfToken, getCsrfToken, setCsrfToken, syncCsrfFromCookie } from '@/lib/csrf';
 import type { AuthSessionResponse } from '@/types/auth';
 
 type RetryableRequestConfig = InternalAxiosRequestConfig & {
@@ -49,7 +54,22 @@ function attachCsrfHeader(config: InternalAxiosRequestConfig): void {
 
 let refreshPromise: Promise<AuthSessionResponse | null> | null = null;
 
+function invalidateSession(): void {
+  clearCsrfToken();
+  clearClientAuthCookies();
+  notifySessionInvalidated();
+}
+
+function canAttemptRefresh(): boolean {
+  syncCsrfFromCookie();
+  return hasRefreshCredentials() && getCsrfToken() !== null;
+}
+
 async function refreshSession(): Promise<AuthSessionResponse | null> {
+  if (!canAttemptRefresh()) {
+    return null;
+  }
+
   const csrfToken = getCsrfToken();
   if (!csrfToken) {
     return null;
@@ -68,7 +88,7 @@ async function refreshSession(): Promise<AuthSessionResponse | null> {
     setCsrfToken(data.csrfToken);
     return data;
   } catch {
-    clearCsrfToken();
+    invalidateSession();
     return null;
   }
 }
@@ -99,14 +119,23 @@ api.interceptors.response.use(
     if (
       !originalRequest ||
       error.response?.status !== 401 ||
-      originalRequest._retry ||
       originalRequest.skipAuthRefresh ||
       shouldSkipRefresh(originalRequest.url)
     ) {
       return Promise.reject(error);
     }
 
+    if (originalRequest._retry) {
+      invalidateSession();
+      return Promise.reject(error);
+    }
+
     originalRequest._retry = true;
+
+    if (!canAttemptRefresh()) {
+      invalidateSession();
+      return Promise.reject(error);
+    }
 
     const refreshed = await getRefreshPromise();
     if (!refreshed) {

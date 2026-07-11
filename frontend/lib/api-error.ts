@@ -10,6 +10,10 @@ export function isApiError(error: unknown): error is AxiosError<ApiErrorBody> {
   );
 }
 
+export function isUnauthorizedError(error: unknown): boolean {
+  return isApiError(error) && error.response?.status === 401;
+}
+
 export function getApiErrorCode(error: unknown): string | null {
   if (!isApiError(error) || !error.response?.data?.error?.message) {
     return null;
