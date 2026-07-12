@@ -8,6 +8,7 @@ const KNOWN_ERROR_CODES = new Set([
   'invalid_or_expired_token',
   'invalid_registration_payload',
   'weak_password',
+  'failed_to_hash_password',
   'invalid_credentials',
   'email_not_verified',
   'account_deactivated',
@@ -19,6 +20,12 @@ const KNOWN_ERROR_CODES = new Set([
   'no_session_found',
   'session_not_found',
   'invalid_token',
+  'invalid_device',
+  'ip_mismatch',
+  'ua_mismatch',
+  'user_not_found',
+  'insufficient_role',
+  'password_mismatch',
 ]);
 
 export function resolveAuthErrorKey(error: unknown): string {
@@ -28,7 +35,10 @@ export function resolveAuthErrorKey(error: unknown): string {
     return 'generic';
   }
 
-  const normalized = code.replace(/^errors\./, '');
+  const normalized = code
+    .replace(/^errors\./, '')
+    .replace(/^validation\./, '')
+    .split(':')[0];
 
   if (KNOWN_ERROR_CODES.has(normalized)) {
     return normalized;

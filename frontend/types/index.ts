@@ -23,3 +23,21 @@ export type {
   UserRole,
   ApiErrorBody,
 } from './auth';
+
+export type {
+  AttributeType,
+  CategoryPublic,
+  CategoryAdmin,
+  SubcategoryPublic,
+  SubcategoryAdmin,
+  AttributeDefinitionPublic,
+  AttributeDefinitionAdmin,
+  CreateCategoryPayload,
+  UpdateCategoryPayload,
+  CreateSubcategoryPayload,
+  UpdateSubcategoryPayload,
+  CreateAttributeDefinitionPayload,
+  UpdateAttributeDefinitionPayload,
+} from './category';
+
+export { ATTRIBUTE_TYPES, OPTION_ATTRIBUTE_TYPES } from './category';

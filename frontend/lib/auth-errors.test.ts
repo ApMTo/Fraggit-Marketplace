@@ -28,6 +28,24 @@ describe('resolveAuthErrorKey', () => {
     );
   });
 
+  it('returns session security codes', () => {
+    expect(resolveAuthErrorKey(createAxiosError('errors.invalid_device'))).toBe(
+      'invalid_device',
+    );
+    expect(resolveAuthErrorKey(createAxiosError('errors.ip_mismatch'))).toBe(
+      'ip_mismatch',
+    );
+    expect(resolveAuthErrorKey(createAxiosError('errors.ua_mismatch'))).toBe(
+      'ua_mismatch',
+    );
+  });
+
+  it('returns validation password mismatch', () => {
+    expect(
+      resolveAuthErrorKey(createAxiosError('validation.password_mismatch')),
+    ).toBe('password_mismatch');
+  });
+
   it('returns generic for unknown codes', () => {
     expect(resolveAuthErrorKey(createAxiosError('something_unknown'))).toBe(
       'generic',
