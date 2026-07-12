@@ -4,43 +4,45 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-
 import { Prisma } from '@prisma/client';
-
+import type { AppLocale } from '../../common/i18n/locale';
+import { toLocalizedNameInput } from '../../common/i18n/locale';
 import { PrismaService } from '../../database/prisma.service';
-
 import { slugify } from '../../common/utils/slug.util';
-
 import {
   formatSubcategoryAdmin,
+  formatSubcategoryPublic,
   SUBCATEGORY_ADMIN_SELECT,
   SUBCATEGORY_PUBLIC_SELECT,
   SubcategoryAdmin,
   SubcategoryPublic,
 } from './constants/subcategory.select';
-
 import { CreateSubcategoryDto } from './dto/create-subcategory.dto';
-
 import { UpdateSubcategoryDto } from './dto/update-subcategory.dto';
 
 @Injectable()
 export class SubcategoriesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findByCategoryId(categoryId: string): Promise<SubcategoryPublic[]> {
-    return this.prisma.subcategory.findMany({
+  async findByCategoryId(
+    categoryId: string,
+    locale?: AppLocale | null,
+  ): Promise<SubcategoryPublic[]> {
+    const rows = await this.prisma.subcategory.findMany({
       where: { categoryId },
-
       select: SUBCATEGORY_PUBLIC_SELECT,
-
-      orderBy: { name: 'asc' },
+      orderBy: { slug: 'asc' },
     });
+
+    return rows.map((row) => formatSubcategoryPublic(row, locale));
   }
 
-  async findById(id: string): Promise<SubcategoryAdmin> {
+  async findById(
+    id: string,
+    locale?: AppLocale | null,
+  ): Promise<SubcategoryAdmin> {
     const subcategory = await this.prisma.subcategory.findUnique({
       where: { id },
-
       select: SUBCATEGORY_ADMIN_SELECT,
     });
 
@@ -48,36 +50,33 @@ export class SubcategoriesService {
       throw new NotFoundException('subcategory_not_found');
     }
 
-    return formatSubcategoryAdmin(subcategory);
+    return formatSubcategoryAdmin(subcategory, locale);
   }
 
   async create(
     categoryId: string,
-
     dto: CreateSubcategoryDto,
+    locale?: AppLocale | null,
   ): Promise<SubcategoryAdmin> {
     await this.assertCategoryExists(categoryId);
 
-    const slug = dto.slug ?? slugify(dto.name);
+    const name = toLocalizedNameInput(dto.name);
+    const slug = dto.slug ?? slugify(name.en);
 
     this.assertSlug(slug);
 
     const globalAttributeIds = await this.resolveGlobalAttributeIds(
       categoryId,
-
       dto.globalAttributeIds ?? [],
     );
 
     try {
       const subcategory = await this.prisma.$transaction(async (tx) => {
-        const created = await tx.subcategory.create({
+        return tx.subcategory.create({
           data: {
             categoryId,
-
-            name: dto.name,
-
+            name: name,
             slug,
-
             ...(globalAttributeIds.length > 0 && {
               globalAttributeLinks: {
                 create: globalAttributeIds.map((attributeDefinitionId) => ({
@@ -86,29 +85,24 @@ export class SubcategoriesService {
               },
             }),
           },
-
           select: SUBCATEGORY_ADMIN_SELECT,
         });
-
-        return created;
       });
 
-      return formatSubcategoryAdmin(subcategory);
+      return formatSubcategoryAdmin(subcategory, locale);
     } catch (error) {
       this.rethrowUniqueConflict(error, 'subcategory_slug_already_exists');
-
       throw error;
     }
   }
 
   async update(
     id: string,
-
     dto: UpdateSubcategoryDto,
+    locale?: AppLocale | null,
   ): Promise<SubcategoryAdmin> {
     const existing = await this.prisma.subcategory.findUnique({
       where: { id },
-
       select: { id: true, categoryId: true },
     });
 
@@ -119,12 +113,11 @@ export class SubcategoriesService {
     const data: Prisma.SubcategoryUpdateInput = {};
 
     if (dto.name !== undefined) {
-      data.name = dto.name;
+      data.name = toLocalizedNameInput(dto.name);
     }
 
     if (dto.slug !== undefined) {
       this.assertSlug(dto.slug);
-
       data.slug = dto.slug;
     }
 
@@ -132,17 +125,15 @@ export class SubcategoriesService {
       dto.globalAttributeIds !== undefined
         ? await this.resolveGlobalAttributeIds(
             existing.categoryId,
-
             dto.globalAttributeIds,
           )
         : undefined;
 
     const hasScalarUpdates = dto.name !== undefined || dto.slug !== undefined;
-
     const hasGlobalUpdates = globalAttributeIds !== undefined;
 
     if (!hasScalarUpdates && !hasGlobalUpdates) {
-      return this.findById(id);
+      return this.findById(id, locale);
     }
 
     try {
@@ -156,7 +147,6 @@ export class SubcategoriesService {
             await tx.subcategoryGlobalAttribute.createMany({
               data: globalAttributeIds.map((attributeDefinitionId) => ({
                 subcategoryId: id,
-
                 attributeDefinitionId,
               })),
             });
@@ -166,24 +156,20 @@ export class SubcategoriesService {
         if (!hasScalarUpdates) {
           return tx.subcategory.findUniqueOrThrow({
             where: { id },
-
             select: SUBCATEGORY_ADMIN_SELECT,
           });
         }
 
         return tx.subcategory.update({
           where: { id },
-
           data,
-
           select: SUBCATEGORY_ADMIN_SELECT,
         });
       });
 
-      return formatSubcategoryAdmin(subcategory);
+      return formatSubcategoryAdmin(subcategory, locale);
     } catch (error) {
       this.rethrowUniqueConflict(error, 'subcategory_slug_already_exists');
-
       throw error;
     }
   }
@@ -208,12 +194,10 @@ export class SubcategoriesService {
 
   async assertBelongsToCategory(
     subcategoryId: string,
-
     categoryId: string,
   ): Promise<void> {
     const subcategory = await this.prisma.subcategory.findFirst({
       where: { id: subcategoryId, categoryId },
-
       select: { id: true },
     });
 
@@ -224,12 +208,10 @@ export class SubcategoriesService {
 
   async resolveBySlugs(
     categorySlug: string,
-
     subcategorySlug: string,
   ): Promise<{ categoryId: string; subcategoryId: string }> {
     const category = await this.prisma.category.findUnique({
       where: { slug: categorySlug },
-
       select: { id: true },
     });
 
@@ -239,7 +221,6 @@ export class SubcategoriesService {
 
     const subcategory = await this.prisma.subcategory.findFirst({
       where: { categoryId: category.id, slug: subcategorySlug },
-
       select: { id: true },
     });
 
@@ -253,7 +234,6 @@ export class SubcategoriesService {
   private async assertCategoryExists(categoryId: string): Promise<void> {
     const category = await this.prisma.category.findUnique({
       where: { id: categoryId },
-
       select: { id: true },
     });
 
@@ -264,7 +244,6 @@ export class SubcategoriesService {
 
   private async resolveGlobalAttributeIds(
     categoryId: string,
-
     globalAttributeIds: string[],
   ): Promise<string[]> {
     if (!globalAttributeIds.length) {
@@ -276,12 +255,9 @@ export class SubcategoriesService {
     const attributes = await this.prisma.attributeDefinition.findMany({
       where: {
         id: { in: uniqueIds },
-
         categoryId,
-
         isGlobal: true,
       },
-
       select: { id: true },
     });
 

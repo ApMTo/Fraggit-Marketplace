@@ -9,10 +9,11 @@ import type {
 export const subcategoryKeys = {
   all: ['subcategories'] as const,
   lists: () => [...subcategoryKeys.all, 'list'] as const,
-  list: (categoryId: string) =>
-    [...subcategoryKeys.lists(), categoryId] as const,
+  list: (categoryId: string, locale: string) =>
+    [...subcategoryKeys.lists(), categoryId, locale] as const,
   details: () => [...subcategoryKeys.all, 'detail'] as const,
-  detail: (id: string) => [...subcategoryKeys.details(), id] as const,
+  detail: (id: string, locale: string) =>
+    [...subcategoryKeys.details(), id, locale] as const,
 };
 
 export const subcategoriesService = {

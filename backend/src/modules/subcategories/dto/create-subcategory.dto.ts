@@ -1,36 +1,27 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-
-import { Transform } from 'class-transformer';
-
+import { Transform, Type } from 'class-transformer';
 import {
   ArrayUnique,
   IsArray,
   IsOptional,
   IsString,
   MaxLength,
-  MinLength,
+  ValidateNested,
 } from 'class-validator';
-
 import { V } from '../../../common/constants/validation.messages';
-
-import {
-  trimOptionalSlug,
-  trimString,
-} from '../../../common/utils/dto-transform.util';
+import { trimOptionalSlug } from '../../../common/utils/dto-transform.util';
+import { LocalizedNameDto } from './localized-name.dto';
 
 export class CreateSubcategoryDto {
-  @ApiProperty({ example: 'Accounts', minLength: 2, maxLength: 100 })
-  @IsString({ message: V.mustBeString })
-  @MinLength(2, { message: 'validation.subcategory_name_min_length' })
-  @MaxLength(100, { message: 'validation.subcategory_name_max_length' })
-  @Transform(trimString)
-  name!: string;
+  @ApiProperty({ type: LocalizedNameDto })
+  @ValidateNested()
+  @Type(() => LocalizedNameDto)
+  name!: LocalizedNameDto;
 
   @ApiPropertyOptional({
     example: 'accounts',
-
     description:
-      'URL-friendly identifier within the category. Generated from name when omitted.',
+      'URL-friendly identifier within the category. Generated from English name when omitted.',
   })
   @IsOptional()
   @IsString({ message: V.mustBeString })
@@ -40,7 +31,6 @@ export class CreateSubcategoryDto {
 
   @ApiPropertyOptional({
     example: ['global-attribute-uuid'],
-
     description:
       'Global category attribute IDs to include in this subcategory (e.g. Platform).',
   })

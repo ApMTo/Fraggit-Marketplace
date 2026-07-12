@@ -5,6 +5,7 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
+import { useLocale } from 'next-intl';
 import { categoryKeys } from '@/services/categories.service';
 import {
   subcategoriesService,
@@ -16,8 +17,10 @@ import type {
 } from '@/types/category';
 
 export function useSubcategories(categoryId: string | null) {
+  const locale = useLocale();
+
   return useQuery({
-    queryKey: subcategoryKeys.list(categoryId ?? ''),
+    queryKey: subcategoryKeys.list(categoryId ?? '', locale),
     queryFn: () => subcategoriesService.getByCategoryId(categoryId!),
     enabled: Boolean(categoryId),
     staleTime: 60_000,
@@ -25,8 +28,10 @@ export function useSubcategories(categoryId: string | null) {
 }
 
 export function useSubcategory(id: string | null) {
+  const locale = useLocale();
+
   return useQuery({
-    queryKey: subcategoryKeys.detail(id ?? ''),
+    queryKey: subcategoryKeys.detail(id ?? '', locale),
     queryFn: () => subcategoriesService.getById(id!),
     enabled: Boolean(id),
     staleTime: 60_000,
@@ -39,7 +44,7 @@ export function useSubcategoryMutations(categoryId: string | null) {
   const invalidateSubcategories = () => {
     if (categoryId) {
       queryClient.invalidateQueries({
-        queryKey: subcategoryKeys.list(categoryId),
+        queryKey: subcategoryKeys.lists(),
       });
     }
     queryClient.invalidateQueries({ queryKey: subcategoryKeys.all });
@@ -59,9 +64,11 @@ export function useSubcategoryMutations(categoryId: string | null) {
       id: string;
       payload: UpdateSubcategoryPayload;
     }) => subcategoriesService.update(id, payload),
-    onSuccess: (_, { id }) => {
+    onSuccess: () => {
       invalidateSubcategories();
-      queryClient.invalidateQueries({ queryKey: subcategoryKeys.detail(id) });
+      queryClient.invalidateQueries({
+        queryKey: subcategoryKeys.details(),
+      });
     },
   });
 
@@ -74,11 +81,12 @@ export function useSubcategoryMutations(categoryId: string | null) {
 }
 
 export function usePrefetchSubcategories() {
+  const locale = useLocale();
   const queryClient = useQueryClient();
 
   return (categoryId: string) => {
     queryClient.prefetchQuery({
-      queryKey: subcategoryKeys.list(categoryId),
+      queryKey: subcategoryKeys.list(categoryId, locale),
       queryFn: () => subcategoriesService.getByCategoryId(categoryId),
       staleTime: 60_000,
     });

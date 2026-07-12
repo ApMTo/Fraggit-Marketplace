@@ -19,6 +19,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
+import {
+  ACCEPT_LANGUAGE_HEADER,
+  RequestLocale,
+} from '../../common/decorators/request-locale.decorator';
+import type { AppLocale } from '../../common/i18n/locale';
+import { APP_LOCALES, DEFAULT_LOCALE } from '../../common/i18n/locale';
 import { Public } from '../../decorators/public.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt.guard';
@@ -34,6 +40,12 @@ const CSRF_HEADER = {
   required: true,
 };
 
+const LOCALE_HEADER = {
+  name: ACCEPT_LANGUAGE_HEADER,
+  description: `Locale for localized subcategory names (${APP_LOCALES.join(', ')}). Unsupported values fall back to ${DEFAULT_LOCALE}.`,
+  required: false,
+};
+
 @ApiTags('Subcategories')
 @Controller()
 export class SubcategoriesController {
@@ -41,19 +53,24 @@ export class SubcategoriesController {
 
   @Get('categories/:categoryId/subcategories')
   @Public()
+  @ApiHeader(LOCALE_HEADER)
   @ApiOperation({ summary: 'List subcategories for a category' })
   @ApiParam({ name: 'categoryId', description: 'Category id' })
   @ApiResponse({ status: 200, description: 'Subcategories returned' })
-  findByCategory(@Param('categoryId') categoryId: string) {
-    return this.subcategoriesService.findByCategoryId(categoryId);
+  findByCategory(
+    @Param('categoryId') categoryId: string,
+    @RequestLocale() locale: AppLocale,
+  ) {
+    return this.subcategoriesService.findByCategoryId(categoryId, locale);
   }
 
   @Get('subcategories/:id')
   @Public()
+  @ApiHeader(LOCALE_HEADER)
   @ApiOperation({ summary: 'Get subcategory by id' })
   @ApiParam({ name: 'id', description: 'Subcategory id' })
-  findOne(@Param('id') id: string) {
-    return this.subcategoriesService.findById(id);
+  findOne(@Param('id') id: string, @RequestLocale() locale: AppLocale) {
+    return this.subcategoriesService.findById(id, locale);
   }
 
   @Post('categories/:categoryId/subcategories')
@@ -62,6 +79,7 @@ export class SubcategoriesController {
   @Roles(UserRole.ADMIN)
   @ApiCookieAuth('access_token')
   @ApiHeader(CSRF_HEADER)
+  @ApiHeader(LOCALE_HEADER)
   @ApiOperation({
     summary: 'Create subcategory (admin and above)',
     description:
@@ -71,8 +89,9 @@ export class SubcategoriesController {
   create(
     @Param('categoryId') categoryId: string,
     @Body() dto: CreateSubcategoryDto,
+    @RequestLocale() locale: AppLocale,
   ) {
-    return this.subcategoriesService.create(categoryId, dto);
+    return this.subcategoriesService.create(categoryId, dto, locale);
   }
 
   @Patch('subcategories/:id')
@@ -81,10 +100,15 @@ export class SubcategoriesController {
   @Roles(UserRole.ADMIN)
   @ApiCookieAuth('access_token')
   @ApiHeader(CSRF_HEADER)
+  @ApiHeader(LOCALE_HEADER)
   @ApiOperation({ summary: 'Update subcategory (admin and above)' })
   @ApiParam({ name: 'id', description: 'Subcategory id' })
-  update(@Param('id') id: string, @Body() dto: UpdateSubcategoryDto) {
-    return this.subcategoriesService.update(id, dto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateSubcategoryDto,
+    @RequestLocale() locale: AppLocale,
+  ) {
+    return this.subcategoriesService.update(id, dto, locale);
   }
 
   @Delete('subcategories/:id')

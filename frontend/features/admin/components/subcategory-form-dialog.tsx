@@ -22,7 +22,8 @@ import type {
 import type { SubcategoryDialogState } from '@/features/admin/types';
 
 type SubcategoryFormValues = {
-  name: string;
+  nameEn: string;
+  nameRu: string;
   slug: string;
   globalAttributeIds: string[];
 };
@@ -53,16 +54,24 @@ export function SubcategoryFormDialog({
   const formik = useFormik<SubcategoryFormValues>({
     enableReinitialize: true,
     initialValues: {
-      name: subcategory?.name ?? '',
+      nameEn: subcategory?.translations.en ?? '',
+      nameRu: subcategory?.translations.ru ?? '',
       slug: subcategory?.slug ?? '',
       globalAttributeIds: subcategory?.globalAttributeIds ?? [],
     },
     validate: (values) => {
       const errors: Partial<Record<keyof SubcategoryFormValues, string>> = {};
 
-      const nameError = validateSubcategoryName(values.name);
-      if (nameError) {
-        errors.name = tValidation(nameError);
+      const nameEnError = validateSubcategoryName(values.nameEn);
+      if (nameEnError) {
+        errors.nameEn = tValidation(nameEnError);
+      }
+
+      if (values.nameRu.trim()) {
+        const nameRuError = validateSubcategoryName(values.nameRu);
+        if (nameRuError) {
+          errors.nameRu = tValidation(nameRuError);
+        }
       }
 
       const slugError = validateSubcategorySlug(values.slug);
@@ -83,7 +92,12 @@ export function SubcategoryFormDialog({
 
       try {
         const payload = {
-          name: values.name.trim(),
+          name: {
+            en: values.nameEn.trim(),
+            ...(values.nameRu.trim()
+              ? { ru: values.nameRu.trim() }
+              : {}),
+          },
           slug: values.slug.trim() || undefined,
           globalAttributeIds: values.globalAttributeIds,
         };
@@ -159,20 +173,39 @@ export function SubcategoryFormDialog({
         ) : null}
 
         <div className="space-y-2">
-          <Label htmlFor="subcategory-name">{t('name')}</Label>
+          <Label htmlFor="subcategory-name-en">{t('nameEn')}</Label>
           <Input
-            id="subcategory-name"
-            name="name"
-            value={formik.values.name}
+            id="subcategory-name-en"
+            name="nameEn"
+            value={formik.values.nameEn}
             onChange={(event) => {
               clearFormError();
               formik.handleChange(event);
             }}
             onBlur={formik.handleBlur}
-            hasError={Boolean(formik.touched.name && formik.errors.name)}
+            hasError={Boolean(formik.touched.nameEn && formik.errors.nameEn)}
           />
-          {formik.touched.name && formik.errors.name ? (
-            <p className="text-xs text-destructive">{formik.errors.name}</p>
+          {formik.touched.nameEn && formik.errors.nameEn ? (
+            <p className="text-xs text-destructive">{formik.errors.nameEn}</p>
+          ) : null}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="subcategory-name-ru">{t('nameRu')}</Label>
+          <Input
+            id="subcategory-name-ru"
+            name="nameRu"
+            value={formik.values.nameRu}
+            placeholder={t('nameRuPlaceholder')}
+            onChange={(event) => {
+              clearFormError();
+              formik.handleChange(event);
+            }}
+            onBlur={formik.handleBlur}
+            hasError={Boolean(formik.touched.nameRu && formik.errors.nameRu)}
+          />
+          {formik.touched.nameRu && formik.errors.nameRu ? (
+            <p className="text-xs text-destructive">{formik.errors.nameRu}</p>
           ) : null}
         </div>
 
