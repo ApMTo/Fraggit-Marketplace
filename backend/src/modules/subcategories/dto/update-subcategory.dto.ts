@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   ArrayUnique,
   IsArray,
@@ -7,26 +7,18 @@ import {
   IsOptional,
   IsString,
   MaxLength,
-  MinLength,
+  ValidateNested,
 } from 'class-validator';
 import { V } from '../../../common/constants/validation.messages';
-import {
-  trimLowerString,
-  trimString,
-} from '../../../common/utils/dto-transform.util';
+import { trimLowerString } from '../../../common/utils/dto-transform.util';
+import { LocalizedNameDto } from './localized-name.dto';
 
 export class UpdateSubcategoryDto {
-  @ApiPropertyOptional({
-    example: 'Premium Accounts',
-    minLength: 2,
-    maxLength: 100,
-  })
+  @ApiPropertyOptional({ type: LocalizedNameDto })
   @IsOptional()
-  @IsString({ message: V.mustBeString })
-  @MinLength(2, { message: 'validation.subcategory_name_min_length' })
-  @MaxLength(100, { message: 'validation.subcategory_name_max_length' })
-  @Transform(trimString)
-  name?: string;
+  @ValidateNested()
+  @Type(() => LocalizedNameDto)
+  name?: LocalizedNameDto;
 
   @ApiPropertyOptional({ example: 'premium-accounts' })
   @IsOptional()

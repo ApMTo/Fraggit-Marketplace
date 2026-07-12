@@ -19,6 +19,11 @@ export type CategoryAdmin = CategoryPublic & {
   updatedAt: string;
 };
 
+export type LocalizedName = {
+  en: string;
+  ru?: string;
+};
+
 export type SubcategoryPublic = {
   id: string;
   categoryId: string;
@@ -27,6 +32,7 @@ export type SubcategoryPublic = {
 };
 
 export type SubcategoryAdmin = SubcategoryPublic & {
+  translations: LocalizedName;
   createdAt: string;
   updatedAt: string;
   globalAttributeIds: string[];
@@ -65,13 +71,13 @@ export type UpdateCategoryPayload = {
 };
 
 export type CreateSubcategoryPayload = {
-  name: string;
+  name: LocalizedName;
   slug?: string;
   globalAttributeIds?: string[];
 };
 
 export type UpdateSubcategoryPayload = {
-  name?: string;
+  name?: LocalizedName;
   slug?: string;
   globalAttributeIds?: string[];
 };

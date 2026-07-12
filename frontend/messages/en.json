@@ -272,7 +272,9 @@
       "subcategoryForm": {
         "createTitle": "Create subcategory",
         "editTitle": "Edit subcategory",
-        "name": "Name",
+        "nameEn": "Name (English)",
+        "nameRu": "Name (Russian)",
+        "nameRuPlaceholder": "Optional — falls back to English",
         "slug": "Slug",
         "slugPlaceholder": "Auto-generated if empty",
         "globalAttributes": "Link global fields",

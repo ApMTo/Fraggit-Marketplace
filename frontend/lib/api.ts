@@ -1,9 +1,11 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import { defaultLocale, locales, type Locale } from '@/i18n/config';
 import { notifySessionInvalidated } from '@/lib/auth-session';
 import { getClientApiBaseUrl } from '@/lib/api-base';
 import { unwrapApiResponse } from '@/lib/api-response';
 import {
   clearClientAuthCookies,
+  getCookie,
   hasRefreshCredentials,
 } from '@/lib/cookies';
 import { clearCsrfToken, getCsrfToken, setCsrfToken, syncCsrfFromCookie } from '@/lib/csrf';
@@ -50,6 +52,20 @@ function attachCsrfHeader(config: InternalAxiosRequestConfig): void {
   if (csrfToken) {
     config.headers.set('x-csrf-token', csrfToken);
   }
+}
+
+function resolveClientLocale(): Locale {
+  const cookieLocale = getCookie('locale');
+
+  if (cookieLocale && locales.includes(cookieLocale as Locale)) {
+    return cookieLocale as Locale;
+  }
+
+  return defaultLocale;
+}
+
+function attachLocaleHeader(config: InternalAxiosRequestConfig): void {
+  config.headers.set('Accept-Language', resolveClientLocale());
 }
 
 let refreshPromise: Promise<AuthSessionResponse | null> | null = null;
@@ -108,6 +124,7 @@ api.interceptors.request.use((config) => {
     config.headers.set('Content-Type', 'multipart/form-data');
   }
 
+  attachLocaleHeader(config);
   attachCsrfHeader(config);
   return config;
 });

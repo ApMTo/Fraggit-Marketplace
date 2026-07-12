@@ -272,7 +272,9 @@
       "subcategoryForm": {
         "createTitle": "Создать подкатегорию",
         "editTitle": "Редактировать подкатегорию",
-        "name": "Название",
+        "nameEn": "Название (English)",
+        "nameRu": "Название (Русский)",
+        "nameRuPlaceholder": "Необязательно — иначе будет English",
         "slug": "Slug",
         "slugPlaceholder": "Сгенерируется автоматически, если пусто",
         "globalAttributes": "Привязать глобальные поля",
