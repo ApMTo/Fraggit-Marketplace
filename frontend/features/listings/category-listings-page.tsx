@@ -76,10 +76,7 @@ export function CategoryListingsPage({
   }, [subcategories, subcategorySlug]);
 
   const { data: filterAttributes, isLoading: attributesLoading } =
-    useListingFilterAttributes(
-      category?.id ?? null,
-      activeSubcategory?.id ?? null,
-    );
+    useListingFilterAttributes(activeSubcategory?.id ?? null);
 
   const lotsQuery = useMemo(
     () => ({
@@ -95,12 +92,15 @@ export function CategoryListingsPage({
     [browseParams],
   );
 
+  const lotsSubcategorySlug =
+    subcategorySlug ?? activeSubcategory?.slug ?? null;
+
   const {
     data: lots,
     isLoading: lotsLoading,
     isError: lotsError,
     isFetching,
-  } = useLots(categorySlug, activeSubcategory?.slug ?? null, lotsQuery);
+  } = useLots(categorySlug, lotsSubcategorySlug, lotsQuery);
 
   const replaceBrowse = useCallback(
     (next: {

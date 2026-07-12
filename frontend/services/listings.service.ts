@@ -18,7 +18,7 @@ export const listingKeys = {
   detail: (id: string) => [...listingKeys.details(), id] as const,
 };
 
-function buildLotsQuery(params: FindLotsParams): Record<string, string> {
+export function buildLotsQuery(params: FindLotsParams): Record<string, string> {
   const query: Record<string, string> = {};
 
   if (params.search?.trim()) {

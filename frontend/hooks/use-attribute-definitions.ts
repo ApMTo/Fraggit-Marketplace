@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
 import {
   useMutation,
   useQuery,
@@ -34,35 +33,17 @@ export function useSubcategoryAttributes(subcategoryId: string | null) {
   });
 }
 
-/** Category globals + subcategory-specific attrs, deduped for listing filters. */
-export function useListingFilterAttributes(
-  categoryId: string | null,
-  subcategoryId: string | null,
-) {
-  const categoryQuery = useCategoryAttributes(categoryId);
-  const subcategoryQuery = useSubcategoryAttributes(subcategoryId);
-
-  const attributes = useMemo(() => {
-    if (!categoryQuery.data && !subcategoryQuery.data) {
-      return undefined;
-    }
-
-    const byId = new Map(
-      [...(categoryQuery.data ?? []), ...(subcategoryQuery.data ?? [])].map(
-        (attribute) => [attribute.id, attribute],
-      ),
-    );
-
-    return [...byId.values()].sort(
-      (a, b) => a.sortOrder - b.sortOrder || a.label.localeCompare(b.label),
-    );
-  }, [categoryQuery.data, subcategoryQuery.data]);
-
-  return {
-    data: attributes,
-    isLoading: categoryQuery.isLoading || subcategoryQuery.isLoading,
-    isError: categoryQuery.isError || subcategoryQuery.isError,
-  };
+/** Category globals + subcategory-specific attrs for browse filters / create. */
+export function useListingFilterAttributes(subcategoryId: string | null) {
+  return useQuery({
+    queryKey: attributeDefinitionKeys.filterableBySubcategory(
+      subcategoryId ?? '',
+    ),
+    queryFn: () =>
+      attributeDefinitionsService.getFilterableBySubcategoryId(subcategoryId!),
+    enabled: Boolean(subcategoryId),
+    staleTime: 60_000,
+  });
 }
 
 export function useAttributeDefinition(id: string | null) {

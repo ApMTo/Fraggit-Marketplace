@@ -16,7 +16,6 @@ type LotCardProps = {
 export function LotCard({ lot, categorySlug, subcategorySlug }: LotCardProps) {
   const t = useTranslations('listings');
   const locale = useLocale();
-  const cover = lot.images[0];
   const previewAttributes = lot.attributes.slice(0, 3);
   const href = `/listings/${categorySlug}/${subcategorySlug}/lot/${lot.id}`;
 
@@ -25,21 +24,8 @@ export function LotCard({ lot, categorySlug, subcategorySlug }: LotCardProps) {
       href={href}
       className="landing-card-hover group flex flex-col overflow-hidden rounded-[var(--radius-lg)] border border-border bg-surface transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-0.5"
     >
-      <div className="relative aspect-[16/10] overflow-hidden bg-surface-elevated">
-        {cover ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={cover.url}
-            alt=""
-            className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-            loading="lazy"
-            decoding="async"
-          />
-        ) : (
-          <div className="flex size-full items-center justify-center text-subtle">
-            <Package className="size-10" aria-hidden="true" />
-          </div>
-        )}
+      <div className="relative flex aspect-[16/10] items-center justify-center overflow-hidden bg-surface-elevated text-subtle">
+        <Package className="size-10" aria-hidden="true" />
         {lot.stock > 1 ? (
           <span className="absolute right-3 top-3 rounded-[var(--radius-xs)] bg-background/80 px-2 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
             {t('stock', { count: lot.stock })}

@@ -13,6 +13,12 @@ export const attributeDefinitionKeys = {
     [...attributeDefinitionKeys.lists(), 'category', categoryId] as const,
   bySubcategory: (subcategoryId: string) =>
     [...attributeDefinitionKeys.lists(), 'subcategory', subcategoryId] as const,
+  filterableBySubcategory: (subcategoryId: string) =>
+    [
+      ...attributeDefinitionKeys.lists(),
+      'filterable',
+      subcategoryId,
+    ] as const,
   details: () => [...attributeDefinitionKeys.all, 'detail'] as const,
   detail: (id: string) => [...attributeDefinitionKeys.details(), id] as const,
 };
@@ -32,6 +38,15 @@ export const attributeDefinitionsService = {
   ): Promise<AttributeDefinitionPublic[]> {
     const { data } = await api.get<AttributeDefinitionPublic[]>(
       `/subcategories/${subcategoryId}/attribute-definitions`,
+    );
+    return data;
+  },
+
+  async getFilterableBySubcategoryId(
+    subcategoryId: string,
+  ): Promise<AttributeDefinitionPublic[]> {
+    const { data } = await api.get<AttributeDefinitionPublic[]>(
+      `/subcategories/${subcategoryId}/filterable-attributes`,
     );
     return data;
   },

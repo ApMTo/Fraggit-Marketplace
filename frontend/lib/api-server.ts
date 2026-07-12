@@ -1,3 +1,5 @@
+import { cache } from 'react';
+import { cookies } from 'next/headers';
 import { defaultLocale, locales, type Locale } from '@/i18n/config';
 import { getServerApiBaseUrl } from '@/lib/api-base';
 import { unwrapApiResponse } from '@/lib/api-response';
@@ -5,6 +7,7 @@ import { unwrapApiResponse } from '@/lib/api-response';
 type ServerFetchOptions = Omit<RequestInit, 'body'> & {
   body?: unknown;
   locale?: string;
+  query?: Record<string, string | undefined>;
 };
 
 function resolveServerLocale(
@@ -25,16 +28,43 @@ function resolveServerLocale(
   return defaultLocale;
 }
 
+function appendQuery(
+  path: string,
+  query?: Record<string, string | undefined>,
+): string {
+  if (!query) {
+    return path;
+  }
+
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined && value !== '') {
+      params.set(key, value);
+    }
+  }
+
+  const qs = params.toString();
+  return qs ? `${path}?${qs}` : path;
+}
+
+export const getRequestCookieHeader = cache(async (): Promise<string> => {
+  const cookieStore = await cookies();
+  return cookieStore
+    .getAll()
+    .map(({ name, value }) => `${name}=${value}`)
+    .join('; ');
+});
+
 export async function serverFetch<T>(
   path: string,
   cookieHeader: string,
   options: ServerFetchOptions = {},
 ): Promise<{ data: T | null; status: number }> {
-  const { body, headers, locale, ...rest } = options;
+  const { body, headers, locale, query, ...rest } = options;
   const apiBase = await getServerApiBaseUrl();
 
   try {
-    const response = await fetch(`${apiBase}${path}`, {
+    const response = await fetch(`${apiBase}${appendQuery(path, query)}`, {
       ...rest,
       headers: {
         'Content-Type': 'application/json',
@@ -57,4 +87,12 @@ export async function serverFetch<T>(
   } catch {
     return { data: null, status: 0 };
   }
+}
+
+export async function serverGet<T>(
+  path: string,
+  options: Pick<ServerFetchOptions, 'locale' | 'query'> = {},
+): Promise<{ data: T | null; status: number }> {
+  const cookieHeader = await getRequestCookieHeader();
+  return serverFetch<T>(path, cookieHeader, options);
 }

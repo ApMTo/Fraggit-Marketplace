@@ -163,10 +163,7 @@ export function CreateLotPage() {
     useSubcategories(formik.values.categoryId || null);
 
   const { data: attributes, isLoading: attributesLoading } =
-    useListingFilterAttributes(
-      formik.values.categoryId || null,
-      formik.values.subcategoryId || null,
-    );
+    useListingFilterAttributes(formik.values.subcategoryId || null);
 
   const attributeDefinitions = useMemo(
     () => attributes ?? [],

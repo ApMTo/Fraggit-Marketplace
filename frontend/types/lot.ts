@@ -37,7 +37,6 @@ export type LotListItem = {
   createdAt: string;
   seller: LotSeller;
   attributes: LotListAttribute[];
-  images: LotImage[];
 };
 
 export type LotDetailAttribute = {
