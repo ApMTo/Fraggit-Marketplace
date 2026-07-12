@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
 import { FormError } from '@/components/ui/form-error';
+import { AppImage } from '@/components/ui/app-image';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { resolveAdminErrorKey } from '@/lib/admin-errors';
@@ -217,10 +218,12 @@ function FileField({ id, label, currentUrl, file, onChange }: FileFieldProps) {
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
       {currentUrl && !file ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <AppImage
           src={currentUrl}
           alt=""
+          width={64}
+          height={64}
+          sizes="64px"
           className="h-16 w-16 rounded-[var(--radius-sm)] border border-border object-cover"
         />
       ) : null}

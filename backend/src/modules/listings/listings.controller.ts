@@ -11,7 +11,7 @@
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import {
   ApiBody,
@@ -42,7 +42,7 @@ const CSRF_HEADER = {
   required: true,
 };
 
-const photosValidationPipe = new FileValidationPipe({
+const lotFilesValidationPipe = new FileValidationPipe({
   maxSizeInBytes: 5 * 1024 * 1024,
   allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
   optional: true,
@@ -50,6 +50,19 @@ const photosValidationPipe = new FileValidationPipe({
 });
 
 const storageOptions = { storage: memoryStorage() };
+
+const lotFileFields = FileFieldsInterceptor(
+  [
+    { name: 'preview', maxCount: 1 },
+    { name: 'photos', maxCount: 5 },
+  ],
+  storageOptions,
+);
+
+type LotUploadedFiles = {
+  preview?: Express.Multer.File[];
+  photos?: Express.Multer.File[];
+};
 
 @ApiTags('Listings')
 @Controller('listings')
@@ -67,6 +80,7 @@ export class ListingsController {
       'Create a new lot with dynamic attributes and optional proof photos',
     description:
       'Accepts multipart form-data. Field "attributes" must be a JSON string. ' +
+      'Optional field "preview" sets the lot cover image; when omitted, category.previewUrl is used. ' +
       'Optional field "photos" accepts up to 5 images (jpeg, png, webp, max 5MB each).',
   })
   @ApiBody({
@@ -96,6 +110,12 @@ export class ListingsController {
           example:
             '[{"attributeId":"attr-uuid","value":"XBOX"},{"attributeId":"attr-uuid","value":"Diamond"}]',
         },
+        preview: {
+          type: 'string',
+          format: 'binary',
+          description:
+            'Optional lot cover image. Defaults to category preview when omitted.',
+        },
         photos: {
           type: 'array',
           items: { type: 'string', format: 'binary' },
@@ -106,13 +126,18 @@ export class ListingsController {
     },
   })
   @ApiResponse({ status: 201, description: 'Lot created' })
-  @UseInterceptors(FilesInterceptor('photos', 5, storageOptions))
+  @UseInterceptors(lotFileFields)
   create(
     @CurrentUser() user: AuthUser,
     @Body() dto: CreateLotDto,
-    @UploadedFiles(photosValidationPipe) photos?: Express.Multer.File[],
+    @UploadedFiles(lotFilesValidationPipe) files?: LotUploadedFiles,
   ) {
-    return this.listingsService.createLot(user.id, dto, photos ?? []);
+    return this.listingsService.createLot(
+      user.id,
+      dto,
+      files?.photos ?? [],
+      files?.preview?.[0],
+    );
   }
 
   @Get(':categorySlug/:subcategorySlug')
@@ -151,6 +176,7 @@ export class ListingsController {
       'Full lot update while status is OPEN. Category and subcategory cannot be changed. ' +
       'Accepts multipart form-data. Field "attributes" must be a JSON string. ' +
       'Field "keepImageIds" must be a JSON array of existing image ids to retain (in order). ' +
+      'Optional field "preview" replaces the lot cover image. ' +
       'Optional field "photos" accepts new images; total images (kept + new) must not exceed 5.',
   })
   @ApiParam({ name: 'id', description: 'Lot id' })
@@ -185,6 +211,11 @@ export class ListingsController {
             'JSON array of existing lot image ids to keep, in display order',
           example: '["image-uuid-1","image-uuid-2"]',
         },
+        preview: {
+          type: 'string',
+          format: 'binary',
+          description: 'Optional new lot cover image',
+        },
         photos: {
           type: 'array',
           items: { type: 'string', format: 'binary' },
@@ -197,14 +228,20 @@ export class ListingsController {
   @ApiResponse({ status: 200, description: 'Lot updated' })
   @ApiResponse({ status: 403, description: 'Not the lot seller' })
   @ApiResponse({ status: 409, description: 'Lot is not open for editing' })
-  @UseInterceptors(FilesInterceptor('photos', 5, storageOptions))
+  @UseInterceptors(lotFileFields)
   update(
     @CurrentUser() user: AuthUser,
     @Param('id') id: string,
     @Body() dto: UpdateLotDto,
-    @UploadedFiles(photosValidationPipe) photos?: Express.Multer.File[],
+    @UploadedFiles(lotFilesValidationPipe) files?: LotUploadedFiles,
   ) {
-    return this.listingsService.updateLot(user.id, id, dto, photos ?? []);
+    return this.listingsService.updateLot(
+      user.id,
+      id,
+      dto,
+      files?.photos ?? [],
+      files?.preview?.[0],
+    );
   }
 
   @Get(':id')

@@ -1,17 +1,27 @@
-﻿import type { Metadata } from 'next';
+﻿import { dehydrate } from '@tanstack/react-query';
+import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { ListingsPage } from '@/features/listings/listings-page';
+import { ListingsHydration } from '@/features/listings/components/listings-hydration';
+import { ListingsHubPage } from '@/features/listings/listings-hub-page';
+import { prefetchListingsHub } from '@/features/listings/lib/prefetch-listings.server';
+import { makeQueryClient } from '@/lib/query-client';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('pages');
+  const t = await getTranslations('listings');
 
   return {
-    title: `${t('listings')} | Fraggit`,
+    title: `${t('title')} | Fraggit`,
+    description: t('subtitle'),
   };
 }
 
 export default async function Page() {
-  const t = await getTranslations('pages');
+  const queryClient = makeQueryClient();
+  await prefetchListingsHub(queryClient);
 
-  return <ListingsPage title={t('listings')} />;
+  return (
+    <ListingsHydration state={dehydrate(queryClient)}>
+      <ListingsHubPage />
+    </ListingsHydration>
+  );
 }

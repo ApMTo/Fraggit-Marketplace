@@ -2,6 +2,7 @@
 
 import { ChevronDown, ChevronRight, FolderTree, Layers } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { AppImage } from '@/components/ui/app-image';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Spinner } from '@/components/ui/spinner';
 import { useSubcategories } from '@/hooks/use-subcategories';
@@ -121,10 +122,12 @@ function CategoryTreeNode({
           }`}
         >
           {category.iconUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <AppImage
               src={category.iconUrl}
               alt=""
+              width={20}
+              height={20}
+              sizes="20px"
               className="size-5 shrink-0 rounded object-cover"
             />
           ) : (

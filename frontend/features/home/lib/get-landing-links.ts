@@ -10,14 +10,14 @@ export function getLandingLinks({
   if (isAuthenticated) {
     return {
       startShopping: '/listings',
-      becomeSeller: '/listings',
+      becomeSeller: '/listings/new',
       createAccount: '/dashboard',
       dashboard: '/dashboard',
     };
   }
 
   return {
-    startShopping: '/login?next=/listings',
+    startShopping: '/listings',
     becomeSeller: '/register',
     createAccount: '/register',
     dashboard: '/dashboard',

@@ -11,6 +11,33 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: '..',
   },
+  images: {
+    remotePatterns: [
+      // Cloudinary uploads (lots, categories, avatars)
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**',
+      },
+      // Seed / third-party mock media
+      {
+        protocol: 'https',
+        hostname: 'sm.ign.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'media.sketchfab.com',
+        pathname: '/**',
+      },
+      // Allow other https CDNs without blocking Image
+      {
+        protocol: 'https',
+        hostname: '**',
+        pathname: '/**',
+      },
+    ],
+  },
   async rewrites() {
     return [
       {

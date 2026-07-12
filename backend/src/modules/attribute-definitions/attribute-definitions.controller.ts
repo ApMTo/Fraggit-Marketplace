@@ -58,12 +58,30 @@ export class AttributeDefinitionsController {
   @ApiOperation({
     summary: 'List attribute definitions for a subcategory',
     description:
-      'Returns global category attributes plus subcategory-specific attributes.',
+      'Returns linked global category attributes plus subcategory-specific attributes (create/edit form).',
   })
   @ApiParam({ name: 'subcategoryId', description: 'Subcategory id' })
   @ApiResponse({ status: 200, description: 'Attribute definitions returned' })
   findBySubcategory(@Param('subcategoryId') subcategoryId: string) {
     return this.attributeDefinitionsService.findBySubcategoryId(subcategoryId);
+  }
+
+  @Get('subcategories/:subcategoryId/filterable-attributes')
+  @Public()
+  @ApiOperation({
+    summary: 'List filterable attribute definitions for a subcategory',
+    description:
+      'Returns every category global attribute plus subcategory-specific attributes. Used by browse filters and lot create/edit.',
+  })
+  @ApiParam({ name: 'subcategoryId', description: 'Subcategory id' })
+  @ApiResponse({
+    status: 200,
+    description: 'Filterable attribute definitions returned',
+  })
+  findFilterableBySubcategory(@Param('subcategoryId') subcategoryId: string) {
+    return this.attributeDefinitionsService.findFilterablePublicForSubcategory(
+      subcategoryId,
+    );
   }
 
   @Get('attribute-definitions/:id')

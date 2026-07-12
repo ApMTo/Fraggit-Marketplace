@@ -8,12 +8,17 @@ const PROTECTED_PREFIXES = [
   '/admin',
   '/orders',
   '/chat',
-  '/listings',
 ];
+
+const PROTECTED_EXACT = new Set(['/listings/new']);
 
 const GUEST_EXACT = new Set(['/login', '/register']);
 
 function isProtectedPath(pathname: string): boolean {
+  if (PROTECTED_EXACT.has(pathname)) {
+    return true;
+  }
+
   return PROTECTED_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );

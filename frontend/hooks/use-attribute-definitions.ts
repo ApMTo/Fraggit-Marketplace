@@ -33,6 +33,19 @@ export function useSubcategoryAttributes(subcategoryId: string | null) {
   });
 }
 
+/** Category globals + subcategory-specific attrs for browse filters / create. */
+export function useListingFilterAttributes(subcategoryId: string | null) {
+  return useQuery({
+    queryKey: attributeDefinitionKeys.filterableBySubcategory(
+      subcategoryId ?? '',
+    ),
+    queryFn: () =>
+      attributeDefinitionsService.getFilterableBySubcategoryId(subcategoryId!),
+    enabled: Boolean(subcategoryId),
+    staleTime: 60_000,
+  });
+}
+
 export function useAttributeDefinition(id: string | null) {
   return useQuery({
     queryKey: attributeDefinitionKeys.detail(id ?? ''),
