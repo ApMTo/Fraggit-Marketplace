@@ -15,14 +15,32 @@ const ADMIN_ERROR_KEYS: Record<string, string> = {
   attribute_key_conflicts_with_global: 'attributeKeyConflictsWithGlobal',
   attribute_options_required: 'attributeOptionsRequired',
   attribute_options_not_allowed: 'attributeOptionsNotAllowed',
+  unique_constraint_failed: 'uniqueConstraintFailed',
+  file_required: 'fileRequired',
+  too_many_files: 'tooManyFiles',
+  field_too_many_files: 'fieldTooManyFiles',
+  file_size_exceeded: 'fileSizeExceeded',
+  invalid_file_type: 'invalidFileType',
+  upload_failed: 'uploadFailed',
+  insufficient_role: 'insufficientRole',
   'errors.insufficient_role': 'insufficientRole',
 };
 
 export function resolveAdminErrorKey(error: unknown): string {
   const code = getApiErrorCode(error);
 
-  if (code && ADMIN_ERROR_KEYS[code]) {
+  if (!code) {
+    return 'generic';
+  }
+
+  const normalized = code.replace(/^errors\./, '').split(':')[0];
+
+  if (ADMIN_ERROR_KEYS[code]) {
     return ADMIN_ERROR_KEYS[code];
+  }
+
+  if (ADMIN_ERROR_KEYS[normalized]) {
+    return ADMIN_ERROR_KEYS[normalized];
   }
 
   return 'generic';
