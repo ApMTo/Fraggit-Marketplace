@@ -60,6 +60,19 @@ export class AttributeDefinitionsService {
     );
   }
 
+  findFilterablePublicForSubcategory(
+    subcategoryId: string,
+  ): Promise<AttributeDefinitionPublic[]> {
+    return this.resolveSubcategoryContext(subcategoryId).then(
+      ({ categoryId }) =>
+        this.prisma.attributeDefinition.findMany({
+          where: filterableAttributesWhere(categoryId, subcategoryId),
+          select: ATTRIBUTE_DEFINITION_PUBLIC_SELECT,
+          orderBy: [{ sortOrder: 'asc' }, { label: 'asc' }],
+        }),
+    );
+  }
+
   findApplicableForSubcategory(
     subcategoryId: string,
   ): Promise<AttributeDefinitionForValidation[]> {

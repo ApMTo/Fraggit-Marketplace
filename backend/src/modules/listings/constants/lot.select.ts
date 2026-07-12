@@ -65,6 +65,9 @@ export const LOT_LIST_ATTRIBUTE_SELECT = {
   },
 } satisfies Prisma.LotAttributeValueSelect;
 
+/** List/table payload: no images; first few attrs for preview columns. */
+export const LOT_LIST_ATTRIBUTE_PREVIEW_TAKE = 3;
+
 export const LOT_LIST_SELECT = {
   id: true,
   title: true,
@@ -79,11 +82,7 @@ export const LOT_LIST_SELECT = {
   attributes: {
     select: LOT_LIST_ATTRIBUTE_SELECT,
     orderBy: { attribute: { sortOrder: 'asc' } },
-  },
-  images: {
-    select: LOT_IMAGE_SELECT,
-    orderBy: { sortOrder: 'asc' },
-    take: 1,
+    take: LOT_LIST_ATTRIBUTE_PREVIEW_TAKE,
   },
 } satisfies Prisma.LotSelect;
 
@@ -104,6 +103,9 @@ export type LotListItem = Omit<LotListItemRaw, 'attributes'> & {
 export function formatLotListItem(item: LotListItemRaw): LotListItem {
   return {
     ...item,
+    description: item.description
+      ? item.description.slice(0, 160)
+      : item.description,
     attributes: item.attributes.map(({ value, attribute }) => ({
       key: attribute.key,
       label: attribute.label,
