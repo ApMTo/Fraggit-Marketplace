@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Package } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
+import { AppImage } from '@/components/ui/app-image';
 import { cn } from '@/lib/utils';
 import type { LotListItem } from '@/types/lot';
 import { formatLotPrice } from '../lib/format-lot-price';
@@ -24,8 +25,20 @@ export function LotCard({ lot, categorySlug, subcategorySlug }: LotCardProps) {
       href={href}
       className="landing-card-hover group flex flex-col overflow-hidden rounded-[var(--radius-lg)] border border-border bg-surface transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-0.5"
     >
-      <div className="relative flex aspect-[16/10] items-center justify-center overflow-hidden bg-surface-elevated text-subtle">
-        <Package className="size-10" aria-hidden="true" />
+      <div className="relative aspect-[16/10] overflow-hidden bg-surface-elevated">
+        {lot.previewUrl ? (
+          <AppImage
+            src={lot.previewUrl}
+            alt=""
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          />
+        ) : (
+          <div className="flex size-full items-center justify-center text-subtle">
+            <Package className="size-10" aria-hidden="true" />
+          </div>
+        )}
         {lot.stock > 1 ? (
           <span className="absolute right-3 top-3 rounded-[var(--radius-xs)] bg-background/80 px-2 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
             {t('stock', { count: lot.stock })}

@@ -61,6 +61,10 @@ function buildCreateLotFormData(payload: CreateLotPayload): FormData {
     formData.append('stock', String(payload.stock));
   }
 
+  if (payload.preview) {
+    formData.append('preview', payload.preview);
+  }
+
   for (const photo of payload.photos ?? []) {
     formData.append('photos', photo);
   }

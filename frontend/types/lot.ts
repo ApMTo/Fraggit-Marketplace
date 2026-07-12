@@ -29,6 +29,7 @@ export type LotListItem = {
   id: string;
   title: string;
   description: string | null;
+  previewUrl: string | null;
   price: string | number;
   stock: number;
   status: LotStatus;
@@ -54,6 +55,7 @@ export type LotDetail = {
   id: string;
   title: string;
   description: string | null;
+  previewUrl: string | null;
   price: string | number;
   stock: number;
   status: LotStatus;
@@ -97,6 +99,7 @@ export type CreateLotPayload = {
   categoryId: string;
   subcategoryId: string;
   attributes: CreateLotAttributeInput[];
+  preview?: File | null;
   photos?: File[];
 };
 

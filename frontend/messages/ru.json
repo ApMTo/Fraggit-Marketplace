@@ -236,6 +236,7 @@
       "sectionBasics": "Основное",
       "sectionCategory": "Категория",
       "sectionAttributes": "Атрибуты",
+      "sectionPreview": "Превью",
       "sectionPhotos": "Фото",
       "fields": {
         "title": "Заголовок",
@@ -250,6 +251,9 @@
       "selectPlaceholder": "Выберите…",
       "noSubcategories": "У этой категории пока нет подкатегорий.",
       "noAttributes": "Для этой подкатегории атрибуты не нужны.",
+      "previewHint": "Необязательная обложка. Если не загрузите — возьмётся превью категории.",
+      "addPreview": "Добавить превью",
+      "removePreview": "Удалить превью",
       "photosHint": "До {max} изображений (JPEG, PNG, WebP)",
       "addPhoto": "Добавить фото",
       "removePhoto": "Удалить фото",

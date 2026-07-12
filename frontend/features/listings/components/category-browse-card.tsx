@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import type { CategoryPublic } from '@/types/category';
 import { FolderOpen } from 'lucide-react';
+import { AppImage } from '@/components/ui/app-image';
+import type { CategoryPublic } from '@/types/category';
 
 type CategoryBrowseCardProps = {
   category: CategoryPublic;
@@ -18,13 +19,12 @@ export function CategoryBrowseCard({ category }: CategoryBrowseCardProps) {
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-surface-elevated">
         {mediaUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <AppImage
             src={mediaUrl}
             alt=""
-            className="size-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-            loading="lazy"
-            decoding="async"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
         ) : (
           <div className="flex size-full items-center justify-center bg-gradient-to-br from-[var(--blue-a12)] to-[var(--purple-a20)] text-subtle">
@@ -35,13 +35,13 @@ export function CategoryBrowseCard({ category }: CategoryBrowseCardProps) {
 
       <div className="flex items-center gap-3 p-4">
         {category.iconUrl && category.previewUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <AppImage
             src={category.iconUrl}
             alt=""
+            width={40}
+            height={40}
+            sizes="40px"
             className="size-10 shrink-0 rounded-[var(--radius-sm)] object-cover"
-            loading="lazy"
-            decoding="async"
           />
         ) : null}
         <h2 className="font-display text-base font-semibold text-foreground">

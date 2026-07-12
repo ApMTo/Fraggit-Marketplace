@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, Package, Star, UserRound } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { EmptyState } from '@/components/ui/empty-state';
+import { AppImage } from '@/components/ui/app-image';
 import { Spinner } from '@/components/ui/spinner';
 import { formatLotPrice } from '@/features/listings/lib/format-lot-price';
 import { useLot } from '@/hooks';
@@ -52,7 +53,7 @@ export function LotDetailPage({
     );
   }
 
-  const cover = lot.images[0];
+  const coverUrl = lot.previewUrl ?? lot.images[0]?.url ?? null;
 
   return (
     <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-8 px-5 py-10">
@@ -68,12 +69,14 @@ export function LotDetailPage({
         <div className="space-y-4">
           <div className="overflow-hidden rounded-[var(--radius-lg)] border border-border bg-surface">
             <div className="relative aspect-[16/10] bg-surface-elevated">
-              {cover ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={cover.url}
+              {coverUrl ? (
+                <AppImage
+                  src={coverUrl}
                   alt=""
-                  className="size-full object-cover"
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 60vw"
+                  className="object-cover"
                 />
               ) : (
                 <div className="flex size-full items-center justify-center text-subtle">
@@ -88,15 +91,14 @@ export function LotDetailPage({
               {lot.images.map((image) => (
                 <li
                   key={image.id}
-                  className="overflow-hidden rounded-[var(--radius-sm)] border border-border"
+                  className="relative aspect-square overflow-hidden rounded-[var(--radius-sm)] border border-border"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <AppImage
                     src={image.url}
                     alt=""
-                    className="aspect-square size-full object-cover"
-                    loading="lazy"
-                    decoding="async"
+                    fill
+                    sizes="(max-width: 640px) 25vw, 120px"
+                    className="object-cover"
                   />
                 </li>
               ))}
@@ -120,11 +122,12 @@ export function LotDetailPage({
           <div className="flex items-center gap-3 rounded-[var(--radius-md)] border border-border bg-surface-elevated px-4 py-3">
             <div className="relative size-11 shrink-0 overflow-hidden rounded-full border border-border bg-surface">
               {lot.seller.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <AppImage
                   src={lot.seller.avatarUrl}
                   alt=""
-                  className="size-full object-cover"
+                  fill
+                  sizes="44px"
+                  className="object-cover"
                 />
               ) : (
                 <div className="flex size-full items-center justify-center text-subtle">

@@ -48,6 +48,7 @@ export class ListingsService {
     sellerId: string,
     dto: CreateLotDto,
     photos: Express.Multer.File[] = [],
+    preview?: Express.Multer.File,
   ): Promise<LotDetail> {
     await this.subcategoriesService.assertBelongsToCategory(
       dto.subcategoryId,
@@ -61,16 +62,31 @@ export class ListingsService {
 
     const attributeValues = normalizeLotAttributes(dto.attributes, definitions);
 
-    const uploadedPhotos =
+    const [uploadedPhotos, uploadedPreview, category] = await Promise.all([
       photos.length > 0
-        ? await this.filesService.uploadMultiple(photos, 'lots')
-        : [];
+        ? this.filesService.uploadMultiple(photos, 'lots')
+        : Promise.resolve([]),
+      preview
+        ? this.filesService.uploadFile(preview, 'lots/previews')
+        : Promise.resolve(null),
+      this.prisma.category.findUnique({
+        where: { id: dto.categoryId },
+        select: { previewUrl: true },
+      }),
+    ]);
+
+    if (!category) {
+      throw new NotFoundException('category_not_found');
+    }
+
+    const previewUrl = uploadedPreview?.url ?? category.previewUrl ?? null;
 
     return this.prisma.$transaction(async (tx) => {
       return tx.lot.create({
         data: {
           title: dto.title,
           description: dto.description ?? null,
+          previewUrl,
           price: dto.price,
           stock: dto.stock ?? 1,
           sellerId,
@@ -151,6 +167,7 @@ export class ListingsService {
     id: string,
     dto: UpdateLotDto,
     photos: Express.Multer.File[] = [],
+    preview?: Express.Multer.File,
   ): Promise<LotDetail> {
     const lot = await this.prisma.lot.findUnique({
       where: { id },
@@ -188,10 +205,14 @@ export class ListingsService {
 
     const attributeValues = normalizeLotAttributes(dto.attributes, definitions);
 
-    const uploadedPhotos =
+    const [uploadedPhotos, uploadedPreview] = await Promise.all([
       photos.length > 0
-        ? await this.filesService.uploadMultiple(photos, 'lots')
-        : [];
+        ? this.filesService.uploadMultiple(photos, 'lots')
+        : Promise.resolve([]),
+      preview
+        ? this.filesService.uploadFile(preview, 'lots/previews')
+        : Promise.resolve(null),
+    ]);
 
     return this.prisma.$transaction(async (tx) => {
       await tx.lotImage.deleteMany({
@@ -227,6 +248,7 @@ export class ListingsService {
           description: dto.description ?? null,
           price: dto.price,
           stock: dto.stock ?? 1,
+          ...(uploadedPreview ? { previewUrl: uploadedPreview.url } : {}),
           attributes: {
             create: attributeValues,
           },

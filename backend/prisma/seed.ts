@@ -241,9 +241,14 @@ async function ensurePubgMock(prisma: PrismaClient) {
     where: { categoryId: category.id },
   });
 
+  await prisma.lot.updateMany({
+    where: { categoryId: category.id, previewUrl: null },
+    data: { previewUrl: category.previewUrl },
+  });
+
   if (existingLots > 0) {
     console.log(
-      `PUBG already has ${existingLots} lot(s) — skipping lot insert.`,
+      `PUBG already has ${existingLots} lot(s) — backfilled previewUrl, skipping lot insert.`,
     );
     return;
   }
@@ -321,6 +326,7 @@ async function ensurePubgMock(prisma: PrismaClient) {
       data: {
         title: lot.title,
         description: lot.description,
+        previewUrl: category.previewUrl,
         price: lot.price,
         stock: lot.stock,
         status: 'OPEN',

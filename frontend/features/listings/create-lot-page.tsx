@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useFormik } from 'formik';
@@ -43,6 +43,7 @@ type CreateLotFormValues = {
   categoryId: string;
   subcategoryId: string;
   attributes: Record<string, LotAttributeInputValue>;
+  preview: File | null;
   photos: File[];
 };
 
@@ -52,6 +53,7 @@ export function CreateLotPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const createLot = useCreateLot();
+  const previewInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
   const presetCategoryId = searchParams.get('categoryId')?.trim() ?? '';
@@ -71,6 +73,7 @@ export function CreateLotPage() {
       categoryId: presetCategoryId,
       subcategoryId: presetSubcategoryId,
       attributes: {},
+      preview: null,
       photos: [],
     },
     validateOnChange: false,
@@ -136,6 +139,7 @@ export function CreateLotPage() {
             attributesRef.current,
             values.attributes,
           ),
+          preview: values.preview,
           photos: values.photos,
         });
 
@@ -245,6 +249,33 @@ export function CreateLotPage() {
     if (formik.status?.formError) {
       formik.setStatus(undefined);
     }
+  }
+
+  function handlePreviewSelected(fileList: FileList | null) {
+    const file = fileList?.[0];
+    if (!file) {
+      return;
+    }
+
+    clearFormError();
+    const acceptedTypes = new Set(LOT_PHOTO_ACCEPT.split(','));
+
+    if (!acceptedTypes.has(file.type)) {
+      formik.setStatus({ formError: t('validation.photoType') });
+    } else if (file.size > LOT_PHOTO_MAX_BYTES) {
+      formik.setStatus({ formError: t('validation.photoSize') });
+    } else {
+      void setFieldValue('preview', file);
+    }
+
+    if (previewInputRef.current) {
+      previewInputRef.current.value = '';
+    }
+  }
+
+  function removePreview() {
+    clearFormError();
+    void setFieldValue('preview', null);
   }
 
   function handlePhotosSelected(fileList: FileList | null) {
@@ -516,6 +547,43 @@ export function CreateLotPage() {
         ) : null}
 
         <section className="space-y-4 border-t border-border pt-6">
+          <div className="space-y-1">
+            <h2 className="font-display text-sm font-semibold tracking-wide text-muted uppercase">
+              {t('sectionPreview')}
+            </h2>
+            <p className="text-xs text-subtle">{t('previewHint')}</p>
+          </div>
+
+          <input
+            ref={previewInputRef}
+            type="file"
+            accept={LOT_PHOTO_ACCEPT}
+            className="sr-only"
+            onChange={(event) => handlePreviewSelected(event.target.files)}
+          />
+
+          <div className="max-w-xs">
+            {formik.values.preview ? (
+              <PhotoThumb
+                file={formik.values.preview}
+                onRemove={removePreview}
+                removeLabel={t('removePreview')}
+                aspectClassName="aspect-[16/10]"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => previewInputRef.current?.click()}
+                className="flex aspect-[16/10] w-full flex-col items-center justify-center gap-2 rounded-[var(--radius-md)] border border-dashed border-border text-muted transition-colors hover:border-border-strong hover:text-foreground"
+              >
+                <ImagePlus className="size-6" aria-hidden="true" />
+                <span className="text-xs">{t('addPreview')}</span>
+              </button>
+            )}
+          </div>
+        </section>
+
+        <section className="space-y-4 border-t border-border pt-6">
           <div className="flex items-center justify-between gap-3">
             <h2 className="font-display text-sm font-semibold tracking-wide text-muted uppercase">
               {t('sectionPhotos')}
@@ -574,25 +642,48 @@ function PhotoThumb({
   file,
   onRemove,
   removeLabel,
+  aspectClassName = 'aspect-square',
 }: {
   file: File;
   onRemove: () => void;
   removeLabel: string;
+  aspectClassName?: string;
 }) {
-  const url = useMemo(() => URL.createObjectURL(file), [file]);
+  const [url, setUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    return () => URL.revokeObjectURL(url);
-  }, [url]);
+    let cancelled = false;
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      if (!cancelled && typeof reader.result === 'string') {
+        setUrl(reader.result);
+      }
+    };
+
+    reader.readAsDataURL(file);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [file]);
 
   return (
-    <div className="relative aspect-square overflow-hidden rounded-[var(--radius-md)] border border-border bg-surface-elevated">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={url} alt="" className="size-full object-cover" />
+    <div
+      className={`relative overflow-hidden rounded-[var(--radius-md)] border border-border bg-surface-elevated ${aspectClassName}`}
+    >
+      {url ? (
+        // eslint-disable-next-line @next/next/no-img-element -- local File preview
+        <img
+          src={url}
+          alt=""
+          className="absolute inset-0 size-full object-cover"
+        />
+      ) : null}
       <button
         type="button"
         onClick={onRemove}
-        className="absolute top-2 right-2 rounded-full bg-background/80 p-1 text-foreground backdrop-blur-sm"
+        className="absolute top-2 right-2 z-10 rounded-full bg-background/80 p-1 text-foreground backdrop-blur-sm"
         aria-label={removeLabel}
       >
         <X className="size-4" />

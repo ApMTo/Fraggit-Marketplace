@@ -1,7 +1,7 @@
 export function formatLotPrice(
   price: string | number,
   locale: string,
-  currency = 'USD',
+  currency = 'AMD',
 ): string {
   const value = typeof price === 'number' ? price : Number(price);
 

@@ -2,6 +2,7 @@
 
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { AppImage } from '@/components/ui/app-image';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { AttributeList } from '@/features/admin/components/attribute-list';
@@ -65,10 +66,12 @@ export function CategoryDetailPanel({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-4">
           {category.previewUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <AppImage
               src={category.previewUrl}
               alt=""
+              width={64}
+              height={64}
+              sizes="64px"
               className="size-16 shrink-0 rounded-[var(--radius-sm)] border border-border object-cover"
             />
           ) : null}

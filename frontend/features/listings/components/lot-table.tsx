@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { Star, UserRound } from 'lucide-react';
+import { Package, Star, UserRound } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
+import { AppImage } from '@/components/ui/app-image';
 import type { LotListItem } from '@/types/lot';
 import { formatLotPrice } from '../lib/format-lot-price';
 
@@ -84,13 +85,12 @@ function LotTableRow({ lot, href }: LotTableRowProps) {
           <div className="flex items-center gap-3">
             <div className="relative size-10 shrink-0 overflow-hidden rounded-full border border-border bg-surface-elevated">
               {lot.seller.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <AppImage
                   src={lot.seller.avatarUrl}
                   alt=""
-                  className="size-full object-cover"
-                  loading="lazy"
-                  decoding="async"
+                  fill
+                  sizes="40px"
+                  className="object-cover"
                 />
               ) : (
                 <div className="flex size-full items-center justify-center text-subtle">
@@ -120,12 +120,33 @@ function LotTableRow({ lot, href }: LotTableRowProps) {
           <p className="text-xs font-medium tracking-wide text-subtle uppercase md:hidden">
             {t('table.offer')}
           </p>
-          <p className="line-clamp-1 font-display text-base font-semibold text-foreground">
-            {lot.title}
-          </p>
-          {lot.description ? (
-            <p className="line-clamp-1 text-sm text-muted">{lot.description}</p>
-          ) : null}
+          <div className="flex items-start gap-3">
+            <div className="relative size-14 shrink-0 overflow-hidden rounded-[var(--radius-sm)] border border-border bg-surface-elevated">
+              {lot.previewUrl ? (
+                <AppImage
+                  src={lot.previewUrl}
+                  alt=""
+                  fill
+                  sizes="56px"
+                  className="object-cover"
+                />
+              ) : (
+                <div className="flex size-full items-center justify-center text-subtle">
+                  <Package className="size-5" aria-hidden="true" />
+                </div>
+              )}
+            </div>
+            <div className="min-w-0 space-y-1">
+              <p className="line-clamp-1 font-display text-base font-semibold text-foreground">
+                {lot.title}
+              </p>
+              {lot.description ? (
+                <p className="line-clamp-1 text-sm text-muted">
+                  {lot.description}
+                </p>
+              ) : null}
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center justify-between md:block md:text-right">

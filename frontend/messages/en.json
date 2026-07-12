@@ -236,6 +236,7 @@
       "sectionBasics": "Basics",
       "sectionCategory": "Category",
       "sectionAttributes": "Attributes",
+      "sectionPreview": "Preview",
       "sectionPhotos": "Photos",
       "fields": {
         "title": "Title",
@@ -250,6 +251,9 @@
       "selectPlaceholder": "Select…",
       "noSubcategories": "This category has no subcategories yet.",
       "noAttributes": "No attributes required for this subcategory.",
+      "previewHint": "Optional cover image. If you skip it, the category preview is used.",
+      "addPreview": "Add preview",
+      "removePreview": "Remove preview",
       "photosHint": "Up to {max} images (JPEG, PNG, WebP)",
       "addPhoto": "Add photo",
       "removePhoto": "Remove photo",
