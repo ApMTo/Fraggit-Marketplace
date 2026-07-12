@@ -1,5 +1,14 @@
 import { Prisma } from '@prisma/client';
 
+export const LOT_SELLER_SELECT = {
+  id: true,
+  username: true,
+  displayName: true,
+  avatarUrl: true,
+  rating: true,
+  ratingCount: true,
+} satisfies Prisma.UserSelect;
+
 export const LOT_ATTRIBUTE_VALUE_SELECT = {
   id: true,
   attributeId: true,
@@ -31,6 +40,7 @@ export const LOT_DETAIL_SELECT = {
   subcategoryId: true,
   createdAt: true,
   updatedAt: true,
+  seller: { select: LOT_SELLER_SELECT },
   attributes: {
     select: LOT_ATTRIBUTE_VALUE_SELECT,
     orderBy: { attribute: { sortOrder: 'asc' } },
@@ -65,6 +75,7 @@ export const LOT_LIST_SELECT = {
   categoryId: true,
   subcategoryId: true,
   createdAt: true,
+  seller: { select: LOT_SELLER_SELECT },
   attributes: {
     select: LOT_LIST_ATTRIBUTE_SELECT,
     orderBy: { attribute: { sortOrder: 'asc' } },

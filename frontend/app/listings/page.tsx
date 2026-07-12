@@ -1,17 +1,16 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { ListingsPage } from '@/features/listings/listings-page';
+import { ListingsHubPage } from '@/features/listings/listings-hub-page';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('pages');
+  const t = await getTranslations('listings');
 
   return {
-    title: `${t('listings')} | Fraggit`,
+    title: `${t('title')} | Fraggit`,
+    description: t('subtitle'),
   };
 }
 
-export default async function Page() {
-  const t = await getTranslations('pages');
-
-  return <ListingsPage title={t('listings')} />;
+export default function Page() {
+  return <ListingsHubPage />;
 }

@@ -69,3 +69,16 @@ export function applicableAttributesWhere(
     ],
   };
 }
+
+/** Browse filters: subcategory-specific + every global on the category. */
+export function filterableAttributesWhere(
+  categoryId: string,
+  subcategoryId: string,
+): Prisma.AttributeDefinitionWhereInput {
+  return {
+    OR: [
+      { isGlobal: false, subcategoryId },
+      { isGlobal: true, categoryId },
+    ],
+  };
+}

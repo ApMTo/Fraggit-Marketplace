@@ -55,7 +55,7 @@ export class ListingsService {
     );
 
     const definitions =
-      await this.attributeDefinitionsService.findApplicableForSubcategory(
+      await this.attributeDefinitionsService.findFilterableForSubcategory(
         dto.subcategoryId,
       );
 
@@ -182,7 +182,7 @@ export class ListingsService {
     }
 
     const definitions =
-      await this.attributeDefinitionsService.findApplicableForSubcategory(
+      await this.attributeDefinitionsService.findFilterableForSubcategory(
         lot.subcategoryId,
       );
 
@@ -265,7 +265,7 @@ export class ListingsService {
     }
 
     const definitions =
-      await this.attributeDefinitionsService.findApplicableForSubcategory(
+      await this.attributeDefinitionsService.findFilterableForSubcategory(
         subcategoryId,
       );
     const definitionByKey = new Map(

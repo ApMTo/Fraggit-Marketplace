@@ -11,6 +11,7 @@ import {
   ATTRIBUTE_DEFINITION_PUBLIC_SELECT,
   ATTRIBUTE_DEFINITION_VALIDATION_SELECT,
   applicableAttributesWhere,
+  filterableAttributesWhere,
   AttributeDefinitionAdmin,
   AttributeDefinitionForValidation,
   AttributeDefinitionPublic,
@@ -42,6 +43,19 @@ export class AttributeDefinitionsService {
           where: applicableAttributesWhere(categoryId, subcategoryId),
           select: ATTRIBUTE_DEFINITION_PUBLIC_SELECT,
           orderBy: [{ sortOrder: 'asc' }, { label: 'asc' }],
+        }),
+    );
+  }
+
+  findFilterableForSubcategory(
+    subcategoryId: string,
+  ): Promise<AttributeDefinitionForValidation[]> {
+    return this.resolveSubcategoryContext(subcategoryId).then(
+      ({ categoryId }) =>
+        this.prisma.attributeDefinition.findMany({
+          where: filterableAttributesWhere(categoryId, subcategoryId),
+          select: ATTRIBUTE_DEFINITION_VALIDATION_SELECT,
+          orderBy: { sortOrder: 'asc' },
         }),
     );
   }

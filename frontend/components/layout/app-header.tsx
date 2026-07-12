@@ -11,6 +11,7 @@ import { useAuth } from '@/providers/AuthProvider';
 
 export function AppHeader() {
   const t = useTranslations('auth');
+  const tListings = useTranslations('listings');
   const { isAuthenticated, isLoading } = useAuth();
 
   return (
@@ -32,7 +33,12 @@ export function AppHeader() {
             {isLoading ? (
               <span className="size-8 animate-pulse rounded-[var(--radius-md)] bg-surface-elevated" />
             ) : isAuthenticated ? (
-              <UserMenu />
+              <>
+                <BrandButton href="/listings/new" size="sm">
+                  {tListings('createLot')}
+                </BrandButton>
+                <UserMenu />
+              </>
             ) : (
               <>
                 <SecondaryButton href="/register" size="sm">
