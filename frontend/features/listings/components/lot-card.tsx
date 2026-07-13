@@ -1,12 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { Package } from 'lucide-react';
-import { useLocale, useTranslations } from 'next-intl';
+import { Package, Star } from 'lucide-react';
+import { useLocale } from 'next-intl';
 import { AppImage } from '@/components/ui/app-image';
-import { cn } from '@/lib/utils';
 import type { LotListItem } from '@/types/lot';
 import { formatLotPrice } from '../lib/format-lot-price';
+
+const STAR_COUNT = 5;
 
 type LotCardProps = {
   lot: LotListItem;
@@ -15,68 +16,59 @@ type LotCardProps = {
 };
 
 export function LotCard({ lot, categorySlug, subcategorySlug }: LotCardProps) {
-  const t = useTranslations('listings');
   const locale = useLocale();
-  const previewAttributes = lot.attributes.slice(0, 3);
   const href = `/listings/${categorySlug}/${subcategorySlug}/lot/${lot.id}`;
+  const filledStars = Math.round(
+    Math.min(STAR_COUNT, Math.max(0, Number(lot.seller.rating) || 0)),
+  );
 
   return (
     <Link
       href={href}
-      className="landing-card-hover group flex flex-col overflow-hidden rounded-[var(--radius-lg)] border border-border bg-surface transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-0.5"
+      className="flex flex-col overflow-hidden rounded-[var(--radius-md)] bg-surface ring-1 ring-border outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)]"
     >
-      <div className="relative aspect-[16/10] overflow-hidden bg-surface-elevated">
+      <div className="relative aspect-[16/11] bg-surface-elevated">
         {lot.previewUrl ? (
           <AppImage
             src={lot.previewUrl}
             alt=""
             fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            className="object-cover"
           />
         ) : (
           <div className="flex size-full items-center justify-center text-subtle">
-            <Package className="size-10" aria-hidden="true" />
+            <Package className="size-8" aria-hidden="true" />
           </div>
         )}
-        {lot.stock > 1 ? (
-          <span className="absolute right-3 top-3 rounded-[var(--radius-xs)] bg-background/80 px-2 py-1 text-xs font-medium text-foreground backdrop-blur-sm">
-            {t('stock', { count: lot.stock })}
-          </span>
-        ) : null}
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 p-4">
-        <div className="space-y-1">
-          <h3 className="line-clamp-2 font-display text-base font-semibold text-foreground">
-            {lot.title}
-          </h3>
-          {lot.description ? (
-            <p className="line-clamp-2 text-sm leading-relaxed text-muted">
-              {lot.description}
-            </p>
-          ) : null}
-        </div>
-
-        {previewAttributes.length > 0 ? (
-          <ul className="flex flex-wrap gap-1.5">
-            {previewAttributes.map((attribute) => (
-              <li
-                key={attribute.key}
-                className={cn(
-                  'rounded-[var(--radius-xs)] border border-border bg-surface-elevated px-2 py-0.5',
-                  'text-xs text-muted',
-                )}
-              >
-                {attribute.value}
-              </li>
-            ))}
-          </ul>
-        ) : null}
-
-        <p className="mt-auto font-display text-lg font-semibold text-foreground">
+      <div className="flex flex-1 flex-col gap-2 p-3">
+        <p className="font-display text-base font-semibold tabular-nums text-success">
           {formatLotPrice(lot.price, locale)}
         </p>
+
+        <h3 className="line-clamp-2 text-sm leading-snug text-foreground">
+          {lot.title}
+        </h3>
+
+        <div className="mt-auto flex items-center gap-1.5 pt-1">
+          <div className="flex items-center gap-0.5" aria-hidden="true">
+            {Array.from({ length: STAR_COUNT }, (_, index) => (
+              <Star
+                key={index}
+                className={
+                  index < filledStars
+                    ? 'size-3 fill-brand-cyan text-brand-cyan'
+                    : 'size-3 text-border-strong'
+                }
+              />
+            ))}
+          </div>
+          <span className="text-xs tabular-nums text-subtle">
+            {lot.seller.ratingCount}
+          </span>
+        </div>
       </div>
     </Link>
   );

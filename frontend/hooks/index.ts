@@ -1,5 +1,10 @@
-export { useAuth } from '@/providers/AuthProvider';
-export { useCategories, useCategory, useCategoryMutations } from './use-categories';
+export { useDebouncedValue } from './use-debounced-value';
+export {
+  useCategories,
+  useCategory,
+  useCategorySearch,
+  useCategoryMutations,
+} from './use-categories';
 export {
   useSubcategories,
   useSubcategory,
@@ -14,3 +19,4 @@ export {
   useAttributeMutations,
 } from './use-attribute-definitions';
 export { useLots, useLot, useCreateLot } from './use-lots';
+export { useAuth } from '@/providers/AuthProvider';

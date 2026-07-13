@@ -34,10 +34,10 @@ export function SubcategoryPills({
               <Link
                 href={listingsHref(categorySlug, subcategory.slug)}
                 className={cn(
-                  'inline-flex h-10 items-center rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors',
+                  'inline-flex h-9 items-center rounded-full px-4 text-sm font-medium whitespace-nowrap transition-colors',
                   isActive
-                    ? 'border-transparent bg-foreground text-background'
-                    : 'border-border bg-surface text-muted hover:border-border-strong hover:text-foreground',
+                    ? 'bg-brand-cyan text-white'
+                    : 'bg-surface-elevated text-muted hover:text-foreground',
                 )}
                 aria-current={isActive ? 'page' : undefined}
               >

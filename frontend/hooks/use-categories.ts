@@ -8,17 +8,47 @@ import {
 import {
   categoriesService,
   categoryKeys,
+  filterCategoriesByName,
 } from '@/services/categories.service';
 import type {
+  CategoryPublic,
   CreateCategoryPayload,
   UpdateCategoryPayload,
 } from '@/types/category';
+
+const SEARCH_STALE_TIME_MS = 5 * 60_000;
+const SEARCH_GC_TIME_MS = 30 * 60_000;
 
 export function useCategories() {
   return useQuery({
     queryKey: categoryKeys.list(),
     queryFn: () => categoriesService.getAll(),
     staleTime: 60_000,
+  });
+}
+
+export function useCategorySearch(query: string) {
+  const queryClient = useQueryClient();
+  const normalized = query.trim().toLocaleLowerCase();
+
+  return useQuery({
+    queryKey: categoryKeys.search(normalized),
+    queryFn: async () => {
+      const cached = queryClient.getQueryData<CategoryPublic[]>(
+        categoryKeys.list(),
+      );
+      const categories = cached ?? (await categoriesService.getAll());
+
+      if (!cached) {
+        queryClient.setQueryData(categoryKeys.list(), categories);
+      }
+
+      return filterCategoriesByName(categories, normalized);
+    },
+    enabled: normalized.length > 0,
+    staleTime: SEARCH_STALE_TIME_MS,
+    gcTime: SEARCH_GC_TIME_MS,
+    placeholderData: (previous) => previous,
   });
 }
 

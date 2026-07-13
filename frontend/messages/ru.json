@@ -19,6 +19,11 @@
       "profile": "Профиль",
       "settings": "Настройки",
       "admin": "Админ"
+    },
+    "search": {
+      "placeholder": "Поиск игр…",
+      "searching": "Поиск…",
+      "empty": "Игры не найдены"
     }
   },
   "landing": {
@@ -176,10 +181,12 @@
   },
   "listings": {
     "title": "Объявления",
+    "slogan": "Покупайте и продавайте цифровые товары безопасно",
+    "categoriesHeading": "Категории",
     "subtitle": "Выберите категорию, чтобы посмотреть доступные лоты.",
     "categorySubtitle": "Открытые лоты в этой категории.",
     "subcategoriesLabel": "Подкатегории",
-    "searchPlaceholder": "Поиск лотов…",
+    "searchPlaceholder": "Поиск по названию",
     "sortLabel": "Сортировка",
     "sort": {
       "default": "Рекомендуемые",
@@ -187,7 +194,7 @@
       "price_asc": "Цена: по возрастанию",
       "price_desc": "Цена: по убыванию"
     },
-    "resultsCount": "{count, plural, =0 {Нет лотов} one {# лот} few {# лота} many {# лотов} other {# лотов}}",
+    "resultsCount": "{count, plural, =0 {Нет товаров} one {Всего # товар} few {Всего # товара} many {Всего # товаров} other {Всего # товаров}}",
     "stock": "{count, plural, one {# в наличии} few {# в наличии} many {# в наличии} other {# в наличии}}",
     "pageOf": "Страница {page} из {totalPages}",
     "prevPage": "Назад",

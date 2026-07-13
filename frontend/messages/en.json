@@ -19,6 +19,11 @@
       "profile": "Profile",
       "settings": "Settings",
       "admin": "Admin"
+    },
+    "search": {
+      "placeholder": "Search games…",
+      "searching": "Searching…",
+      "empty": "No games found"
     }
   },
   "landing": {
@@ -176,10 +181,12 @@
   },
   "listings": {
     "title": "Listings",
+    "slogan": "Buy and sell digital goods safely",
+    "categoriesHeading": "Categories",
     "subtitle": "Choose a category to browse available lots.",
     "categorySubtitle": "Browse open lots in this category.",
     "subcategoriesLabel": "Subcategories",
-    "searchPlaceholder": "Search lots…",
+    "searchPlaceholder": "Search by title",
     "sortLabel": "Sort by",
     "sort": {
       "default": "Recommended",
@@ -187,7 +194,7 @@
       "price_asc": "Price: low to high",
       "price_desc": "Price: high to low"
     },
-    "resultsCount": "{count, plural, =0 {No lots} one {# lot} other {# lots}}",
+    "resultsCount": "{count, plural, =0 {No products} one {Total # product} other {Total # products}}",
     "stock": "{count, plural, one {# in stock} other {# in stock}}",
     "pageOf": "Page {page} of {totalPages}",
     "prevPage": "Previous",
