@@ -32,6 +32,7 @@ import { FileValidationPipe } from '../../common/pipes/file-validation.pipe';
 import { Public } from '../../decorators/public.decorator';
 import { CreateLotDto } from './dto/create-lot.dto';
 import { FindLotsQueryDto } from './dto/find-lots.query.dto';
+import { FindSellerLotsQueryDto } from './dto/find-seller-lots.query.dto';
 import { UpdateLotDto } from './dto/update-lot.dto';
 import { ListingsService } from './listings.service';
 
@@ -138,6 +139,20 @@ export class ListingsController {
       files?.photos ?? [],
       files?.preview?.[0],
     );
+  }
+
+  @Get()
+  @Public()
+  @ApiOperation({
+    summary: 'List lots by seller',
+    description:
+      'Returns OPEN lots with stock > 0 for a seller. Pass sellerUsername or sellerId. ' +
+      'Supports search, sorting, and pagination.',
+  })
+  @ApiResponse({ status: 200, description: 'Paginated lot list' })
+  @ApiResponse({ status: 404, description: 'Seller not found' })
+  findBySeller(@Query() query: FindSellerLotsQueryDto) {
+    return this.listingsService.findLotsBySeller(query);
   }
 
   @Get(':categorySlug/:subcategorySlug')

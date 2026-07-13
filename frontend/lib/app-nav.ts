@@ -59,12 +59,14 @@ type GetAppNavItemsOptions = {
   isAuthenticated: boolean;
   role?: UserRole;
   group?: AppNavGroup;
+  username?: string;
 };
 
 export function getAppNavItems({
   isAuthenticated,
   role,
   group,
+  username,
 }: GetAppNavItemsOptions) {
   return APP_NAV_ITEMS.filter((item) => {
     if (group && item.group !== group) {
@@ -84,6 +86,12 @@ export function getAppNavItems({
     }
 
     return true;
+  }).map((item) => {
+    if (item.id === 'profile' && username) {
+      return { ...item, href: `/user/${username}` };
+    }
+
+    return item;
   });
 }
 
@@ -93,4 +101,8 @@ export function isNavItemActive(pathname: string, href: string) {
   }
 
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+export function userProfileHref(username: string) {
+  return `/user/${username.trim().toLowerCase()}`;
 }

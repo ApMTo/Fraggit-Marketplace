@@ -19,10 +19,12 @@ import {
 } from './constants/lot.select';
 import { CreateLotDto } from './dto/create-lot.dto';
 import { FindLotsQueryDto } from './dto/find-lots.query.dto';
+import { FindSellerLotsQueryDto } from './dto/find-seller-lots.query.dto';
 import { UpdateLotDto } from './dto/update-lot.dto';
 import {
   buildLotListOrderBy,
   buildLotListWhere,
+  buildSellerLotListWhere,
   normalizeFilterValue,
   ResolvedAttributeFilter,
 } from './utils/build-lot-list-query';
@@ -140,6 +142,51 @@ export class ListingsService {
       query.search,
       attributeFilters,
     );
+    const orderBy = buildLotListOrderBy(query.sort);
+    const skip = (query.page - 1) * query.limit;
+
+    const [rows, total] = await Promise.all([
+      this.prisma.lot.findMany({
+        where,
+        orderBy,
+        skip,
+        take: query.limit,
+        select: LOT_LIST_SELECT,
+      }),
+      this.prisma.lot.count({ where }),
+    ]);
+
+    return {
+      items: rows.map(formatLotListItem),
+      total,
+      page: query.page,
+      limit: query.limit,
+    };
+  }
+
+  async findLotsBySeller(
+    query: FindSellerLotsQueryDto,
+  ): Promise<LotListResult> {
+    if (!query.sellerId && !query.sellerUsername) {
+      throw new BadRequestException('seller_id_required');
+    }
+
+    let sellerId = query.sellerId;
+
+    if (!sellerId && query.sellerUsername) {
+      const seller = await this.prisma.user.findUnique({
+        where: { username: query.sellerUsername },
+        select: { id: true },
+      });
+
+      if (!seller) {
+        throw new NotFoundException('user_not_found');
+      }
+
+      sellerId = seller.id;
+    }
+
+    const where = buildSellerLotListWhere(sellerId!, query.search);
     const orderBy = buildLotListOrderBy(query.sort);
     const skip = (query.page - 1) * query.limit;
 

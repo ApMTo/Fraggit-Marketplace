@@ -27,6 +27,7 @@ export function UserMenu() {
     isAuthenticated: true,
     role: user.role,
     group: 'account',
+    username: user.username,
   });
 
   return (

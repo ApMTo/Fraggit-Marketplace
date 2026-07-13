@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  validateBio,
   validateDisplayName,
   validateEmail,
   validateLoginPassword,
@@ -37,6 +38,16 @@ describe('validateDisplayName', () => {
 
   it('returns displayNameLength when too short', () => {
     expect(validateDisplayName('A')).toBe('displayNameLength');
+  });
+});
+
+describe('validateBio', () => {
+  it('returns undefined when within limit', () => {
+    expect(validateBio('Hello', 500)).toBeUndefined();
+  });
+
+  it('returns bioMax when too long', () => {
+    expect(validateBio('a'.repeat(501), 500)).toBe('bioMax');
   });
 });
 

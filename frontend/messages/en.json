@@ -179,6 +179,45 @@
     "settings": "Settings Page",
     "admin": "Admin Page"
   },
+  "profile": {
+    "title": "Profile",
+    "userTitle": "@{username}",
+    "subtitle": "Update how you appear on Fraggit.",
+    "save": "Save changes",
+    "saveSuccess": "Profile updated",
+    "loadError": "Could not load your profile.",
+    "notFoundTitle": "User not found",
+    "notFoundDescription": "This profile does not exist or is no longer available.",
+    "retry": "Try again",
+    "fields": {
+      "bio": "Bio",
+      "bioPlaceholder": "Tell buyers a bit about yourself",
+      "bioHint": "Optional. Shown on your public seller profile.",
+      "emailHint": "Email cannot be changed here.",
+      "changeAvatar": "Change avatar",
+      "avatarHint": "JPEG, PNG or WebP up to 5 MB"
+    },
+    "stats": {
+      "rating": "Rating",
+      "ratingValue": "{rating} ({count})",
+      "noRating": "No ratings yet",
+      "sales": "Successful sales",
+      "emailStatus": "Email",
+      "verified": "Verified",
+      "unverified": "Unverified"
+    },
+    "lots": {
+      "title": "Listings",
+      "count": "{count, plural, =0 {No open listings} one {# open listing} other {# open listings}}",
+      "empty": "No open listings yet",
+      "loadError": "Could not load listings."
+    },
+    "validation": {
+      "bioMax": "Bio must be at most 500 characters",
+      "avatarSize": "Avatar must be 5 MB or smaller",
+      "avatarType": "Avatar must be JPEG, PNG, or WebP"
+    }
+  },
   "listings": {
     "title": "Listings",
     "slogan": "Buy and sell digital goods safely",

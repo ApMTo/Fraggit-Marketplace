@@ -37,6 +37,8 @@ export type LotListItem = {
   subcategoryId: string;
   createdAt: string;
   seller: LotSeller;
+  category: { slug: string };
+  subcategory: { slug: string };
   attributes: LotListAttribute[];
 };
 
@@ -79,6 +81,15 @@ export type LotListResult = {
 export type FindLotsParams = {
   search?: string;
   filters?: Record<string, string | number | boolean>;
+  sort?: LotSort;
+  page?: number;
+  limit?: number;
+};
+
+export type FindSellerLotsParams = {
+  sellerUsername?: string;
+  sellerId?: string;
+  search?: string;
   sort?: LotSort;
   page?: number;
   limit?: number;

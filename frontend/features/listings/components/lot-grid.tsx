@@ -5,8 +5,8 @@ import { LotCard } from './lot-card';
 
 type LotGridProps = {
   lots: LotListItem[];
-  categorySlug: string;
-  subcategorySlug: string;
+  categorySlug?: string;
+  subcategorySlug?: string;
 };
 
 export function LotGrid({
@@ -20,8 +20,8 @@ export function LotGrid({
         <LotCard
           key={lot.id}
           lot={lot}
-          categorySlug={categorySlug}
-          subcategorySlug={subcategorySlug}
+          categorySlug={categorySlug ?? lot.category.slug}
+          subcategorySlug={subcategorySlug ?? lot.subcategory.slug}
         />
       ))}
     </div>

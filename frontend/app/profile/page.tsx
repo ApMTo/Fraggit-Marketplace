@@ -1,30 +1,7 @@
-﻿import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
-import { ProfilePage } from '@/features/profile';
+﻿import { redirect } from 'next/navigation';
 import { requireSessionUser } from '@/lib/auth.server';
-
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('pages');
-
-  return {
-    title: `${t('profile')} | Fraggit`,
-  };
-}
 
 export default async function Page() {
   const user = await requireSessionUser();
-
-  const t = await getTranslations('pages');
-  const tAuth = await getTranslations('auth.fields');
-
-  return (
-    <ProfilePage
-      title={t('profile')}
-      fields={[
-        { label: tAuth('displayName'), value: user.displayName },
-        { label: tAuth('username'), value: user.username },
-        { label: tAuth('email'), value: user.email },
-      ]}
-    />
-  );
+  redirect(`/user/${user.username}`);
 }

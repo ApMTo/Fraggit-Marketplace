@@ -27,6 +27,7 @@ export function AccountNavLinks({ onNavigate }: AccountNavLinksProps) {
     isAuthenticated: true,
     role: user.role,
     group: 'account',
+    username: user.username,
   });
 
   return (

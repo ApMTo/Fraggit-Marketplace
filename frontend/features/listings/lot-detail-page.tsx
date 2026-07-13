@@ -8,6 +8,7 @@ import { AppImage } from '@/components/ui/app-image';
 import { Spinner } from '@/components/ui/spinner';
 import { formatLotPrice } from '@/features/listings/lib/format-lot-price';
 import { useLot } from '@/hooks';
+import { userProfileHref } from '@/lib/app-nav';
 
 type LotDetailPageProps = {
   lotId: string;
@@ -119,7 +120,10 @@ export function LotDetailPage({
             ) : null}
           </div>
 
-          <div className="flex items-center gap-3 rounded-[var(--radius-md)] border border-border bg-surface-elevated px-4 py-3">
+          <Link
+            href={userProfileHref(lot.seller.username)}
+            className="flex items-center gap-3 rounded-[var(--radius-md)] border border-border bg-surface-elevated px-4 py-3 transition-colors hover:border-border-strong"
+          >
             <div className="relative size-11 shrink-0 overflow-hidden rounded-full border border-border bg-surface">
               {lot.seller.avatarUrl ? (
                 <AppImage
@@ -152,7 +156,7 @@ export function LotDetailPage({
                 </span>
               </p>
             </div>
-          </div>
+          </Link>
 
           {lot.description ? (
             <div className="space-y-2">

@@ -18,5 +18,6 @@ export {
   useAttributeDefinition,
   useAttributeMutations,
 } from './use-attribute-definitions';
-export { useLots, useLot, useCreateLot } from './use-lots';
+export { useLots, useLot, useCreateLot, useSellerLots } from './use-lots';
+export { useUserProfile, usePublicUser, useUpdateProfile } from './use-users';
 export { useAuth } from '@/providers/AuthProvider';

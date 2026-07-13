@@ -4,6 +4,7 @@ import { LotSort } from '../dto/find-lots.query.dto';
 import {
   buildLotListOrderBy,
   buildLotListWhere,
+  buildSellerLotListWhere,
   normalizeFilterValue,
 } from './build-lot-list-query';
 
@@ -76,6 +77,37 @@ describe('build-lot-list-query', () => {
             attributes: {
               some: { attributeId: 'attr-2', value: { contains: '"Ranked"' } },
             },
+          },
+        ],
+      });
+    });
+  });
+
+  describe('buildSellerLotListWhere', () => {
+    it('builds seller filters with optional search', () => {
+      expect(buildSellerLotListWhere('seller-1')).toEqual({
+        AND: [
+          { sellerId: 'seller-1' },
+          { status: 'OPEN' },
+          { stock: { gt: 0 } },
+        ],
+      });
+
+      expect(buildSellerLotListWhere('seller-1', 'skin')).toEqual({
+        AND: [
+          { sellerId: 'seller-1' },
+          { status: 'OPEN' },
+          { stock: { gt: 0 } },
+          {
+            OR: [
+              { title: { contains: 'skin', mode: 'insensitive' } },
+              { description: { contains: 'skin', mode: 'insensitive' } },
+              {
+                attributes: {
+                  some: { value: { contains: 'skin', mode: 'insensitive' } },
+                },
+              },
+            ],
           },
         ],
       });
