@@ -7,7 +7,11 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { listingKeys, listingsService } from '@/services/listings.service';
-import type { CreateLotPayload, FindLotsParams } from '@/types/lot';
+import type {
+  CreateLotPayload,
+  FindLotsParams,
+  FindSellerLotsParams,
+} from '@/types/lot';
 
 export function useLots(
   categorySlug: string | null,
@@ -23,6 +27,20 @@ export function useLots(
     queryFn: () =>
       listingsService.getBySlugs(categorySlug!, subcategorySlug!, params),
     enabled: Boolean(categorySlug && subcategorySlug),
+    placeholderData: keepPreviousData,
+    staleTime: 30_000,
+  });
+}
+
+export function useSellerLots(params: FindSellerLotsParams) {
+  const hasSeller = Boolean(
+    params.sellerUsername?.trim() || params.sellerId?.trim(),
+  );
+
+  return useQuery({
+    queryKey: listingKeys.sellerList(params),
+    queryFn: () => listingsService.getBySeller(params),
+    enabled: hasSeller,
     placeholderData: keepPreviousData,
     staleTime: 30_000,
   });
@@ -44,6 +62,7 @@ export function useCreateLot() {
     mutationFn: (payload: CreateLotPayload) => listingsService.create(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: listingKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: listingKeys.sellerLists() });
     },
   });
 }

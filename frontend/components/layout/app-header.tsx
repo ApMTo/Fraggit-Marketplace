@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { AppNavLinks } from '@/components/layout/app-nav-links';
+import { HeaderCategorySearch } from '@/components/layout/header-category-search';
 import { HeaderPreferences } from '@/components/layout/header-preferences';
 import { MobileMenu } from '@/components/layout/mobile-menu';
 import { UserMenu } from '@/components/layout/user-menu';
@@ -16,8 +17,10 @@ export function AppHeader() {
 
   return (
     <header className="glass-header sticky top-0 z-50 border-b border-border">
-      <div className="mx-auto flex h-[68px] max-w-[1240px] items-center justify-between gap-4 px-5">
+      <div className="mx-auto flex h-[68px] max-w-[1240px] items-center gap-3 px-5 sm:gap-4">
         <Logo />
+
+        <HeaderCategorySearch />
 
         <nav
           aria-label="Main"
@@ -26,7 +29,7 @@ export function AppHeader() {
           <AppNavLinks orientation="horizontal" />
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <div className="hidden md:flex md:items-center md:gap-2 lg:gap-3">
             <HeaderPreferences />
 

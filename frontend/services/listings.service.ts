@@ -2,6 +2,7 @@ import api from '@/lib/api';
 import type {
   CreateLotPayload,
   FindLotsParams,
+  FindSellerLotsParams,
   LotDetail,
   LotListResult,
 } from '@/types/lot';
@@ -14,6 +15,9 @@ export const listingKeys = {
     subcategorySlug: string,
     params: FindLotsParams,
   ) => [...listingKeys.lists(), categorySlug, subcategorySlug, params] as const,
+  sellerLists: () => [...listingKeys.all, 'seller'] as const,
+  sellerList: (params: FindSellerLotsParams) =>
+    [...listingKeys.sellerLists(), params] as const,
   details: () => [...listingKeys.all, 'detail'] as const,
   detail: (id: string) => [...listingKeys.details(), id] as const,
 };
@@ -39,6 +43,38 @@ export function buildLotsQuery(params: FindLotsParams): Record<string, string> {
 
   if (params.filters && Object.keys(params.filters).length > 0) {
     query.filters = JSON.stringify(params.filters);
+  }
+
+  return query;
+}
+
+export function buildSellerLotsQuery(
+  params: FindSellerLotsParams,
+): Record<string, string> {
+  const query: Record<string, string> = {};
+
+  if (params.sellerUsername?.trim()) {
+    query.sellerUsername = params.sellerUsername.trim().toLowerCase();
+  }
+
+  if (params.sellerId?.trim()) {
+    query.sellerId = params.sellerId.trim();
+  }
+
+  if (params.search?.trim()) {
+    query.search = params.search.trim();
+  }
+
+  if (params.sort && params.sort !== 'default') {
+    query.sort = params.sort;
+  }
+
+  if (params.page && params.page > 1) {
+    query.page = String(params.page);
+  }
+
+  if (params.limit) {
+    query.limit = String(params.limit);
   }
 
   return query;
@@ -82,6 +118,13 @@ export const listingsService = {
       `/listings/${categorySlug}/${subcategorySlug}`,
       { params: buildLotsQuery(params) },
     );
+    return data;
+  },
+
+  async getBySeller(params: FindSellerLotsParams): Promise<LotListResult> {
+    const { data } = await api.get<LotListResult>('/listings', {
+      params: buildSellerLotsQuery(params),
+    });
     return data;
   },
 

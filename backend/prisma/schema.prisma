@@ -188,6 +188,7 @@ model Lot {
   updatedAt DateTime @updatedAt
 
   @@index([sellerId])
+  @@index([sellerId, status])
   @@index([categoryId])
   @@index([subcategoryId])
   @@index([status])

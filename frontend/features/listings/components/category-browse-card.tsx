@@ -10,44 +10,32 @@ type CategoryBrowseCardProps = {
 };
 
 export function CategoryBrowseCard({ category }: CategoryBrowseCardProps) {
-  const mediaUrl = category.previewUrl ?? category.iconUrl;
+  const mediaUrl = category.iconUrl ?? category.previewUrl;
 
   return (
     <Link
       href={`/listings/${category.slug}`}
-      className="landing-card-hover group flex flex-col overflow-hidden rounded-[var(--radius-lg)] border border-border bg-surface transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-0.5"
+      className="flex flex-col items-center gap-2 text-center outline-none focus-visible:rounded-[var(--radius-sm)] focus-visible:ring-2 focus-visible:ring-[var(--focus)]"
     >
-      <div className="relative aspect-[16/10] overflow-hidden bg-surface-elevated">
+      <div className="relative aspect-square w-full overflow-hidden rounded-[var(--radius-md)] bg-surface-elevated ring-1 ring-border">
         {mediaUrl ? (
           <AppImage
             src={mediaUrl}
             alt=""
             fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            sizes="(max-width: 640px) 20vw, (max-width: 1024px) 12vw, 96px"
+            className="object-cover"
           />
         ) : (
-          <div className="flex size-full items-center justify-center bg-gradient-to-br from-[var(--blue-a12)] to-[var(--purple-a20)] text-subtle">
-            <FolderOpen className="size-10" aria-hidden="true" />
+          <div className="flex size-full items-center justify-center bg-[var(--gradient-brand-soft)] text-subtle">
+            <FolderOpen className="size-7 sm:size-8" aria-hidden="true" />
           </div>
         )}
       </div>
 
-      <div className="flex items-center gap-3 p-4">
-        {category.iconUrl && category.previewUrl ? (
-          <AppImage
-            src={category.iconUrl}
-            alt=""
-            width={40}
-            height={40}
-            sizes="40px"
-            className="size-10 shrink-0 rounded-[var(--radius-sm)] object-cover"
-          />
-        ) : null}
-        <h2 className="font-display text-base font-semibold text-foreground">
-          {category.name}
-        </h2>
-      </div>
+      <h2 className="line-clamp-2 w-full px-0.5 text-[11px] font-medium leading-tight text-foreground sm:text-xs">
+        {category.name}
+      </h2>
     </Link>
   );
 }

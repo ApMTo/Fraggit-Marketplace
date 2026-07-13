@@ -99,6 +99,33 @@ export function buildLotListWhere(
   return { AND: conditions };
 }
 
+export function buildSellerLotListWhere(
+  sellerId: string,
+  search?: string,
+): Prisma.LotWhereInput {
+  const conditions: Prisma.LotWhereInput[] = [
+    { sellerId },
+    { status: LotStatus.OPEN },
+    { stock: { gt: 0 } },
+  ];
+
+  if (search) {
+    conditions.push({
+      OR: [
+        { title: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        {
+          attributes: {
+            some: { value: { contains: search, mode: 'insensitive' } },
+          },
+        },
+      ],
+    });
+  }
+
+  return { AND: conditions };
+}
+
 export function buildLotListOrderBy(
   sort: LotSort,
 ): Prisma.LotOrderByWithRelationInput {

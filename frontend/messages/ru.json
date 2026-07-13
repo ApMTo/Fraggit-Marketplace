@@ -19,6 +19,11 @@
       "profile": "Профиль",
       "settings": "Настройки",
       "admin": "Админ"
+    },
+    "search": {
+      "placeholder": "Поиск игр…",
+      "searching": "Поиск…",
+      "empty": "Игры не найдены"
     }
   },
   "landing": {
@@ -174,12 +179,53 @@
     "settings": "Страница настроек",
     "admin": "Страница администратора"
   },
+  "profile": {
+    "title": "Профиль",
+    "userTitle": "@{username}",
+    "subtitle": "Обновите, как вы выглядите на Fraggit.",
+    "save": "Сохранить",
+    "saveSuccess": "Профиль обновлён",
+    "loadError": "Не удалось загрузить профиль.",
+    "notFoundTitle": "Пользователь не найден",
+    "notFoundDescription": "Этот профиль не существует или больше недоступен.",
+    "retry": "Повторить",
+    "fields": {
+      "bio": "О себе",
+      "bioPlaceholder": "Расскажите покупателям немного о себе",
+      "bioHint": "Необязательно. Показывается в публичном профиле продавца.",
+      "emailHint": "Email здесь изменить нельзя.",
+      "changeAvatar": "Сменить аватар",
+      "avatarHint": "JPEG, PNG или WebP до 5 МБ"
+    },
+    "stats": {
+      "rating": "Рейтинг",
+      "ratingValue": "{rating} ({count})",
+      "noRating": "Пока нет оценок",
+      "sales": "Успешные продажи",
+      "emailStatus": "Email",
+      "verified": "Подтверждён",
+      "unverified": "Не подтверждён"
+    },
+    "lots": {
+      "title": "Объявления",
+      "count": "{count, plural, =0 {Нет открытых объявлений} one {# открытое объявление} few {# открытых объявления} other {# открытых объявлений}}",
+      "empty": "Пока нет открытых объявлений",
+      "loadError": "Не удалось загрузить объявления."
+    },
+    "validation": {
+      "bioMax": "Описание — максимум 500 символов",
+      "avatarSize": "Аватар должен быть не больше 5 МБ",
+      "avatarType": "Аватар должен быть JPEG, PNG или WebP"
+    }
+  },
   "listings": {
     "title": "Объявления",
+    "slogan": "Покупайте и продавайте цифровые товары безопасно",
+    "categoriesHeading": "Категории",
     "subtitle": "Выберите категорию, чтобы посмотреть доступные лоты.",
     "categorySubtitle": "Открытые лоты в этой категории.",
     "subcategoriesLabel": "Подкатегории",
-    "searchPlaceholder": "Поиск лотов…",
+    "searchPlaceholder": "Поиск по названию",
     "sortLabel": "Сортировка",
     "sort": {
       "default": "Рекомендуемые",
@@ -187,7 +233,7 @@
       "price_asc": "Цена: по возрастанию",
       "price_desc": "Цена: по убыванию"
     },
-    "resultsCount": "{count, plural, =0 {Нет лотов} one {# лот} few {# лота} many {# лотов} other {# лотов}}",
+    "resultsCount": "{count, plural, =0 {Нет товаров} one {Всего # товар} few {Всего # товара} many {Всего # товаров} other {Всего # товаров}}",
     "stock": "{count, plural, one {# в наличии} few {# в наличии} many {# в наличии} other {# в наличии}}",
     "pageOf": "Страница {page} из {totalPages}",
     "prevPage": "Назад",

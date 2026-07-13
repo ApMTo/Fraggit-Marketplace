@@ -81,6 +81,8 @@ export const LOT_LIST_SELECT = {
   subcategoryId: true,
   createdAt: true,
   seller: { select: LOT_SELLER_SELECT },
+  category: { select: { slug: true } },
+  subcategory: { select: { slug: true } },
   attributes: {
     select: LOT_LIST_ATTRIBUTE_SELECT,
     orderBy: { attribute: { sortOrder: 'asc' } },

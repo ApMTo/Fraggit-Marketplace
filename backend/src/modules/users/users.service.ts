@@ -3,13 +3,16 @@
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { UserStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { FilesService } from '../files/files.service';
 import { UserAuthCacheService } from '../auth/user-auth-cache.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import {
   USER_PROFILE_SELECT,
+  USER_PUBLIC_PROFILE_SELECT,
   UserProfile,
+  UserPublicProfile,
 } from './constants/user-profile.select';
 
 @Injectable()
@@ -24,6 +27,24 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: USER_PROFILE_SELECT,
+    });
+
+    if (!user) {
+      throw new NotFoundException('user_not_found');
+    }
+
+    return user;
+  }
+
+  async getPublicByUsername(username: string): Promise<UserPublicProfile> {
+    const normalized = username.trim().toLowerCase();
+
+    const user = await this.prisma.user.findFirst({
+      where: {
+        username: normalized,
+        status: UserStatus.ACTIVE,
+      },
+      select: USER_PUBLIC_PROFILE_SELECT,
     });
 
     if (!user) {

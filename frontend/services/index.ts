@@ -5,3 +5,4 @@ export {
   attributeDefinitionsService,
   attributeDefinitionKeys,
 } from './attribute-definitions.service';
+export { usersService, userKeys } from './users.service';

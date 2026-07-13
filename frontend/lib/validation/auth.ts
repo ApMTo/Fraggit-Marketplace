@@ -33,6 +33,17 @@ export function validateDisplayName(value: string): string | undefined {
   return undefined;
 }
 
+export function validateBio(
+  value: string,
+  maxLength: number,
+): string | undefined {
+  if (value.length > maxLength) {
+    return 'bioMax';
+  }
+
+  return undefined;
+}
+
 export function validateEmail(value: string): string | undefined {
   const trimmed = value.trim();
 

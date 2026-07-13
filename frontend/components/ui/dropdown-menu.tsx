@@ -1,7 +1,9 @@
 'use client';
 
 import {
+  createContext,
   useCallback,
+  useContext,
   useEffect,
   useId,
   useRef,
@@ -9,6 +11,8 @@ import {
   type ReactNode,
 } from 'react';
 import { ChevronDown } from 'lucide-react';
+
+const DropdownCloseContext = createContext<(() => void) | null>(null);
 
 type DropdownMenuProps = {
   trigger: ReactNode;
@@ -79,7 +83,9 @@ export function DropdownMenu({
             align === 'end' ? 'right-0' : 'left-0'
           }`}
         >
-          {children}
+          <DropdownCloseContext.Provider value={close}>
+            {children}
+          </DropdownCloseContext.Provider>
         </div>
       ) : null}
     </div>
@@ -97,11 +103,18 @@ export function DropdownItem({
   onSelect,
   isActive = false,
 }: DropdownItemProps) {
+  const close = useContext(DropdownCloseContext);
+
   return (
     <button
       type="button"
       role="menuitem"
-      onClick={onSelect}
+      onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onSelect();
+        close?.();
+      }}
       className={`flex w-full cursor-pointer items-center gap-2 rounded-[var(--radius-sm)] px-3 py-2 text-left text-sm transition-[background-color,color] duration-300 ${
         isActive
           ? 'bg-accent text-accent-foreground'

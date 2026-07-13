@@ -10,9 +10,29 @@ export const categoryKeys = {
   all: ['categories'] as const,
   lists: () => [...categoryKeys.all, 'list'] as const,
   list: () => [...categoryKeys.lists()] as const,
+  searches: () => [...categoryKeys.all, 'search'] as const,
+  search: (query: string) => [...categoryKeys.searches(), query] as const,
   details: () => [...categoryKeys.all, 'detail'] as const,
   detail: (id: string) => [...categoryKeys.details(), id] as const,
 };
+
+const MAX_SEARCH_RESULTS = 8;
+
+export function filterCategoriesByName(
+  categories: CategoryPublic[],
+  query: string,
+): CategoryPublic[] {
+  const normalized = query.trim().toLocaleLowerCase();
+  if (!normalized) {
+    return [];
+  }
+
+  return categories
+    .filter((category) =>
+      category.name.toLocaleLowerCase().includes(normalized),
+    )
+    .slice(0, MAX_SEARCH_RESULTS);
+}
 
 function buildCategoryFormData(
   payload: CreateCategoryPayload | UpdateCategoryPayload,

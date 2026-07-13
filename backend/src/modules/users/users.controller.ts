@@ -4,6 +4,7 @@
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Patch,
   UploadedFile,
   UseInterceptors,
@@ -16,6 +17,7 @@ import {
   ApiCookieAuth,
   ApiHeader,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -25,8 +27,12 @@ import {
   CurrentUser,
 } from '../../common/decorators/current-user.decorator';
 import { FileValidationPipe } from '../../common/pipes/file-validation.pipe';
+import { Public } from '../../decorators/public.decorator';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { UserProfileResponseDto } from './responses/user.response';
+import {
+  UserProfileResponseDto,
+  UserPublicProfileResponseDto,
+} from './responses/user.response';
 import { UsersService } from './users.service';
 
 const CSRF_HEADER = {
@@ -97,6 +103,21 @@ export class UsersController {
     return {
       message: { code: 'messages.profile_updated' },
       user: profile,
+    };
+  }
+
+  @Get(':username')
+  @Public()
+  @ApiOperation({ summary: 'Get public user profile by username' })
+  @ApiParam({ name: 'username', example: 'cool_seller' })
+  @ApiResponse({ status: 200, type: UserPublicProfileResponseDto })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async getByUsername(@Param('username') username: string) {
+    const user = await this.usersService.getPublicByUsername(username);
+
+    return {
+      message: { code: 'messages.profile_data' },
+      user,
     };
   }
 }

@@ -3,13 +3,14 @@
 import { useCallback, useMemo, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Package, PackageOpen } from 'lucide-react';
+import { Package, PackageOpen } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Spinner } from '@/components/ui/spinner';
+import { CategoryBrowseHero } from '@/features/listings/components/category-browse-hero';
 import { ListingsPagination } from '@/features/listings/components/listings-pagination';
 import { LotBrowseToolbar } from '@/features/listings/components/lot-browse-toolbar';
-import { LotTable } from '@/features/listings/components/lot-table';
+import { LotGrid } from '@/features/listings/components/lot-grid';
 import { SubcategoryPills } from '@/features/listings/components/subcategory-pills';
 import { createLotHref } from '@/features/listings/lib/create-lot-href';
 import {
@@ -23,6 +24,7 @@ import {
   useLots,
   useSubcategories,
 } from '@/hooks';
+import type { CategoryPublic } from '@/types/category';
 import type { LotSort } from '@/types/lot';
 import { DEFAULT_LOTS_LIMIT } from '@/types/lot';
 
@@ -136,6 +138,13 @@ export function CategoryListingsPage({
     ],
   );
 
+  const handleSearchChange = useCallback(
+    (search: string) => {
+      replaceBrowse({ search, page: 1 });
+    },
+    [replaceBrowse],
+  );
+
   const handleSortChange = useCallback(
     (sort: LotSort) => {
       replaceBrowse({ sort, page: 1 });
@@ -171,19 +180,19 @@ export function CategoryListingsPage({
 
   if (bootError) {
     return (
-      <div className="mx-auto w-full max-w-[1240px] px-5 py-10">
+      <PageFrame>
         <EmptyState
           icon={Package}
           title={t('loadErrorTitle')}
           description={t('loadErrorDescription')}
         />
-      </div>
+      </PageFrame>
     );
   }
 
   if (!category) {
     return (
-      <div className="mx-auto w-full max-w-[1240px] px-5 py-10">
+      <PageFrame>
         <EmptyState
           icon={Package}
           title={t('categoryNotFoundTitle')}
@@ -197,7 +206,7 @@ export function CategoryListingsPage({
             </Link>
           }
         />
-      </div>
+      </PageFrame>
     );
   }
 
@@ -208,7 +217,7 @@ export function CategoryListingsPage({
 
   if (!subcategories?.length) {
     return (
-      <BrowseShell categoryName={category.name}>
+      <BrowseShell category={category} createHref={createHref}>
         <EmptyState
           icon={PackageOpen}
           title={t('emptySubcategoriesTitle')}
@@ -220,7 +229,7 @@ export function CategoryListingsPage({
 
   if (subcategorySlug && !activeSubcategory) {
     return (
-      <BrowseShell categoryName={category.name}>
+      <BrowseShell category={category} createHref={createHref}>
         <EmptyState
           icon={Package}
           title={t('subcategoryNotFoundTitle')}
@@ -242,7 +251,7 @@ export function CategoryListingsPage({
   const total = lots?.total ?? 0;
 
   return (
-    <BrowseShell categoryName={category.name}>
+    <BrowseShell category={category} createHref={createHref}>
       <SubcategoryPills
         categorySlug={category.slug}
         subcategories={subcategories}
@@ -253,17 +262,13 @@ export function CategoryListingsPage({
         attributes={filterAttributes}
         attributesLoading={attributesLoading}
         filters={browseParams.filters}
+        search={browseParams.search}
         sort={browseParams.sort}
-        createHref={createHref}
+        total={total}
         onFiltersChange={handleFiltersChange}
+        onSearchChange={handleSearchChange}
         onSortChange={handleSortChange}
       />
-
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-subtle">
-          {t('resultsCount', { count: total })}
-        </p>
-      </div>
 
       {showLotsSpinner ? (
         <div className="flex justify-center py-16">
@@ -295,7 +300,7 @@ export function CategoryListingsPage({
               : undefined
           }
         >
-          <LotTable
+          <LotGrid
             lots={lots.items}
             categorySlug={category.slug}
             subcategorySlug={activeSubcategory!.slug}
@@ -315,30 +320,24 @@ export function CategoryListingsPage({
   );
 }
 
+function PageFrame({ children }: { children: ReactNode }) {
+  return (
+    <div className="mx-auto w-full max-w-[1240px] px-5 py-10">{children}</div>
+  );
+}
+
 function BrowseShell({
-  categoryName,
+  category,
+  createHref,
   children,
 }: {
-  categoryName: string;
+  category: CategoryPublic;
+  createHref?: string;
   children: ReactNode;
 }) {
-  const t = useTranslations('listings');
-
   return (
-    <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-5 px-5 py-10">
-      <header className="space-y-3">
-        <Link
-          href="/listings"
-          className="inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" aria-hidden="true" />
-          {t('backToCategories')}
-        </Link>
-        <div className="space-y-1">
-          <h1 className="page-title text-3xl">{categoryName}</h1>
-          <p className="text-sm text-subtle">{t('categorySubtitle')}</p>
-        </div>
-      </header>
+    <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-5 px-5 py-8 sm:py-10">
+      <CategoryBrowseHero category={category} createHref={createHref} />
       {children}
     </div>
   );

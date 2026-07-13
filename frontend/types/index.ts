@@ -25,6 +25,21 @@ export type {
 } from './auth';
 
 export type {
+  UserStatus,
+  UserProfile,
+  UserPublicProfile,
+  UserProfileResponse,
+  UserPublicProfileResponse,
+  UpdateProfilePayload,
+} from './user';
+
+export {
+  PROFILE_BIO_MAX_LENGTH,
+  PROFILE_AVATAR_MAX_BYTES,
+  PROFILE_AVATAR_ACCEPT,
+} from './user';
+
+export type {
   AttributeType,
   LocalizedName,
   CategoryPublic,
@@ -54,6 +69,7 @@ export type {
   LotDetail,
   LotListResult,
   FindLotsParams,
+  FindSellerLotsParams,
   LotAttributeInputValue,
   CreateLotAttributeInput,
   CreateLotPayload,
