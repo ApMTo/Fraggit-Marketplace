@@ -179,6 +179,38 @@
     "settings": "Settings Page",
     "admin": "Admin Page"
   },
+  "chat": {
+    "subtitle": "Your private conversations with buyers and sellers.",
+    "retry": "Try again",
+    "list": {
+      "title": "Conversations",
+      "emptyTitle": "No conversations yet",
+      "emptyDescription": "When you message someone or place an order, chats will appear here.",
+      "loadError": "Could not load conversations",
+      "loadErrorHint": "Check your connection and try again."
+    },
+    "emptySelect": {
+      "title": "Select a conversation",
+      "description": "Choose a dialogue on the left to start messaging."
+    },
+    "thread": {
+      "title": "Conversation",
+      "back": "Back to conversations",
+      "emptyTitle": "No messages yet",
+      "emptyDescription": "Say hello — send the first message.",
+      "loadError": "Could not load messages",
+      "loadErrorHint": "Check your connection and try again."
+    },
+    "composer": {
+      "placeholder": "Write a message…",
+      "send": "Send"
+    },
+    "preview": {
+      "image": "Image",
+      "system": "System message",
+      "empty": "No messages yet"
+    }
+  },
   "profile": {
     "title": "Profile",
     "userTitle": "@{username}",
@@ -189,6 +221,7 @@
     "notFoundTitle": "User not found",
     "notFoundDescription": "This profile does not exist or is no longer available.",
     "retry": "Try again",
+    "message": "Message",
     "fields": {
       "bio": "Bio",
       "bioPlaceholder": "Tell buyers a bit about yourself",

@@ -6,3 +6,4 @@ export {
   attributeDefinitionKeys,
 } from './attribute-definitions.service';
 export { usersService, userKeys } from './users.service';
+export { chatService, chatKeys } from './chat.service';

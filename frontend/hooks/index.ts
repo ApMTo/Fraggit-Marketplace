@@ -20,4 +20,11 @@ export {
 } from './use-attribute-definitions';
 export { useLots, useLot, useCreateLot, useSellerLots } from './use-lots';
 export { useUserProfile, usePublicUser, useUpdateProfile } from './use-users';
+export {
+  useConversations,
+  useConversationMessages,
+  useMarkConversationRead,
+  useStartConversation,
+} from './use-chat';
+export { useChatRealtime } from './use-chat-realtime';
 export { useAuth } from '@/providers/AuthProvider';

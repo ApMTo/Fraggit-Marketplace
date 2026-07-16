@@ -1,8 +1,14 @@
 'use client';
 
-import { Star, UserRound } from 'lucide-react';
+import { MessageCircle, Star, UserRound } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import toast from 'react-hot-toast';
 import { AppImage } from '@/components/ui/app-image';
+import { Button } from '@/components/ui/button';
+import { useStartConversation } from '@/hooks/use-chat';
+import { resolveApiErrorKey } from '@/lib/api-errors';
+import { useAuth } from '@/providers/AuthProvider';
 import type { UserPublicProfile } from '@/types/user';
 
 type PublicProfileHeaderProps = {
@@ -11,6 +17,11 @@ type PublicProfileHeaderProps = {
 
 export function PublicProfileHeader({ profile }: PublicProfileHeaderProps) {
   const t = useTranslations('profile');
+  const tErrors = useTranslations('errors');
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+  const startConversation = useStartConversation();
+
   const ratingLabel =
     profile.ratingCount > 0
       ? t('stats.ratingValue', {
@@ -18,6 +29,20 @@ export function PublicProfileHeader({ profile }: PublicProfileHeaderProps) {
           count: profile.ratingCount,
         })
       : t('stats.noRating');
+
+  async function handleMessage() {
+    if (!isAuthenticated) {
+      router.push(`/login?next=${encodeURIComponent(`/user/${profile.username}`)}`);
+      return;
+    }
+
+    try {
+      const result = await startConversation.mutateAsync(profile.id);
+      router.push(`/chat/${result.id}`);
+    } catch (error) {
+      toast.error(tErrors(resolveApiErrorKey(error)));
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
@@ -64,6 +89,18 @@ export function PublicProfileHeader({ profile }: PublicProfileHeaderProps) {
             </dd>
           </div>
         </dl>
+
+        <div className="flex justify-center sm:justify-start">
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => void handleMessage()}
+            isLoading={startConversation.isPending}
+          >
+            <MessageCircle className="size-4" />
+            {t('message')}
+          </Button>
+        </div>
       </div>
     </div>
   );
