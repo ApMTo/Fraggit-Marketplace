@@ -55,6 +55,7 @@ model User {
 
   conversationParticipants ConversationParticipant[]
   sentMessages             Message[]                 @relation("SentMessages")
+  notifications            Notification[]
 }
 
 enum AttributeType {
@@ -376,4 +377,35 @@ model Review {
   @@index([revieweeId])
   @@index([reviewerId])
   @@index([createdAt])
+}
+
+enum NotificationType {
+  ORDER_CREATED
+  ORDER_CREDENTIALS
+  ORDER_APPROVED
+}
+
+model Notification {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type  NotificationType
+  title String
+  body  String?
+  href  String?
+
+  readAt DateTime?
+
+  entityType String?
+  entityId   String   @default("")
+  metadata   Json?
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, type, entityId])
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+  @@index([entityType, entityId])
 }

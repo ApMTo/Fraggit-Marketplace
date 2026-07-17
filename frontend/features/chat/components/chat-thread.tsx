@@ -16,6 +16,7 @@ import {
 } from '@/hooks/use-chat-realtime';
 import { useConversationMessages } from '@/hooks/use-chat';
 import { flattenMessagePages, clearConversationUnread, upsertConversationMessage } from '@/lib/chat-cache';
+import { readImageDimensions } from '@/lib/chat-image';
 import {
   formatMessageDayLabel,
   shouldShowDaySeparator,
@@ -23,6 +24,8 @@ import {
 import { resolveApiErrorKey } from '@/lib/api-errors';
 import { useAuth } from '@/providers/AuthProvider';
 import { useQueryClient } from '@tanstack/react-query';
+import { chatService } from '@/services/chat.service';
+import { filesService } from '@/services/files.service';
 import type { ConversationListItem } from '@/types/chat';
 
 type ChatThreadProps = {
@@ -113,13 +116,48 @@ export function ChatThread({ conversationId, conversation }: ChatThreadProps) {
     }
   }
 
-  async function handleSend(content: string) {
+  async function handleSendText(content: string) {
     setSendError(null);
     setIsSending(true);
     stickToBottomRef.current = true;
 
     try {
       const message = await sendChatTextMessage(conversationId, content);
+      upsertConversationMessage(queryClient, message, {
+        currentUserId: user?.id,
+        activeConversationId: conversationId,
+      });
+    } catch (error) {
+      const key = resolveApiErrorKey(error);
+      setSendError(tErrors(key));
+      throw error;
+    } finally {
+      setIsSending(false);
+    }
+  }
+
+  async function handleSendImage(file: File) {
+    setSendError(null);
+    setIsSending(true);
+    stickToBottomRef.current = true;
+
+    try {
+      const [{ url }, dimensions] = await Promise.all([
+        filesService.uploadImage(file),
+        readImageDimensions(file).catch(() => ({
+          width: undefined as number | undefined,
+          height: undefined as number | undefined,
+        })),
+      ]);
+
+      const message = await chatService.sendImageMessage(conversationId, {
+        url,
+        mimeType: file.type,
+        size: file.size,
+        width: dimensions.width,
+        height: dimensions.height,
+      });
+
       upsertConversationMessage(queryClient, message, {
         currentUserId: user?.id,
         activeConversationId: conversationId,
@@ -230,6 +268,8 @@ export function ChatThread({ conversationId, conversation }: ChatThreadProps) {
                     )}
                     locale={locale}
                     systemFallback={t('preview.system')}
+                    enlargeLabel={t('thread.enlargeImage')}
+                    closeLightboxLabel={t('thread.closeImage')}
                   />
                 </div>
               );
@@ -247,7 +287,8 @@ export function ChatThread({ conversationId, conversation }: ChatThreadProps) {
         <MessageComposer
           disabled={isLoading || isError}
           isSending={isSending}
-          onSend={handleSend}
+          onSendText={handleSendText}
+          onSendImage={handleSendImage}
         />
       </div>
     </div>

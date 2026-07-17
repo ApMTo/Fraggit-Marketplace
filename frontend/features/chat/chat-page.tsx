@@ -6,7 +6,6 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { ConversationList } from '@/features/chat/components/conversation-list';
 import { ChatThread } from '@/features/chat/components/chat-thread';
 import { useConversations } from '@/hooks/use-chat';
-import { useChatRealtime } from '@/hooks/use-chat-realtime';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/providers/AuthProvider';
 
@@ -17,7 +16,7 @@ type ChatPageProps = {
 
 export function ChatPage({ title, conversationId }: ChatPageProps) {
   const t = useTranslations('chat');
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const {
     data,
@@ -25,12 +24,6 @@ export function ChatPage({ title, conversationId }: ChatPageProps) {
     isError,
     refetch,
   } = useConversations({ enabled: isAuthenticated });
-
-  useChatRealtime({
-    currentUserId: user?.id,
-    activeConversationId: conversationId,
-    enabled: isAuthenticated,
-  });
 
   const conversations = data?.items ?? [];
   const selected = conversationId

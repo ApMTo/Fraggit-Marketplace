@@ -3,16 +3,13 @@
 import { usePathname } from 'next/navigation';
 import { type ReactNode } from 'react';
 import { AppHeader } from '@/components/layout/app-header';
+import { isChatRoute } from '@/lib/chat-route';
 import { cn } from '@/lib/utils';
 
 const AUTH_ROUTES = new Set(['/login', '/register']);
 
 function isAuthRoute(pathname: string): boolean {
   return AUTH_ROUTES.has(pathname) || pathname.startsWith('/auth/');
-}
-
-function isChatRoute(pathname: string): boolean {
-  return pathname === '/chat' || pathname.startsWith('/chat/');
 }
 
 type AppShellProps = {

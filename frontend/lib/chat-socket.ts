@@ -8,6 +8,7 @@ export const CHAT_WS_EVENTS = {
   MESSAGE_READ: 'message:read',
   MESSAGE_READ_ACK: 'message:read:ack',
   PRESENCE_UPDATE: 'presence:update',
+  NOTIFICATION_NEW: 'notification:new',
   ERROR: 'error',
 } as const;
 

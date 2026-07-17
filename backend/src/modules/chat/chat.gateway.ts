@@ -228,4 +228,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         .emit(CHAT_WS_EVENTS.MESSAGE_NEW, { message });
     }
   }
+
+  emitNotificationToUser(userId: string, notification: unknown): void {
+    this.server
+      .to(this.userRoom(userId))
+      .emit(CHAT_WS_EVENTS.NOTIFICATION_NEW, { notification });
+  }
 }

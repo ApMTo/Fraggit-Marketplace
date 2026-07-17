@@ -26,6 +26,14 @@
       "empty": "No games found"
     }
   },
+  "notifications": {
+    "title": "Notifications",
+    "open": "Open notifications",
+    "empty": "No notifications yet",
+    "loading": "Loading…",
+    "loadError": "Could not load notifications",
+    "markAllRead": "Mark all as read"
+  },
   "landing": {
     "meta": {
       "description": "Fraggit is a modern marketplace for digital goods, accounts, and services with a secure escrow system."
@@ -199,11 +207,18 @@
       "emptyTitle": "No messages yet",
       "emptyDescription": "Say hello — send the first message.",
       "loadError": "Could not load messages",
-      "loadErrorHint": "Check your connection and try again."
+      "loadErrorHint": "Check your connection and try again.",
+      "enlargeImage": "View full image",
+      "closeImage": "Close image"
     },
     "composer": {
       "placeholder": "Write a message…",
-      "send": "Send"
+      "send": "Send",
+      "attachImage": "Attach image",
+      "removeImage": "Remove image",
+      "imageReady": "Image ready to send",
+      "imageTypeError": "Only JPEG, PNG, or WebP images are allowed.",
+      "imageSizeError": "Image must be 5 MB or smaller."
     },
     "preview": {
       "image": "Image",

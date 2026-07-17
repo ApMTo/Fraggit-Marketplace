@@ -3,8 +3,10 @@ import { Job } from 'bullmq';
 import { PinoLogger } from 'nestjs-pino';
 import {
   CHAT_JOB_NOTIFY_OFFLINE,
+  CHAT_JOB_NOTIFY_OFFLINE_ORDER,
   CHAT_QUEUE,
   ChatNotifyOfflineJobData,
+  OrderNotifyOfflineJobData,
 } from '../constants/chat.constants';
 import { ChatNotificationService } from '../services/chat-notification.service';
 import { ChatPresenceService } from '../services/chat-presence.service';
@@ -20,11 +22,22 @@ export class ChatNotificationProcessor extends WorkerHost {
     this.logger.setContext(ChatNotificationProcessor.name);
   }
 
-  async process(job: Job<ChatNotifyOfflineJobData>): Promise<void> {
-    if (job.name !== CHAT_JOB_NOTIFY_OFFLINE) {
+  async process(
+    job: Job<ChatNotifyOfflineJobData | OrderNotifyOfflineJobData>,
+  ): Promise<void> {
+    if (job.name === CHAT_JOB_NOTIFY_OFFLINE) {
+      await this.processChatOffline(job as Job<ChatNotifyOfflineJobData>);
       return;
     }
 
+    if (job.name === CHAT_JOB_NOTIFY_OFFLINE_ORDER) {
+      await this.processOrderOffline(job as Job<OrderNotifyOfflineJobData>);
+    }
+  }
+
+  private async processChatOffline(
+    job: Job<ChatNotifyOfflineJobData>,
+  ): Promise<void> {
     const {
       recipientUserId,
       recipientEmail,
@@ -57,6 +70,40 @@ export class ChatNotificationProcessor extends WorkerHost {
       senderDisplayName,
       conversationId,
       messagePreview: job.data.messagePreview,
+    });
+  }
+
+  private async processOrderOffline(
+    job: Job<OrderNotifyOfflineJobData>,
+  ): Promise<void> {
+    const { recipientUserId, recipientEmail, subject, title, body, href } =
+      job.data;
+
+    const isOnline = await this.chatPresence.isOnline(recipientUserId);
+
+    if (isOnline) {
+      this.logger.info(
+        { jobId: job.id, recipientUserId },
+        'Skipping offline order email — user is online now',
+      );
+      return;
+    }
+
+    this.logger.info(
+      {
+        jobId: job.id,
+        recipientUserId,
+        attempt: job.attemptsMade + 1,
+      },
+      'Sending offline order notification email',
+    );
+
+    await this.chatNotificationService.sendOfflineOrderEmail({
+      recipientEmail,
+      subject,
+      title,
+      body,
+      href,
     });
   }
 }

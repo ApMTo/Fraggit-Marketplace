@@ -75,7 +75,10 @@ async function ensureSubcategory(
   });
 
   if (existing) {
-    return existing;
+    return prisma.subcategory.update({
+      where: { id: existing.id },
+      data: { name },
+    });
   }
 
   return prisma.subcategory.create({

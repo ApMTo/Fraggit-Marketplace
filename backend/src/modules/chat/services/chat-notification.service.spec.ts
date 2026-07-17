@@ -10,7 +10,10 @@ import { MailQueueService } from '../../mail/mail-queue.service';
 describe('ChatNotificationService', () => {
   let service: ChatNotificationService;
   let chatPresence: { isOnline: jest.Mock };
-  let chatNotificationQueue: { enqueueOfflineNotification: jest.Mock };
+  let chatNotificationQueue: {
+    enqueueOfflineNotification: jest.Mock;
+    enqueueOfflineOrderNotification: jest.Mock;
+  };
   let messageService: {
     getOtherParticipantId: jest.Mock;
     getUserEmail: jest.Mock;
@@ -39,6 +42,7 @@ describe('ChatNotificationService', () => {
     chatPresence = { isOnline: jest.fn() };
     chatNotificationQueue = {
       enqueueOfflineNotification: jest.fn().mockResolvedValue(undefined),
+      enqueueOfflineOrderNotification: jest.fn().mockResolvedValue(undefined),
     };
     messageService = {
       getOtherParticipantId: jest.fn().mockResolvedValue('user-2'),
@@ -118,6 +122,54 @@ describe('ChatNotificationService', () => {
     );
     expect(mailQueue.enqueue.mock.calls[0][0].html).toContain(
       'hi &lt;b&gt;x&lt;/b&gt;',
+    );
+  });
+
+  it('enqueues offline order notification when recipient is offline', async () => {
+    chatPresence.isOnline.mockResolvedValue(false);
+
+    await service.notifyOfflineAboutOrderNotification({
+      id: 'n-1',
+      userId: 'user-2',
+      type: 'ORDER_CREATED',
+      title: 'Новый заказ',
+      body: 'Заказ #FRG-100',
+      href: '/orders/order-1',
+      readAt: null,
+      entityType: 'order',
+      entityId: 'order-1',
+      metadata: null,
+      createdAt: new Date(),
+    });
+
+    expect(
+      chatNotificationQueue.enqueueOfflineOrderNotification,
+    ).toHaveBeenCalledWith({
+      recipientUserId: 'user-2',
+      recipientEmail: 'bob@test.com',
+      subject: 'Новый заказ',
+      title: 'Новый заказ',
+      body: 'Заказ #FRG-100',
+      href: 'https://fraggit.test/orders/order-1',
+    });
+  });
+
+  it('sends offline order email through mail queue', async () => {
+    await service.sendOfflineOrderEmail({
+      recipientEmail: 'bob@test.com',
+      subject: 'Новый заказ',
+      title: 'Новый заказ',
+      body: 'Заказ #1',
+      href: 'https://fraggit.test/orders/order-1',
+    });
+
+    expect(mailQueue.enqueue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: 'bob@test.com',
+        type: 'order_notification',
+        subject: 'Новый заказ',
+        html: expect.stringContaining('/orders/order-1'),
+      }),
     );
   });
 });

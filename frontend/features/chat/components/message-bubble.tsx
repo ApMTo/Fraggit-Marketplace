@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { AppImage } from '@/components/ui/app-image';
+import { ImageLightbox } from '@/features/chat/components/image-lightbox';
 import { formatMessageTime } from '@/lib/chat-time';
 import { cn } from '@/lib/utils';
 import type { ChatMessage } from '@/types/chat';
@@ -10,6 +12,8 @@ type MessageBubbleProps = {
   isOwn: boolean;
   locale: string;
   systemFallback: string;
+  enlargeLabel: string;
+  closeLightboxLabel: string;
 };
 
 export function MessageBubble({
@@ -17,8 +21,11 @@ export function MessageBubble({
   isOwn,
   locale,
   systemFallback,
+  enlargeLabel,
+  closeLightboxLabel,
 }: MessageBubbleProps) {
   const time = formatMessageTime(message.createdAt, locale);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   if (message.type === 'SYSTEM') {
     return (
@@ -45,11 +52,11 @@ export function MessageBubble({
         )}
       >
         {message.type === 'IMAGE' && imageAttachment ? (
-          <a
-            href={imageAttachment.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="relative mb-1.5 block overflow-hidden rounded-[var(--radius-sm)]"
+          <button
+            type="button"
+            onClick={() => setLightboxOpen(true)}
+            aria-label={enlargeLabel}
+            className="relative mb-1.5 block max-w-full cursor-zoom-in overflow-hidden rounded-[var(--radius-sm)] text-left"
           >
             <AppImage
               src={imageAttachment.url}
@@ -58,7 +65,7 @@ export function MessageBubble({
               height={imageAttachment.height ?? 200}
               className="max-h-64 w-auto max-w-full object-cover"
             />
-          </a>
+          </button>
         ) : null}
 
         {message.type === 'TEXT' && message.content ? (
@@ -79,6 +86,15 @@ export function MessageBubble({
           </time>
         ) : null}
       </div>
+
+      {imageAttachment ? (
+        <ImageLightbox
+          open={lightboxOpen}
+          src={imageAttachment.url}
+          onClose={() => setLightboxOpen(false)}
+          closeLabel={closeLightboxLabel}
+        />
+      ) : null}
     </div>
   );
 }

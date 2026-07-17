@@ -1,4 +1,5 @@
 import { MessageType } from '@prisma/client';
+import { PinoLogger } from 'nestjs-pino';
 import { AuthUser } from '../../common/decorators/current-user.decorator';
 import { UserRole } from '../auth/enums/roles.enum';
 import { ChatService } from './chat.service';
@@ -13,6 +14,7 @@ describe('ChatService', () => {
   let conversationService: {
     listConversations: jest.Mock;
     findOrCreateDirectConversation: jest.Mock;
+    getConversationParticipantIds: jest.Mock;
   };
   let messageService: {
     listMessages: jest.Mock;
@@ -22,6 +24,7 @@ describe('ChatService', () => {
   let chatReadService: { markAsRead: jest.Mock };
   let chatNotificationService: { notifyAboutNewMessage: jest.Mock };
   let chatOrderService: { onOrderCreated: jest.Mock };
+  let chatGateway: { emitMessageToParticipants: jest.Mock };
 
   const user: AuthUser = {
     id: 'user-1',
@@ -56,6 +59,9 @@ describe('ChatService', () => {
       findOrCreateDirectConversation: jest
         .fn()
         .mockResolvedValue({ id: 'conv-1', created: true }),
+      getConversationParticipantIds: jest
+        .fn()
+        .mockResolvedValue(['user-1', 'user-2']),
     };
     messageService = {
       listMessages: jest.fn().mockResolvedValue({
@@ -83,6 +89,15 @@ describe('ChatService', () => {
     chatOrderService = {
       onOrderCreated: jest.fn().mockResolvedValue(message),
     };
+    chatGateway = {
+      emitMessageToParticipants: jest.fn(),
+    };
+    const logger = {
+      setContext: jest.fn(),
+      warn: jest.fn(),
+      info: jest.fn(),
+      error: jest.fn(),
+    };
 
     service = new ChatService(
       conversationService as unknown as ConversationService,
@@ -90,6 +105,8 @@ describe('ChatService', () => {
       chatReadService as unknown as ChatReadService,
       chatNotificationService as unknown as ChatNotificationService,
       chatOrderService as unknown as ChatOrderService,
+      chatGateway as never,
+      logger as unknown as PinoLogger,
     );
   });
 
@@ -117,6 +134,10 @@ describe('ChatService', () => {
       conversationId: 'conv-1',
       content: 'hello',
     });
+    expect(chatGateway.emitMessageToParticipants).toHaveBeenCalledWith(
+      ['user-1', 'user-2'],
+      message,
+    );
     expect(chatNotificationService.notifyAboutNewMessage).toHaveBeenCalledWith(
       message,
       'Alice',
@@ -132,6 +153,7 @@ describe('ChatService', () => {
     });
 
     expect(messageService.sendImageMessage).toHaveBeenCalled();
+    expect(chatGateway.emitMessageToParticipants).toHaveBeenCalled();
     expect(chatNotificationService.notifyAboutNewMessage).toHaveBeenCalled();
   });
 

@@ -37,4 +37,10 @@ describe('resolveApiError', () => {
   it('returns generic for non-api errors', () => {
     expect(resolveApiError(new Error('network'))).toEqual({ key: 'generic' });
   });
+
+  it('returns generic for plain English server messages', () => {
+    expect(
+      resolveApiErrorKey(createAxiosError('Internal server error')),
+    ).toBe('generic');
+  });
 });

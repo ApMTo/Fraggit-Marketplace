@@ -151,12 +151,14 @@ export class MessageService {
 
   async sendSystemMessage(params: {
     conversationId: string;
+    content?: string;
     metadata: Prisma.InputJsonValue;
   }): Promise<ChatMessage> {
     return this.persistMessage({
       conversationId: params.conversationId,
       senderId: null,
       type: MessageType.SYSTEM,
+      content: params.content,
       metadata: params.metadata,
     });
   }

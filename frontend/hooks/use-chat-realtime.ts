@@ -12,6 +12,7 @@ import {
   getChatSocket,
   releaseChatSocket,
 } from '@/lib/chat-socket';
+import { playChatMessageSound } from '@/lib/chat-sound';
 import { chatService } from '@/services/chat.service';
 import type {
   ChatMessage,
@@ -24,6 +25,8 @@ type UseChatRealtimeOptions = {
   currentUserId: string | undefined;
   activeConversationId: string | null | undefined;
   enabled?: boolean;
+  /** Play sound for incoming TEXT/IMAGE when not viewing that conversation. */
+  alertSound?: boolean;
 };
 
 /**
@@ -34,15 +37,18 @@ export function useChatRealtime({
   currentUserId,
   activeConversationId,
   enabled = true,
+  alertSound = false,
 }: UseChatRealtimeOptions) {
   const queryClient = useQueryClient();
   const activeConversationIdRef = useRef(activeConversationId);
   const currentUserIdRef = useRef(currentUserId);
+  const alertSoundRef = useRef(alertSound);
 
   useEffect(() => {
     activeConversationIdRef.current = activeConversationId;
     currentUserIdRef.current = currentUserId;
-  }, [activeConversationId, currentUserId]);
+    alertSoundRef.current = alertSound;
+  }, [activeConversationId, currentUserId, alertSound]);
 
   useEffect(() => {
     if (!enabled || !currentUserId) {
@@ -51,7 +57,7 @@ export function useChatRealtime({
 
     const socket = acquireChatSocket();
 
-    const handleNewMessage = (payload: WsMessagePayload) => {
+    const applyMessage = (payload: WsMessagePayload) => {
       const message = payload?.message;
       if (!message?.id || !message.conversationId) {
         return;
@@ -61,6 +67,31 @@ export function useChatRealtime({
         currentUserId: currentUserIdRef.current,
         activeConversationId: activeConversationIdRef.current,
       });
+    };
+
+    const handleIncomingMessage = (payload: WsMessagePayload) => {
+      const message = payload?.message;
+      if (!message?.id || !message.conversationId) {
+        return;
+      }
+
+      applyMessage(payload);
+
+      if (!alertSoundRef.current) {
+        return;
+      }
+
+      const isOwn =
+        Boolean(message.senderId) &&
+        message.senderId === currentUserIdRef.current;
+      const isActive =
+        message.conversationId === activeConversationIdRef.current;
+      const isUserMessage =
+        message.type === 'TEXT' || message.type === 'IMAGE';
+
+      if (!isOwn && !isActive && isUserMessage) {
+        playChatMessageSound();
+      }
     };
 
     const handleReadAck = (payload: WsMarkReadAckPayload) => {
@@ -82,14 +113,14 @@ export function useChatRealtime({
       }
     };
 
-    socket.on(CHAT_WS_EVENTS.MESSAGE_NEW, handleNewMessage);
-    socket.on(CHAT_WS_EVENTS.MESSAGE_SENT, handleNewMessage);
+    socket.on(CHAT_WS_EVENTS.MESSAGE_NEW, handleIncomingMessage);
+    socket.on(CHAT_WS_EVENTS.MESSAGE_SENT, applyMessage);
     socket.on(CHAT_WS_EVENTS.MESSAGE_READ_ACK, handleReadAck);
     socket.on(CHAT_WS_EVENTS.ERROR, handleError);
 
     return () => {
-      socket.off(CHAT_WS_EVENTS.MESSAGE_NEW, handleNewMessage);
-      socket.off(CHAT_WS_EVENTS.MESSAGE_SENT, handleNewMessage);
+      socket.off(CHAT_WS_EVENTS.MESSAGE_NEW, handleIncomingMessage);
+      socket.off(CHAT_WS_EVENTS.MESSAGE_SENT, applyMessage);
       socket.off(CHAT_WS_EVENTS.MESSAGE_READ_ACK, handleReadAck);
       socket.off(CHAT_WS_EVENTS.ERROR, handleError);
       releaseChatSocket();

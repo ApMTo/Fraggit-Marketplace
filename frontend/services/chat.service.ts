@@ -61,6 +61,23 @@ export const chatService = {
     return data;
   },
 
+  async sendImageMessage(
+    conversationId: string,
+    payload: {
+      url: string;
+      mimeType: string;
+      size: number;
+      width?: number;
+      height?: number;
+    },
+  ): Promise<ChatMessage> {
+    const { data } = await api.post<ChatMessage>(
+      `/chat/conversations/${encodeURIComponent(conversationId)}/messages/image`,
+      payload,
+    );
+    return data;
+  },
+
   async markAsRead(
     conversationId: string,
     lastReadMessageId: string,
