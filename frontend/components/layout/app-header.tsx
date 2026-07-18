@@ -8,12 +8,15 @@ import { MobileMenu } from '@/components/layout/mobile-menu';
 import { UserMenu } from '@/components/layout/user-menu';
 import { Logo } from '@/components/layout/logo';
 import { BrandButton, SecondaryButton } from '@/components/ui/nav-button';
+import { ChatNavIcon } from '@/features/chat/components/chat-nav-icon';
+import { NotificationsBell } from '@/features/notifications/components/notifications-bell';
 import { useAuth } from '@/providers/AuthProvider';
 
 export function AppHeader() {
   const t = useTranslations('auth');
   const tListings = useTranslations('listings');
   const { isAuthenticated, isLoading } = useAuth();
+  const showAuthChrome = !isLoading && isAuthenticated;
 
   return (
     <header className="glass-header sticky top-0 z-50 border-b border-border">
@@ -30,6 +33,13 @@ export function AppHeader() {
         </nav>
 
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+          {showAuthChrome ? (
+            <>
+              <ChatNavIcon enabled />
+              <NotificationsBell enabled />
+            </>
+          ) : null}
+
           <div className="hidden md:flex md:items-center md:gap-2 lg:gap-3">
             <HeaderPreferences />
 

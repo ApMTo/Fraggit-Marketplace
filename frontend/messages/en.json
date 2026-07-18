@@ -26,6 +26,14 @@
       "empty": "No games found"
     }
   },
+  "notifications": {
+    "title": "Notifications",
+    "open": "Open notifications",
+    "empty": "No notifications yet",
+    "loading": "Loading…",
+    "loadError": "Could not load notifications",
+    "markAllRead": "Mark all as read"
+  },
   "landing": {
     "meta": {
       "description": "Fraggit is a modern marketplace for digital goods, accounts, and services with a secure escrow system."
@@ -179,6 +187,45 @@
     "settings": "Settings Page",
     "admin": "Admin Page"
   },
+  "chat": {
+    "subtitle": "Your private conversations with buyers and sellers.",
+    "retry": "Try again",
+    "list": {
+      "title": "Conversations",
+      "emptyTitle": "No conversations yet",
+      "emptyDescription": "When you message someone or place an order, chats will appear here.",
+      "loadError": "Could not load conversations",
+      "loadErrorHint": "Check your connection and try again."
+    },
+    "emptySelect": {
+      "title": "Select a conversation",
+      "description": "Choose a dialogue on the left to start messaging."
+    },
+    "thread": {
+      "title": "Conversation",
+      "back": "Back to conversations",
+      "emptyTitle": "No messages yet",
+      "emptyDescription": "Say hello — send the first message.",
+      "loadError": "Could not load messages",
+      "loadErrorHint": "Check your connection and try again.",
+      "enlargeImage": "View full image",
+      "closeImage": "Close image"
+    },
+    "composer": {
+      "placeholder": "Write a message…",
+      "send": "Send",
+      "attachImage": "Attach image",
+      "removeImage": "Remove image",
+      "imageReady": "Image ready to send",
+      "imageTypeError": "Only JPEG, PNG, or WebP images are allowed.",
+      "imageSizeError": "Image must be 5 MB or smaller."
+    },
+    "preview": {
+      "image": "Image",
+      "system": "System message",
+      "empty": "No messages yet"
+    }
+  },
   "profile": {
     "title": "Profile",
     "userTitle": "@{username}",
@@ -189,6 +236,7 @@
     "notFoundTitle": "User not found",
     "notFoundDescription": "This profile does not exist or is no longer available.",
     "retry": "Try again",
+    "message": "Message",
     "fields": {
       "bio": "Bio",
       "bioPlaceholder": "Tell buyers a bit about yourself",
@@ -242,7 +290,12 @@
     "backToCategory": "Back to category",
     "backToListings": "Back to listings",
     "description": "Description",
+    "descriptionExpand": "more",
+    "descriptionCollapse": "show less",
     "attributes": "Details",
+    "seller": "Seller",
+    "buy": "Buy",
+    "guarantee": "Fraggit Guarantee",
     "lotDetails": "Lot details",
     "loadErrorTitle": "Couldn't load listings",
     "loadErrorDescription": "Something went wrong. Please try again.",

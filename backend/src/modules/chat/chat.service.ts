@@ -1,4 +1,5 @@
 ﻿import { Injectable } from '@nestjs/common';
+import { PinoLogger } from 'nestjs-pino';
 import { AuthUser } from '../../common/decorators/current-user.decorator';
 import {
   FindConversationsQueryDto,
@@ -9,6 +10,7 @@ import {
   StartConversationDto,
 } from './dto/chat.dto';
 import { ChatMessage } from './constants/chat.select';
+import { ChatGateway } from './chat.gateway';
 import { ChatOrderService } from './services/chat-order.service';
 import { ChatReadService } from './services/chat-read.service';
 import {
@@ -26,7 +28,11 @@ export class ChatService {
     private readonly chatReadService: ChatReadService,
     private readonly chatNotificationService: ChatNotificationService,
     private readonly chatOrderService: ChatOrderService,
-  ) {}
+    private readonly chatGateway: ChatGateway,
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(ChatService.name);
+  }
 
   listConversations(
     user: AuthUser,
@@ -64,10 +70,7 @@ export class ChatService {
       content: dto.content,
     });
 
-    await this.chatNotificationService.notifyAboutNewMessage(
-      message,
-      user.displayName,
-    );
+    await this.emitNewMessage(conversationId, message, user.displayName);
 
     return message;
   }
@@ -87,12 +90,38 @@ export class ChatService {
       height: dto.height,
     });
 
-    await this.chatNotificationService.notifyAboutNewMessage(
-      message,
-      user.displayName,
-    );
+    await this.emitNewMessage(conversationId, message, user.displayName);
 
     return message;
+  }
+
+  private async emitNewMessage(
+    conversationId: string,
+    message: ChatMessage,
+    senderDisplayName: string,
+  ): Promise<void> {
+    const participantIds =
+      await this.conversationService.getConversationParticipantIds(
+        conversationId,
+      );
+
+    this.chatGateway.emitMessageToParticipants(participantIds, message);
+
+    try {
+      await this.chatNotificationService.notifyAboutNewMessage(
+        message,
+        senderDisplayName,
+      );
+    } catch (error: unknown) {
+      this.logger.warn(
+        {
+          conversationId,
+          messageId: message.id,
+          err: error instanceof Error ? error.message : String(error),
+        },
+        'Offline chat notification failed after message send',
+      );
+    }
   }
 
   markAsRead(user: AuthUser, conversationId: string, dto: MarkReadDto) {
@@ -105,5 +134,15 @@ export class ChatService {
 
   onOrderCreated(params: Parameters<ChatOrderService['onOrderCreated']>[0]) {
     return this.chatOrderService.onOrderCreated(params);
+  }
+
+  onOrderCredentialsSubmitted(
+    params: Parameters<ChatOrderService['onOrderCredentialsSubmitted']>[0],
+  ) {
+    return this.chatOrderService.onOrderCredentialsSubmitted(params);
+  }
+
+  onOrderApproved(params: Parameters<ChatOrderService['onOrderApproved']>[0]) {
+    return this.chatOrderService.onOrderApproved(params);
   }
 }

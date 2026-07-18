@@ -31,6 +31,20 @@ describe('locale i18n helpers', () => {
     });
   });
 
+  it('unwraps double-encoded localized names', () => {
+    const encoded = JSON.stringify({ en: 'Accounts', ru: 'Аккаунты' });
+
+    expect(parseLocalizedName(encoded)).toEqual({
+      en: 'Accounts',
+      ru: 'Аккаунты',
+    });
+    expect(parseLocalizedName({ en: encoded })).toEqual({
+      en: 'Accounts',
+      ru: 'Аккаунты',
+    });
+    expect(resolveLocalizedName({ en: encoded }, 'ru')).toBe('Аккаунты');
+  });
+
   it('resolves locale with en fallback', () => {
     const name = { en: 'Accounts', ru: 'Аккаунты' };
 

@@ -214,7 +214,7 @@ export class OrdersService {
     const now = new Date();
     const autoApproveAt = new Date(now.getTime() + ORDER_AUTO_APPROVAL_MS);
 
-    return this.prisma.order.update({
+    const updated = await this.prisma.order.update({
       where: { id: orderId },
       data: {
         credentials: dto.credentials.trim(),
@@ -224,6 +224,17 @@ export class OrdersService {
       },
       select: ORDER_DETAIL_SELECT,
     });
+
+    await this.chatService.onOrderCredentialsSubmitted({
+      orderId: updated.id,
+      orderNumber: updated.orderNumber,
+      buyerId: updated.buyerId,
+      sellerId: updated.sellerId,
+      listingId: updated.lotId,
+      listingTitle: updated.lot.title,
+    });
+
+    return updated;
   }
 
   async confirmByBuyer(buyerId: string, orderId: string): Promise<OrderDetail> {
@@ -253,6 +264,8 @@ export class OrdersService {
       throw new ConflictException('order_confirm_not_allowed');
     }
 
+    await this.notifyOrderApproved(approved);
+
     return approved;
   }
 
@@ -273,10 +286,22 @@ export class OrdersService {
     for (const order of expiredOrders) {
       const result = await this.orderCompletionService.approveOrder(order.id);
       if (result) {
+        await this.notifyOrderApproved(result);
         processed += 1;
       }
     }
 
     return processed;
+  }
+
+  private async notifyOrderApproved(order: OrderDetail): Promise<void> {
+    await this.chatService.onOrderApproved({
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      buyerId: order.buyerId,
+      sellerId: order.sellerId,
+      listingId: order.lotId,
+      listingTitle: order.lot.title,
+    });
   }
 }

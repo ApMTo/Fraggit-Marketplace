@@ -36,9 +36,34 @@ export function parseAcceptLanguageHeader(
   return normalizeLocale(language);
 }
 
+function tryParseLocalizedNameJson(value: string): LocalizedName | null {
+  const trimmed = value.trim();
+
+  if (!trimmed.startsWith('{')) {
+    return null;
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(trimmed);
+
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      !Array.isArray(parsed) &&
+      typeof (parsed as { en?: unknown }).en === 'string'
+    ) {
+      return parseLocalizedName(parsed);
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 export function parseLocalizedName(value: unknown): LocalizedName {
   if (typeof value === 'string') {
-    return { en: value };
+    return tryParseLocalizedNameJson(value) ?? { en: value };
   }
 
   if (
@@ -48,6 +73,12 @@ export function parseLocalizedName(value: unknown): LocalizedName {
     typeof (value as { en?: unknown }).en === 'string'
   ) {
     const record = value as { en: string; ru?: unknown };
+    const unwrapped = tryParseLocalizedNameJson(record.en);
+
+    if (unwrapped) {
+      return unwrapped;
+    }
+
     const parsed: LocalizedName = { en: record.en };
 
     if (typeof record.ru === 'string' && record.ru.trim()) {

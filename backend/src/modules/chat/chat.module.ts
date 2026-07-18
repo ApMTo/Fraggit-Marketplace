@@ -2,6 +2,7 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 import { MailModule } from '../mail/mail.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { TokenModule } from '../token/token.module';
 import { CHAT_QUEUE } from './constants/chat.constants';
 import { ChatController } from './chat.controller';
@@ -23,6 +24,7 @@ import { MessageService } from './services/message.service';
     AuthModule,
     TokenModule,
     MailModule,
+    NotificationsModule,
     BullModule.registerQueue({ name: CHAT_QUEUE }),
   ],
   controllers: [ChatController],

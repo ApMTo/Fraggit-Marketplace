@@ -1,5 +1,6 @@
 export const CHAT_QUEUE = 'chat';
 export const CHAT_JOB_NOTIFY_OFFLINE = 'notify-offline';
+export const CHAT_JOB_NOTIFY_OFFLINE_ORDER = 'notify-offline-order';
 
 export const CHAT_ONLINE_KEY_PREFIX = 'chat:online:';
 export const CHAT_ONLINE_TTL_SECONDS = 60;
@@ -19,11 +20,14 @@ export const CHAT_WS_EVENTS = {
   MESSAGE_READ: 'message:read',
   MESSAGE_READ_ACK: 'message:read:ack',
   PRESENCE_UPDATE: 'presence:update',
+  NOTIFICATION_NEW: 'notification:new',
   ERROR: 'error',
 } as const;
 
 export const CHAT_SYSTEM_EVENT = {
   ORDER_CREATED: 'order_created',
+  ORDER_CREDENTIALS: 'order_credentials',
+  ORDER_APPROVED: 'order_approved',
 } as const;
 
 export type ChatNotifyOfflineJobData = {
@@ -32,4 +36,13 @@ export type ChatNotifyOfflineJobData = {
   senderDisplayName: string;
   conversationId: string;
   messagePreview: string;
+};
+
+export type OrderNotifyOfflineJobData = {
+  recipientUserId: string;
+  recipientEmail: string;
+  subject: string;
+  title: string;
+  body: string;
+  href: string;
 };

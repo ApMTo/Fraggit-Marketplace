@@ -21,6 +21,11 @@ function normalizeApiErrorCode(code: string): string {
     .replace(/^messages\./, '');
 }
 
+/** Only snake_case keys map to i18n `errors.*` — plain English 500 text must not. */
+function isTranslatableErrorKey(key: string): boolean {
+  return /^[a-z][a-z0-9_]*$/.test(key);
+}
+
 export function resolveApiError(error: unknown): ResolvedApiError {
   const code = getApiErrorCode(error);
 
@@ -31,11 +36,15 @@ export function resolveApiError(error: unknown): ResolvedApiError {
   const normalized = normalizeApiErrorCode(code);
   const [base, param] = normalized.split(':');
 
+  if (!base || !isTranslatableErrorKey(base)) {
+    return { key: 'generic' };
+  }
+
   if (param && PARAMETERIZED_ERROR_CODES.has(base)) {
     return { key: base, values: { key: param } };
   }
 
-  return { key: base || 'generic' };
+  return { key: base };
 }
 
 export function resolveApiErrorKey(error: unknown): string {
