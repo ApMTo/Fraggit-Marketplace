@@ -187,6 +187,65 @@
     "settings": "Settings Page",
     "admin": "Admin Page"
   },
+  "orders": {
+    "title": "Orders",
+    "detailTitle": "Order",
+    "subtitle": "Your purchases and sales in one place.",
+    "backToOrders": "Back to orders",
+    "orderNumber": "Order #{number}",
+    "lotSummary": "Lot details for this order",
+    "seller": "Seller",
+    "buyer": "Buyer",
+    "roleBuyer": "You are the buyer",
+    "roleSeller": "You are the seller",
+    "buyerStatusHint": "Wait for the seller to send data, then confirm the order.",
+    "sellerStatusHint": "Send delivery data so the buyer can confirm receipt.",
+    "credentialsTitle": "Delivery data",
+    "credentialsLabel": "Data to deliver",
+    "credentialsPlaceholder": "Login, password, key, or other details…",
+    "credentialsSellerHint": "Add the data the buyer will receive.",
+    "credentialsBuyerHint": "Seller data will appear here after it is submitted.",
+    "credentialsWaiting": "The seller has not sent data yet.",
+    "credentialsRequired": "Enter delivery data.",
+    "credentialsSubmitted": "Data submitted",
+    "submitCredentials": "Submit data",
+    "confirmOrder": "Confirm order",
+    "confirmBlockedUntilData": "Confirmation unlocks after the seller sends data.",
+    "waitingBuyerConfirm": "Waiting for the buyer to confirm.",
+    "orderCompleted": "Order completed",
+    "confirmSuccess": "Order confirmed",
+    "guarantee": "Fraggit guarantee",
+    "confirmDialog": {
+      "title": "Confirm order",
+      "description": "By confirming, you agree that you have the account, you have changed all credentials, the seller will receive payment, and a refund will no longer be possible.",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
+    "review": {
+      "title": "Leave a review",
+      "hint": "Rate the seller after a successful deal.",
+      "ratingLabel": "Rating",
+      "textLabel": "Review",
+      "textPlaceholder": "Tell others how the deal went…",
+      "submit": "Submit review",
+      "success": "Review submitted",
+      "submittedTitle": "Your review",
+      "ratingRequired": "Choose a rating from 1 to 5.",
+      "textRequired": "Write a review."
+    },
+    "status": {
+      "PENDING": "Awaiting data",
+      "AWAITING_BUYER_CONFIRMATION": "Awaiting confirmation",
+      "APPROVED": "Completed"
+    },
+    "emptyTitle": "No orders yet",
+    "emptyDescription": "When you buy or sell a lot, orders will show up here.",
+    "browseListings": "Browse listings",
+    "loadErrorTitle": "Could not load orders",
+    "loadErrorDescription": "Something went wrong. Please try again.",
+    "notFoundTitle": "Order not found",
+    "notFoundDescription": "This order does not exist or you do not have access to it."
+  },
   "chat": {
     "subtitle": "Your private conversations with buyers and sellers.",
     "retry": "Try again",
@@ -260,6 +319,14 @@
       "empty": "No open listings yet",
       "loadError": "Could not load listings."
     },
+    "reviews": {
+      "title": "Reviews",
+      "count": "{count, plural, =0 {No reviews} one {# review} other {# reviews}}",
+      "empty": "No reviews yet",
+      "loadError": "Could not load reviews.",
+      "aboutLot": "Lot: {title}",
+      "ratingAria": "Rating {rating} out of 5"
+    },
     "validation": {
       "bioMax": "Bio must be at most 500 characters",
       "avatarSize": "Avatar must be 5 MB or smaller",
@@ -295,6 +362,7 @@
     "attributes": "Details",
     "seller": "Seller",
     "buy": "Buy",
+    "buying": "Purchasing…",
     "guarantee": "Fraggit Guarantee",
     "lotDetails": "Lot details",
     "loadErrorTitle": "Couldn't load listings",

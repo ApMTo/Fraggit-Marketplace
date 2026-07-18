@@ -82,3 +82,26 @@ export {
   LOT_PHOTO_ACCEPT,
   LOT_PHOTO_MAX_BYTES,
 } from './lot';
+
+export type {
+  OrderStatus,
+  OrderRole,
+  OrderUser,
+  OrderLot,
+  OrderDetail,
+  OrderListItem,
+  OrderListResult,
+  FindOrdersParams,
+  CreateOrderPayload,
+  SubmitCredentialsPayload,
+} from './order';
+
+export type {
+  ReviewUser,
+  ReviewLot,
+  ReviewDetail,
+  ReviewListItem,
+  ReviewListResult,
+  FindReviewsParams,
+  CreateReviewPayload,
+} from './review';

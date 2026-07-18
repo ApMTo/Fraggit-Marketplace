@@ -3,15 +3,14 @@ import { getTranslations } from 'next-intl/server';
 import { OrdersPage } from '@/features/orders/orders-page';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('pages');
+  const t = await getTranslations('orders');
 
   return {
-    title: `${t('orders')} | Fraggit`,
+    title: `${t('title')} | Fraggit`,
+    description: t('subtitle'),
   };
 }
 
-export default async function Page() {
-  const t = await getTranslations('pages');
-
-  return <OrdersPage title={t('orders')} />;
+export default function Page() {
+  return <OrdersPage />;
 }
