@@ -184,7 +184,6 @@
     "listings": "Listings Page",
     "orders": "Orders Page",
     "chat": "Chat Page",
-    "settings": "Settings Page",
     "admin": "Admin Page"
   },
   "chat": {
@@ -241,7 +240,8 @@
       "bio": "Bio",
       "bioPlaceholder": "Tell buyers a bit about yourself",
       "bioHint": "Optional. Shown on your public seller profile.",
-      "emailHint": "Email cannot be changed here.",
+      "emailHint": "Change email in Settings.",
+      "usernameHint": "Change username in Settings.",
       "changeAvatar": "Change avatar",
       "avatarHint": "JPEG, PNG or WebP up to 5 MB"
     },
@@ -264,6 +264,52 @@
       "bioMax": "Bio must be at most 500 characters",
       "avatarSize": "Avatar must be 5 MB or smaller",
       "avatarType": "Avatar must be JPEG, PNG, or WebP"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "backToProfile": "Back to profile",
+    "sections": {
+      "security": "Security"
+    },
+    "security": {
+      "subtitle": "Manage your email, username, and password.",
+      "loadError": "Could not load security settings.",
+      "retry": "Try again",
+      "email": {
+        "title": "Change email",
+        "subtitle": "We send a code to your current email. You can change it once every 14 days.",
+        "currentEmail": "Current email",
+        "hint": "Enter the new address. A confirmation code goes to your current inbox.",
+        "sendCode": "Send code",
+        "confirm": "Confirm and update",
+        "code": "Confirmation code",
+        "codeHint": "Enter the 6-digit code from your current email.",
+        "codeSent": "Code sent to your current email",
+        "success": "Email updated",
+        "sameEmail": "New email must be different",
+        "invalidCode": "Enter a 6-digit code",
+        "changeEmailAgain": "Use a different email",
+        "cooldown": "You can change email again after {date}."
+      },
+      "username": {
+        "title": "Change username",
+        "subtitle": "You can change your username once every 14 days.",
+        "hint": "Letters, numbers, and underscores only.",
+        "submit": "Update username",
+        "success": "Username updated",
+        "sameUsername": "New username must be different",
+        "cooldown": "You can change username again after {date}."
+      },
+      "password": {
+        "title": "Change password",
+        "subtitle": "Enter your current password, then choose a new one.",
+        "currentPassword": "Current password",
+        "newPassword": "New password",
+        "hint": "At least 10 characters with upper, lower, digit, and special character",
+        "submit": "Update password",
+        "success": "Password updated"
+      }
     }
   },
   "listings": {
@@ -663,6 +709,14 @@
     "user_not_found": "User not found",
     "insufficient_role": "You do not have permission to perform this action.",
     "password_mismatch": "Passwords do not match",
+    "email_change_cooldown": "You can change your email only once every 14 days.",
+    "username_change_cooldown": "You can change your username only once every 14 days.",
+    "email_unchanged": "New email must be different from the current one.",
+    "username_unchanged": "New username must be different from the current one.",
+    "password_unchanged": "New password must be different from the current one.",
+    "invalid_or_expired_code": "Invalid or expired confirmation code.",
+    "too_many_code_attempts": "Too many incorrect code attempts. Request a new code.",
+    "invalid_current_password": "Current password is incorrect.",
     "category_not_found": "Category not found.",
     "category_name_already_exists": "A category with this name already exists.",
     "category_slug_already_exists": "A category with this slug already exists.",

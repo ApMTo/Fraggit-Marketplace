@@ -8,6 +8,7 @@ export type SendMailJobData = {
   type?:
     | 'registration'
     | 'password_reset'
+    | 'email_change'
     | 'chat_notification'
     | 'order_notification';
 };

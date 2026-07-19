@@ -15,6 +15,8 @@ export const USER_PROFILE_SELECT = {
   successfulSales: true,
   emailVerified: true,
   telegramUsername: true,
+  emailChangedAt: true,
+  usernameChangedAt: true,
   createdAt: true,
   updatedAt: true,
 } satisfies Prisma.UserSelect;
@@ -23,7 +25,6 @@ export type UserProfile = Prisma.UserGetPayload<{
   select: typeof USER_PROFILE_SELECT;
 }>;
 
-/** Public profile for GET /users/:username — no email or auth internals */
 export const USER_PUBLIC_PROFILE_SELECT = {
   id: true,
   username: true,

@@ -1,0 +1,4 @@
+export const IDENTITY_CHANGE_COOLDOWN_MS = 14 * 24 * 60 * 60 * 1000;
+
+export const EMAIL_CHANGE_CODE_TTL_SECONDS = 60 * 15;
+export const EMAIL_CHANGE_MAX_ATTEMPTS = 5;

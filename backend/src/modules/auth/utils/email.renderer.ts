@@ -27,4 +27,19 @@ export class EmailRenderer {
       <p>Or copy this link: ${resetUrl}</p>
     `;
   }
+
+  static renderEmailChangeCodeEmail(
+    displayName: string,
+    code: string,
+    newEmail: string,
+  ): string {
+    return `
+      <h2>Confirm email change</h2>
+      <p>Hi ${displayName},</p>
+      <p>You requested to change your Fraggit email to <strong>${newEmail}</strong>.</p>
+      <p>Your confirmation code is:</p>
+      <p style="font-size:24px;font-weight:700;letter-spacing:4px;">${code}</p>
+      <p>This code expires in 15 minutes. If you did not request this change, ignore this email.</p>
+    `;
+  }
 }

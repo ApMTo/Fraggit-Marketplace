@@ -17,7 +17,7 @@ describe('app nav', () => {
         role: 'USER',
         group: 'account',
       }).map((item) => item.id),
-    ).toEqual(['dashboard', 'orders', 'chat', 'profile', 'settings']);
+    ).toEqual(['dashboard', 'orders', 'chat', 'profile']);
   });
 
   it('includes admin link in account menu for moderators and admins', () => {

@@ -1,5 +1,11 @@
 import api from '@/lib/api';
 import type {
+  ChangePasswordPayload,
+  ChangeUsernamePayload,
+  ConfirmEmailChangePayload,
+  EmailChangeRequestResponse,
+  MessageResponse,
+  RequestEmailChangePayload,
   UpdateProfilePayload,
   UserProfileResponse,
   UserPublicProfileResponse,
@@ -15,7 +21,6 @@ export const userKeys = {
 function buildProfileFormData(payload: UpdateProfilePayload): FormData {
   const formData = new FormData();
 
-  formData.append('username', payload.username);
   formData.append('displayName', payload.displayName);
 
   if (payload.bio !== undefined) {
@@ -47,6 +52,46 @@ export const usersService = {
     const { data } = await api.patch<UserProfileResponse>(
       '/users/me',
       formData,
+    );
+    return data;
+  },
+
+  async requestEmailChange(
+    payload: RequestEmailChangePayload,
+  ): Promise<EmailChangeRequestResponse> {
+    const { data } = await api.post<EmailChangeRequestResponse>(
+      '/users/me/email/request',
+      payload,
+    );
+    return data;
+  },
+
+  async confirmEmailChange(
+    payload: ConfirmEmailChangePayload,
+  ): Promise<UserProfileResponse> {
+    const { data } = await api.post<UserProfileResponse>(
+      '/users/me/email/confirm',
+      payload,
+    );
+    return data;
+  },
+
+  async changeUsername(
+    payload: ChangeUsernamePayload,
+  ): Promise<UserProfileResponse> {
+    const { data } = await api.post<UserProfileResponse>(
+      '/users/me/username',
+      payload,
+    );
+    return data;
+  },
+
+  async changePassword(
+    payload: ChangePasswordPayload,
+  ): Promise<MessageResponse> {
+    const { data } = await api.post<MessageResponse>(
+      '/users/me/password',
+      payload,
     );
     return data;
   },

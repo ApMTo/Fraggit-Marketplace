@@ -42,6 +42,9 @@ model User {
   twoFactorEnabled Boolean @default(false)
   emailVerified    Boolean @default(false)
 
+  emailChangedAt    DateTime?
+  usernameChangedAt DateTime?
+
   telegramId       String?
   telegramUsername String?
 
