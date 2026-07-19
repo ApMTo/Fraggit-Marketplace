@@ -16,7 +16,6 @@ import { resolveApiError } from '@/lib/api-errors';
 import {
   validateBio,
   validateDisplayName,
-  validateUsername,
 } from '@/lib/validation/auth';
 import type { UserPublicProfile } from '@/types/user';
 import {
@@ -26,7 +25,6 @@ import {
 } from '@/types/user';
 
 type ProfileFormValues = {
-  username: string;
   displayName: string;
   bio: string;
   avatar: File | null;
@@ -35,13 +33,11 @@ type ProfileFormValues = {
 type ProfileFormProps = {
   profile: UserPublicProfile;
   email: string;
-  onUsernameChange?: (username: string) => void;
 };
 
 export function ProfileForm({
   profile,
   email,
-  onUsernameChange,
 }: ProfileFormProps) {
   const t = useTranslations('profile');
   const tFields = useTranslations('auth.fields');
@@ -54,7 +50,6 @@ export function ProfileForm({
   const formik = useFormik<ProfileFormValues>({
     enableReinitialize: true,
     initialValues: {
-      username: profile.username,
       displayName: profile.displayName,
       bio: profile.bio ?? '',
       avatar: null,
@@ -63,11 +58,6 @@ export function ProfileForm({
     validateOnBlur: true,
     validate: (values) => {
       const errors: Partial<Record<keyof ProfileFormValues, string>> = {};
-
-      const usernameError = validateUsername(values.username);
-      if (usernameError) {
-        errors.username = tValidation(usernameError);
-      }
 
       const displayNameError = validateDisplayName(values.displayName);
       if (displayNameError) {
@@ -95,9 +85,7 @@ export function ProfileForm({
       setStatus(undefined);
 
       try {
-        const previousUsername = profile.username;
-        const updated = await updateProfile.mutateAsync({
-          username: values.username.trim().toLowerCase(),
+        await updateProfile.mutateAsync({
           displayName: values.displayName.trim(),
           bio: values.bio.trim() || null,
           ...(values.avatar instanceof File ? { avatar: values.avatar } : {}),
@@ -109,13 +97,6 @@ export function ProfileForm({
         }
 
         toast.success(t('saveSuccess'));
-
-        if (
-          onUsernameChange &&
-          updated.user.username.toLowerCase() !== previousUsername.toLowerCase()
-        ) {
-          onUsernameChange(updated.user.username);
-        }
       } catch (error) {
         const resolved = resolveApiError(error);
         setStatus({
@@ -264,23 +245,11 @@ export function ProfileForm({
             <Label htmlFor="profile-username">{tFields('username')}</Label>
             <Input
               id="profile-username"
-              name="username"
-              autoComplete="username"
-              value={formik.values.username}
-              onChange={(event) => {
-                clearFormError();
-                formik.handleChange(event);
-              }}
-              onBlur={formik.handleBlur}
-              hasError={Boolean(
-                formik.touched.username && formik.errors.username,
-              )}
+              value={profile.username}
+              disabled
+              readOnly
             />
-            {formik.touched.username && formik.errors.username ? (
-              <p className="text-xs text-destructive">
-                {formik.errors.username}
-              </p>
-            ) : null}
+            <p className="text-xs text-subtle">{t('fields.usernameHint')}</p>
           </div>
         </div>
 

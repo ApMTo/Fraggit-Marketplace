@@ -37,6 +37,7 @@ import { MailModule } from '../mail/mail.module';
   ],
   exports: [
     AuthService,
+    AuthSessionService,
     RolesGuard,
     CsrfGuard,
     JwtAuthGuard,

@@ -1,6 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Settings } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Spinner } from '@/components/ui/spinner';
 import { ProfileForm } from '@/features/profile/components/profile-form';
@@ -15,7 +16,7 @@ type ProfilePageProps = {
 
 export function ProfilePage({ username }: ProfilePageProps) {
   const t = useTranslations('profile');
-  const router = useRouter();
+  const tSettings = useTranslations('settings');
   const { user: authUser } = useAuth();
   const normalized = username.trim().toLowerCase();
   const isOwn =
@@ -52,18 +53,21 @@ export function ProfilePage({ username }: ProfilePageProps) {
         <>
           {isOwn && authUser ? (
             <>
-              <div className="space-y-1">
-                <h1 className="page-title text-3xl">{t('title')}</h1>
-                <p className="text-muted">{t('subtitle')}</p>
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <h1 className="page-title text-3xl">{t('title')}</h1>
+                  <p className="text-muted">{t('subtitle')}</p>
+                </div>
+                <Link
+                  href="/settings"
+                  className="btn-secondary inline-flex h-9 items-center gap-2 px-4 text-sm"
+                >
+                  <Settings className="size-4" />
+                  {tSettings('title')}
+                </Link>
               </div>
               <div className="surface-card p-6 sm:p-8">
-                <ProfileForm
-                  profile={profile}
-                  email={authUser.email}
-                  onUsernameChange={(nextUsername) => {
-                    router.replace(`/user/${nextUsername}`);
-                  }}
-                />
+                <ProfileForm profile={profile} email={authUser.email} />
               </div>
             </>
           ) : (

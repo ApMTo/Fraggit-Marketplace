@@ -2,10 +2,15 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/providers/AuthProvider';
+import { clearCsrfToken, syncCsrfFromCookie } from '@/lib/csrf';
 import { listingKeys } from '@/services/listings.service';
 import { userKeys, usersService } from '@/services/users.service';
 import type { AuthUser } from '@/types/auth';
 import type {
+  ChangePasswordPayload,
+  ChangeUsernamePayload,
+  ConfirmEmailChangePayload,
+  RequestEmailChangePayload,
   UpdateProfilePayload,
   UserProfile,
   UserPublicProfile,
@@ -35,6 +40,46 @@ function toPublicProfile(profile: UserProfile): UserPublicProfile {
     createdAt: profile.createdAt,
   };
 }
+
+function resyncCsrfAfterSessionReissue() {
+  clearCsrfToken();
+  syncCsrfFromCookie();
+}
+
+function syncProfileCaches(
+  queryClient: ReturnType<typeof useQueryClient>,
+  data: UserProfileResponseLike,
+  previousUsername: string | undefined,
+  updateUser: (user: AuthUser) => void,
+) {
+  queryClient.setQueryData(userKeys.me(), data);
+
+  const nextUsername = data.user.username;
+
+  queryClient.setQueryData(userKeys.byUsername(nextUsername), {
+    message: data.message,
+    user: toPublicProfile(data.user),
+  } satisfies UserPublicProfileResponse);
+
+  if (
+    previousUsername &&
+    previousUsername.toLowerCase() !== nextUsername.toLowerCase()
+  ) {
+    queryClient.removeQueries({
+      queryKey: userKeys.byUsername(previousUsername),
+    });
+  }
+
+  updateUser(toAuthUser(data.user));
+  void queryClient.invalidateQueries({
+    queryKey: listingKeys.sellerLists(),
+  });
+}
+
+type UserProfileResponseLike = {
+  message: { code: string };
+  user: UserProfile;
+};
 
 export function useUserProfile(options?: { enabled?: boolean }) {
   return useQuery({
@@ -69,29 +114,51 @@ export function useUpdateProfile() {
     mutationFn: (payload: UpdateProfilePayload) =>
       usersService.updateMe(payload),
     onSuccess: (data) => {
-      queryClient.setQueryData(userKeys.me(), data);
+      syncProfileCaches(queryClient, data, user?.username, updateUser);
+    },
+  });
+}
 
-      const previousUsername = user?.username;
-      const nextUsername = data.user.username;
+export function useRequestEmailChange() {
+  return useMutation({
+    mutationFn: (payload: RequestEmailChangePayload) =>
+      usersService.requestEmailChange(payload),
+  });
+}
 
-      queryClient.setQueryData(userKeys.byUsername(nextUsername), {
-        message: data.message,
-        user: toPublicProfile(data.user),
-      } satisfies UserPublicProfileResponse);
+export function useConfirmEmailChange() {
+  const queryClient = useQueryClient();
+  const { user, updateUser } = useAuth();
 
-      if (
-        previousUsername &&
-        previousUsername.toLowerCase() !== nextUsername.toLowerCase()
-      ) {
-        queryClient.removeQueries({
-          queryKey: userKeys.byUsername(previousUsername),
-        });
-      }
+  return useMutation({
+    mutationFn: (payload: ConfirmEmailChangePayload) =>
+      usersService.confirmEmailChange(payload),
+    onSuccess: (data) => {
+      resyncCsrfAfterSessionReissue();
+      syncProfileCaches(queryClient, data, user?.username, updateUser);
+    },
+  });
+}
 
-      updateUser(toAuthUser(data.user));
-      void queryClient.invalidateQueries({
-        queryKey: listingKeys.sellerLists(),
-      });
+export function useChangeUsername() {
+  const queryClient = useQueryClient();
+  const { user, updateUser } = useAuth();
+
+  return useMutation({
+    mutationFn: (payload: ChangeUsernamePayload) =>
+      usersService.changeUsername(payload),
+    onSuccess: (data) => {
+      syncProfileCaches(queryClient, data, user?.username, updateUser);
+    },
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: (payload: ChangePasswordPayload) =>
+      usersService.changePassword(payload),
+    onSuccess: () => {
+      resyncCsrfAfterSessionReissue();
     },
   });
 }

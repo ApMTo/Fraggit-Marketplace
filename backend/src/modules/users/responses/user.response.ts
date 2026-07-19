@@ -41,6 +41,12 @@ export class UserProfileDto {
   @ApiPropertyOptional({ nullable: true })
   telegramUsername!: string | null;
 
+  @ApiPropertyOptional({ nullable: true })
+  emailChangedAt!: Date | null;
+
+  @ApiPropertyOptional({ nullable: true })
+  usernameChangedAt!: Date | null;
+
   @ApiProperty()
   createdAt!: Date;
 

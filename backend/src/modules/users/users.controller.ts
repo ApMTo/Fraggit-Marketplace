@@ -6,6 +6,8 @@
   HttpStatus,
   Param,
   Patch,
+  Post,
+  Req,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -22,17 +24,23 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
+import type { Request } from 'express';
 import {
   AuthUser,
   CurrentUser,
 } from '../../common/decorators/current-user.decorator';
 import { FileValidationPipe } from '../../common/pipes/file-validation.pipe';
 import { Public } from '../../decorators/public.decorator';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { ChangeUsernameDto } from './dto/change-username.dto';
+import { ConfirmEmailChangeDto } from './dto/confirm-email-change.dto';
+import { RequestEmailChangeDto } from './dto/request-email-change.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import {
   UserProfileResponseDto,
   UserPublicProfileResponseDto,
 } from './responses/user.response';
+import { UserSecurityService } from './user-security.service';
 import { UsersService } from './users.service';
 
 const CSRF_HEADER = {
@@ -53,7 +61,10 @@ const storageOptions = { storage: memoryStorage() };
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly userSecurityService: UserSecurityService,
+  ) {}
 
   @Get('me')
   @ApiCookieAuth('access_token')
@@ -77,14 +88,13 @@ export class UsersController {
   @ApiOperation({
     summary: 'Update current user profile',
     description:
-      'Accepts multipart form fields: username, displayName, bio (optional), avatar (optional image file).',
+      'Accepts multipart form fields: displayName, bio (optional), avatar (optional image file). Username and email are changed via security endpoints.',
   })
   @ApiBody({
     schema: {
       type: 'object',
-      required: ['username', 'displayName'],
+      required: ['displayName'],
       properties: {
-        username: { type: 'string', example: 'cool_seller' },
         displayName: { type: 'string', example: 'Cool Seller' },
         bio: { type: 'string', example: 'CS2 skins trader', nullable: true },
         avatar: { type: 'string', format: 'binary' },
@@ -104,6 +114,79 @@ export class UsersController {
       message: { code: 'messages.profile_updated' },
       user: profile,
     };
+  }
+
+  @Post('me/email/request')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @ApiCookieAuth('access_token')
+  @ApiHeader(CSRF_HEADER)
+  @ApiOperation({
+    summary: 'Request email change',
+    description:
+      'Sends a 6-digit code to the current email. Email can be changed once every 14 days.',
+  })
+  @ApiResponse({ status: 200 })
+  async requestEmailChange(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: RequestEmailChangeDto,
+  ) {
+    return this.userSecurityService.requestEmailChange(user.id, dto);
+  }
+
+  @Post('me/email/confirm')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @ApiCookieAuth('access_token')
+  @ApiHeader(CSRF_HEADER)
+  @ApiOperation({
+    summary: 'Confirm email change',
+    description:
+      'Verifies the code sent to the current email and updates to the new address if available.',
+  })
+  @ApiResponse({ status: 200, type: UserProfileResponseDto })
+  async confirmEmailChange(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: ConfirmEmailChangeDto,
+    @Req() req: Request,
+  ) {
+    return this.userSecurityService.confirmEmailChange(user.id, dto, req);
+  }
+
+  @Post('me/username')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @ApiCookieAuth('access_token')
+  @ApiHeader(CSRF_HEADER)
+  @ApiOperation({
+    summary: 'Change username',
+    description: 'Username can be changed once every 14 days.',
+  })
+  @ApiResponse({ status: 200, type: UserProfileResponseDto })
+  async changeUsername(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: ChangeUsernameDto,
+  ) {
+    return this.userSecurityService.changeUsername(user.id, dto);
+  }
+
+  @Post('me/password')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @ApiCookieAuth('access_token')
+  @ApiHeader(CSRF_HEADER)
+  @ApiOperation({
+    summary: 'Change password',
+    description:
+      'Requires current password, new password, and confirmation. Other sessions are revoked.',
+  })
+  @ApiResponse({ status: 200 })
+  async changePassword(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: ChangePasswordDto,
+    @Req() req: Request,
+  ) {
+    return this.userSecurityService.changePassword(user.id, dto, req);
   }
 
   @Get(':username')

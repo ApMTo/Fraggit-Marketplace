@@ -17,6 +17,8 @@ export type UserProfile = {
   successfulSales: number;
   emailVerified: boolean;
   telegramUsername: string | null;
+  emailChangedAt: string | null;
+  usernameChangedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -45,11 +47,38 @@ export type UserPublicProfileResponse = {
 };
 
 export type UpdateProfilePayload = {
-  username: string;
   displayName: string;
   bio?: string | null;
   avatar?: File;
 };
+
+export type RequestEmailChangePayload = {
+  newEmail: string;
+};
+
+export type ConfirmEmailChangePayload = {
+  code: string;
+};
+
+export type ChangeUsernamePayload = {
+  username: string;
+};
+
+export type ChangePasswordPayload = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+};
+
+export type MessageResponse = {
+  message: { code: string };
+};
+
+export type EmailChangeRequestResponse = MessageResponse & {
+  expiresInSeconds: number;
+};
+
+export const IDENTITY_CHANGE_COOLDOWN_DAYS = 14;
 
 export const PROFILE_BIO_MAX_LENGTH = 500;
 export const PROFILE_AVATAR_MAX_BYTES = 5 * 1024 * 1024;

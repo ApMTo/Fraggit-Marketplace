@@ -1,8 +1,4 @@
-﻿import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+﻿import { Injectable, NotFoundException } from '@nestjs/common';
 import { UserStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { FilesService } from '../files/files.service';
@@ -61,15 +57,11 @@ export class UsersService {
   ): Promise<UserProfile> {
     const current = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { username: true, displayName: true },
+      select: { displayName: true },
     });
 
     if (!current) {
       throw new NotFoundException('user_not_found');
-    }
-
-    if (dto.username !== current.username) {
-      await this.assertUsernameAvailable(dto.username, userId);
     }
 
     let avatarUrl: string | undefined;
@@ -81,7 +73,6 @@ export class UsersService {
     const user = await this.prisma.user.update({
       where: { id: userId },
       data: {
-        username: dto.username,
         displayName: dto.displayName,
         bio: dto.bio ?? null,
         ...(avatarUrl && { avatarUrl }),
@@ -89,28 +80,10 @@ export class UsersService {
       select: USER_PROFILE_SELECT,
     });
 
-    const authFieldsChanged =
-      dto.username !== current.username ||
-      dto.displayName !== current.displayName;
-
-    if (authFieldsChanged) {
+    if (dto.displayName !== current.displayName) {
       await this.userAuthCache.invalidate(userId);
     }
 
     return user;
-  }
-
-  private async assertUsernameAvailable(
-    username: string,
-    excludeUserId: string,
-  ): Promise<void> {
-    const taken = await this.prisma.user.findFirst({
-      where: { username, NOT: { id: excludeUserId } },
-      select: { id: true },
-    });
-
-    if (taken) {
-      throw new ConflictException('username_already_exists');
-    }
   }
 }

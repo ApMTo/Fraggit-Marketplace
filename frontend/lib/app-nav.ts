@@ -6,7 +6,6 @@ export type AppNavItemId =
   | 'orders'
   | 'chat'
   | 'profile'
-  | 'settings'
   | 'admin';
 
 export type AppNavGroup = 'header' | 'account';
@@ -37,12 +36,6 @@ const APP_NAV_ITEMS: AppNavItem[] = [
   {
     id: 'profile',
     href: '/profile',
-    group: 'account',
-    showWhen: 'authenticated',
-  },
-  {
-    id: 'settings',
-    href: '/settings',
     group: 'account',
     showWhen: 'authenticated',
   },
