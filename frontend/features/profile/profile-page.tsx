@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { Spinner } from '@/components/ui/spinner';
 import { ProfileForm } from '@/features/profile/components/profile-form';
 import { ProfileLotsSection } from '@/features/profile/components/profile-lots-section';
+import { ProfileReviewsSection } from '@/features/profile/components/profile-reviews-section';
 import { PublicProfileHeader } from '@/features/profile/components/public-profile-header';
 import { usePublicUser } from '@/hooks/use-users';
 import { useAuth } from '@/providers/AuthProvider';
@@ -74,6 +75,7 @@ export function ProfilePage({ username }: ProfilePageProps) {
             <PublicProfileHeader profile={profile} />
           )}
 
+          <ProfileReviewsSection sellerId={profile.id} />
           <ProfileLotsSection username={profile.username} />
         </>
       )}

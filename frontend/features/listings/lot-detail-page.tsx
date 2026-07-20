@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   Package,
@@ -10,11 +11,13 @@ import {
   UserRound,
 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
+import toast from 'react-hot-toast';
 import { EmptyState } from '@/components/ui/empty-state';
 import { AppImage } from '@/components/ui/app-image';
 import { Spinner } from '@/components/ui/spinner';
 import { formatLotPrice } from '@/features/listings/lib/format-lot-price';
-import { useLot } from '@/hooks';
+import { useCreateOrder, useLot } from '@/hooks';
+import { resolveApiError } from '@/lib/api-errors';
 import { userProfileHref } from '@/lib/app-nav';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/providers/AuthProvider';
@@ -33,12 +36,31 @@ export function LotDetailPage({
   subcategorySlug,
 }: LotDetailPageProps) {
   const t = useTranslations('listings');
+  const tErrors = useTranslations('errors');
   const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
   const { user } = useAuth();
   const { data: lot, isLoading, isError } = useLot(lotId);
+  const createOrder = useCreateOrder();
   const backHref = `/listings/${categorySlug}/${subcategorySlug}`;
   const [activeImageId, setActiveImageId] = useState<string | null>(null);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+
+  async function handleBuy() {
+    if (!user) {
+      router.push(`/login?next=${encodeURIComponent(pathname)}`);
+      return;
+    }
+
+    try {
+      const order = await createOrder.mutateAsync({ lotId });
+      router.push(`/orders/${order.id}`);
+    } catch (error) {
+      const resolved = resolveApiError(error);
+      toast.error(tErrors(resolved.key, resolved.values));
+    }
+  }
 
   if (isLoading) {
     return (
@@ -282,8 +304,13 @@ export function LotDetailPage({
             </div>
 
             {!isOwnLot ? (
-              <button type="button" className="btn-primary h-12 w-full text-base">
-                {t('buy')}
+              <button
+                type="button"
+                className="btn-primary h-12 w-full text-base disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={createOrder.isPending}
+                onClick={() => void handleBuy()}
+              >
+                {createOrder.isPending ? t('buying') : t('buy')}
               </button>
             ) : null}
 

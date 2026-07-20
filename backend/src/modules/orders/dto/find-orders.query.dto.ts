@@ -5,7 +5,7 @@ import { IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
 
 export enum OrderRole {
   BUYER = 'buyer',
-  SELLER = 'x',
+  SELLER = 'seller',
 }
 
 export class FindOrdersQueryDto {

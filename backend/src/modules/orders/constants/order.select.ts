@@ -5,6 +5,7 @@ export const ORDER_LOT_SELECT = {
   title: true,
   price: true,
   status: true,
+  previewUrl: true,
   images: {
     select: { url: true, sortOrder: true },
     orderBy: { sortOrder: 'asc' as const },

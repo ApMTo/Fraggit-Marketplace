@@ -11,4 +11,6 @@ export {
   notificationsService,
   notificationKeys,
 } from './notifications.service';
+export { ordersService, orderKeys } from './orders.service';
+export { reviewsService, reviewKeys } from './reviews.service';
 
