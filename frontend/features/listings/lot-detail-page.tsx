@@ -303,7 +303,16 @@ export function LotDetailPage({
               </span>
             </div>
 
-            {!isOwnLot ? (
+            {isOwnLot ? (
+              lot.status === 'OPEN' ? (
+                <Link
+                  href={`/listings/${categorySlug}/${subcategorySlug}/lot/${lotId}/edit`}
+                  className="btn-primary inline-flex h-12 w-full items-center justify-center text-base"
+                >
+                  {t('editLot')}
+                </Link>
+              ) : null
+            ) : (
               <button
                 type="button"
                 className="btn-primary h-12 w-full text-base disabled:cursor-not-allowed disabled:opacity-50"
@@ -312,7 +321,7 @@ export function LotDetailPage({
               >
                 {createOrder.isPending ? t('buying') : t('buy')}
               </button>
-            ) : null}
+            )}
 
             <p className="inline-flex items-center justify-center gap-1.5 text-xs text-muted">
               <ShieldCheck

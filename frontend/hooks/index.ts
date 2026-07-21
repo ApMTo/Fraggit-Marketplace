@@ -18,7 +18,13 @@ export {
   useAttributeDefinition,
   useAttributeMutations,
 } from './use-attribute-definitions';
-export { useLots, useLot, useCreateLot, useSellerLots } from './use-lots';
+export {
+  useLots,
+  useLot,
+  useCreateLot,
+  useUpdateLot,
+  useSellerLots,
+} from './use-lots';
 export {
   useOrders,
   useOrder,

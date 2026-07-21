@@ -12,10 +12,15 @@ const PROTECTED_PREFIXES = [
 
 const PROTECTED_EXACT = new Set(['/listings/new']);
 
-const GUEST_EXACT = new Set(['/login', '/register']);
+const LOT_EDIT_PATH =
+  /^\/listings\/[^/]+\/[^/]+\/lot\/[^/]+\/edit$/;
+
+const GUEST_EXACT = new Set(['/login', '/register', '/forgot-password']);
+
+const GUEST_PREFIXES = ['/auth/reset-password'];
 
 function isProtectedPath(pathname: string): boolean {
-  if (PROTECTED_EXACT.has(pathname)) {
+  if (PROTECTED_EXACT.has(pathname) || LOT_EDIT_PATH.test(pathname)) {
     return true;
   }
 
@@ -25,7 +30,13 @@ function isProtectedPath(pathname: string): boolean {
 }
 
 function isGuestPath(pathname: string): boolean {
-  return GUEST_EXACT.has(pathname);
+  if (GUEST_EXACT.has(pathname)) {
+    return true;
+  }
+
+  return GUEST_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
 }
 
 function hasSession(request: NextRequest): boolean {

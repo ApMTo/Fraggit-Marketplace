@@ -6,6 +6,7 @@ import { AuthSessionService } from './auth-session.service';
 import { AuthRegistrationService } from './auth-registration.service';
 import { AuthLoginService } from './auth-login.service';
 import { AuthPasswordResetService } from './auth-password-reset.service';
+import { AuthTwoFactorService } from './auth-two-factor.service';
 import { UserAuthCacheService } from './user-auth-cache.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { RolesGuard } from './guards/roles.guard';
@@ -29,6 +30,7 @@ import { MailModule } from '../mail/mail.module';
     AuthRegistrationService,
     AuthLoginService,
     AuthPasswordResetService,
+    AuthTwoFactorService,
     UserAuthCacheService,
     JwtStrategy,
     RolesGuard,
@@ -38,6 +40,7 @@ import { MailModule } from '../mail/mail.module';
   exports: [
     AuthService,
     AuthSessionService,
+    AuthTwoFactorService,
     RolesGuard,
     CsrfGuard,
     JwtAuthGuard,

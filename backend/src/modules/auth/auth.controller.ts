@@ -28,6 +28,8 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ResendTwoFactorDto } from './dto/resend-two-factor.dto';
+import { VerifyTwoFactorDto } from './dto/verify-two-factor.dto';
 import {
   AuthErrorResponseDto,
   AuthMessageResponseDto,
@@ -36,6 +38,7 @@ import {
   LogoutAllResponseDto,
   LogoutResponseDto,
   ResetPasswordTokenResponseDto,
+  TwoFactorChallengeResponseDto,
   VerifyUserResponseDto,
 } from './responses/auth.response';
 
@@ -77,16 +80,50 @@ export class AuthController {
       'Also returns csrfToken for x-csrf-token header.',
   })
   @ApiResponse({ status: 201, type: AuthSessionResponseDto })
+  @ApiResponse({ status: 201, type: TwoFactorChallengeResponseDto })
   @ApiResponse({ status: 401, type: AuthErrorResponseDto })
   login(@Body() data: LoginUserDto, @Req() req: Request) {
     return this.authService.login(data, req);
+  }
+
+  @Post('2fa/verify')
+  @Public()
+  @HttpCode(HttpStatus.CREATED)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @ApiOperation({
+    summary: 'Verify login two-factor code',
+    description:
+      'Completes login after email 2FA. Sets the same session cookies as login.',
+  })
+  @ApiResponse({ status: 201, type: AuthSessionResponseDto })
+  @ApiResponse({ status: 400, type: AuthErrorResponseDto })
+  verifyTwoFactor(@Body() data: VerifyTwoFactorDto, @Req() req: Request) {
+    return this.authService.verifyTwoFactor(data, req);
+  }
+
+  @Post('2fa/resend')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @ApiOperation({
+    summary: 'Resend login two-factor code',
+    description: 'Available once every 30 seconds per challenge.',
+  })
+  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 400, type: AuthErrorResponseDto })
+  resendTwoFactor(@Body() data: ResendTwoFactorDto) {
+    return this.authService.resendTwoFactor(data);
   }
 
   @Post('forgot-password')
   @Public()
   @HttpCode(HttpStatus.OK)
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
-  @ApiOperation({ summary: 'Request a password reset email' })
+  @ApiOperation({
+    summary: 'Request a password reset email',
+    description:
+      'Always returns the same success response. If an eligible account exists for the email, a reset link is sent; otherwise nothing is sent. This prevents email enumeration.',
+  })
   @ApiResponse({ status: 200, type: AuthMessageResponseDto })
   forgotPassword(@Body() data: ForgotPasswordDto) {
     return this.authService.forgotPassword(data);

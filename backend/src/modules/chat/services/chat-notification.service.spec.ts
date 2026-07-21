@@ -113,7 +113,7 @@ describe('ChatNotificationService', () => {
       expect.objectContaining({
         to: 'bob@test.com',
         type: 'chat_notification',
-        subject: 'Новое сообщение от Alice <script>',
+        subject: 'New message from Alice <script>',
         html: expect.stringContaining('Alice &lt;script&gt;'),
       }),
     );

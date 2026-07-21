@@ -114,6 +114,17 @@ export type CreateLotPayload = {
   photos?: File[];
 };
 
+export type UpdateLotPayload = {
+  title: string;
+  description?: string | null;
+  price: number;
+  stock?: number;
+  attributes: CreateLotAttributeInput[];
+  keepImageIds: string[];
+  preview?: File | null;
+  photos?: File[];
+};
+
 export const LOT_SORT_OPTIONS: LotSort[] = [
   'default',
   'newest',

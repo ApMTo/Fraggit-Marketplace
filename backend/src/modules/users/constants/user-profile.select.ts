@@ -14,6 +14,7 @@ export const USER_PROFILE_SELECT = {
   ratingCount: true,
   successfulSales: true,
   emailVerified: true,
+  twoFactorEnabled: true,
   telegramUsername: true,
   emailChangedAt: true,
   usernameChangedAt: true,

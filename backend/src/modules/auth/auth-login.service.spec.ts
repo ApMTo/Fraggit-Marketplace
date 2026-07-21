@@ -12,6 +12,7 @@ describe('AuthLoginService', () => {
   let prisma: { user: { findUnique: jest.Mock } };
   let redis: Record<string, never>;
   let authSession: { createSession: jest.Mock };
+  let authTwoFactor: { issueLoginChallenge: jest.Mock };
   let req: Record<string, never>;
 
   beforeEach(() => {
@@ -22,12 +23,19 @@ describe('AuthLoginService', () => {
     authSession = {
       createSession: jest.fn().mockResolvedValue({ accessToken: 'token' }),
     };
+    authTwoFactor = {
+      issueLoginChallenge: jest.fn().mockResolvedValue({
+        requiresTwoFactor: true,
+        challengeId: 'challenge-1',
+      }),
+    };
     req = {};
 
     service = new AuthLoginService(
       prisma as never,
       redis as never,
       authSession as never,
+      authTwoFactor as never,
     );
 
     jest.spyOn(loginAttempts, 'checkLoginBlocked').mockResolvedValue(undefined);
@@ -54,6 +62,7 @@ describe('AuthLoginService', () => {
       displayName: 'Test User',
       status: UserStatus.ACTIVE,
       emailVerified: true,
+      twoFactorEnabled: false,
     });
 
     const result = await service.login(
@@ -62,11 +71,39 @@ describe('AuthLoginService', () => {
     );
 
     expect(result).toEqual({ accessToken: 'token' });
+    expect(authTwoFactor.issueLoginChallenge).not.toHaveBeenCalled();
     expect(prisma.user.findUnique).toHaveBeenCalledWith({
       where: { email: 'user@test.com' },
       select: expect.any(Object),
     });
     expect(loginAttempts.clearFailedLoginAttempts).toHaveBeenCalled();
+  });
+
+  it('issues two-factor challenge when enabled', async () => {
+    const user = {
+      id: 'user-1',
+      email: 'user@test.com',
+      passwordHash: 'hash',
+      role: UserRole.USER,
+      username: 'testuser',
+      displayName: 'Test User',
+      status: UserStatus.ACTIVE,
+      emailVerified: true,
+      twoFactorEnabled: true,
+    };
+    prisma.user.findUnique.mockResolvedValue(user);
+
+    const result = await service.login(
+      { email: 'user@test.com', password: 'Str0ng!Pass' },
+      req as never,
+    );
+
+    expect(result).toEqual({
+      requiresTwoFactor: true,
+      challengeId: 'challenge-1',
+    });
+    expect(authTwoFactor.issueLoginChallenge).toHaveBeenCalledWith(user);
+    expect(authSession.createSession).not.toHaveBeenCalled();
   });
 
   it('throws for unknown user', async () => {

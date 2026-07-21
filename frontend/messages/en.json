@@ -340,7 +340,7 @@
       "security": "Security"
     },
     "security": {
-      "subtitle": "Manage your email, username, and password.",
+      "subtitle": "Manage your email, username, password, and two-factor authentication.",
       "loadError": "Could not load security settings.",
       "retry": "Try again",
       "email": {
@@ -376,6 +376,28 @@
         "hint": "At least 10 characters with upper, lower, digit, and special character",
         "submit": "Update password",
         "success": "Password updated"
+      },
+      "twoFactor": {
+        "title": "Two-factor authentication",
+        "subtitle": "After sign-in, we email a 6-digit code before opening your account.",
+        "enabledDescription": "Email codes are required after every sign-in.",
+        "statusOn": "Enabled",
+        "statusOff": "Currently disabled",
+        "enable": "Enable 2FA",
+        "confirmEnable": "Confirm and enable",
+        "disable": "Disable 2FA",
+        "confirmDisable": "Confirm disable",
+        "cancel": "Cancel",
+        "currentPassword": "Current password",
+        "code": "Confirmation code",
+        "codePlaceholder": "6-digit code",
+        "codeHint": "Enter the code we sent to your email.",
+        "codeSent": "Code sent to your email",
+        "invalidCode": "Enter a 6-digit code",
+        "resend": "Resend code",
+        "resendIn": "Resend in {seconds}s",
+        "enabled": "Two-factor authentication enabled",
+        "disabled": "Two-factor authentication disabled"
       }
     }
   },
@@ -409,6 +431,7 @@
     "seller": "Seller",
     "buy": "Buy",
     "buying": "Purchasing…",
+    "editLot": "Edit lot",
     "guarantee": "Fraggit Guarantee",
     "lotDetails": "Lot details",
     "loadErrorTitle": "Couldn't load listings",
@@ -487,6 +510,19 @@
         "photoType": "Only JPEG, PNG, and WebP images are allowed.",
         "photoSize": "Each photo must be 5MB or smaller."
       }
+    },
+    "edit": {
+      "title": "Edit lot",
+      "subtitle": "Update the details of your listing.",
+      "back": "Back to lot",
+      "categoryLocked": "Category and subcategory cannot be changed.",
+      "replacePreview": "Replace preview",
+      "submit": "Save changes",
+      "success": "Lot updated successfully",
+      "notOwnerTitle": "You can't edit this lot",
+      "notOwnerDescription": "Only the seller can edit this listing.",
+      "notEditableTitle": "Lot can't be edited",
+      "notEditableDescription": "Only open listings can be edited."
     }
   },
   "admin": {
@@ -669,7 +705,8 @@
       "submit": "Sign in",
       "success": "Signed in successfully",
       "noAccount": "Don't have an account?",
-      "createAccount": "Create one"
+      "createAccount": "Create one",
+      "forgotPassword": "Forgot password?"
     },
     "register": {
       "title": "Create your account",
@@ -696,6 +733,43 @@
       "goToLogin": "Sign in",
       "tryAgain": "Register again"
     },
+    "forgot": {
+      "title": "Forgot password",
+      "subtitle": "Enter your email and we'll send a reset link",
+      "submit": "Send reset link",
+      "rememberPassword": "Remember your password?",
+      "backToLogin": "Back to sign in",
+      "successTitle": "Check your email",
+      "successDescription": "If an account exists for {email}, we've sent a password reset link.",
+      "successHint": "The link expires in 15 minutes. Check spam if you don't see it.",
+      "sendAgain": "Use a different email"
+    },
+    "reset": {
+      "title": "Reset password",
+      "subtitle": "Choose a new password for your account",
+      "validating": "Checking your reset link…",
+      "submit": "Update password",
+      "backToLogin": "Back to sign in",
+      "requestNew": "Request a new link",
+      "successTitle": "Password updated",
+      "successDescription": "You can now sign in with your new password.",
+      "errorTitle": "Link invalid or expired",
+      "errorDescription": "Request a new password reset link and try again."
+    },
+    "twoFactor": {
+      "title": "Check your email",
+      "subtitle": "Enter the 6-digit code we sent to finish signing in",
+      "code": "Verification code",
+      "codePlaceholder": "6-digit code",
+      "codeHint": "The code expires in 15 minutes.",
+      "codeSent": "Code sent to your email",
+      "invalidCode": "Enter a 6-digit code",
+      "submit": "Verify and sign in",
+      "noCode": "Didn't get the code?",
+      "resend": "Resend",
+      "resendIn": "Resend in {seconds}s",
+      "backToLogin": "Back to sign in"
+    },
     "validation": {
       "usernameRequired": "Username is required",
       "usernameLength": "Username must be at least 3 characters",
@@ -717,7 +791,7 @@
       "username_already_exists": "This username is taken",
       "verification_already_sent": "A verification email was already sent. Check your inbox.",
       "user_already_exists": "An account with these details already exists",
-      "invalid_or_expired_token": "This verification link is invalid or expired",
+      "invalid_or_expired_token": "This link is invalid or expired",
       "invalid_registration_payload": "Registration data is invalid",
       "weak_password": "Password does not meet security requirements",
       "failed_to_hash_password": "Could not process the password. Please try again.",
@@ -737,13 +811,23 @@
       "ua_mismatch": "Session browser mismatch. Please sign in again.",
       "user_not_found": "User not found",
       "insufficient_role": "You do not have permission to perform this action.",
-      "password_mismatch": "Passwords do not match"
+      "password_mismatch": "Passwords do not match",
+      "invalid_or_expired_code": "Invalid or expired code",
+      "too_many_code_attempts": "Too many incorrect codes. Request a new one.",
+      "invalid_or_expired_challenge": "This login code expired. Sign in again.",
+      "two_factor_resend_cooldown": "Wait before requesting another code.",
+      "two_factor_already_enabled": "Two-factor authentication is already enabled.",
+      "two_factor_not_enabled": "Two-factor authentication is not enabled.",
+      "invalid_current_password": "Current password is incorrect"
     },
     "messages": {
       "verification_email_sent": "Verification email sent. Check your inbox.",
       "user_verified": "Email verified successfully",
-      "password_reset_email_sent": "If an account exists, a password reset link has been sent.",
+      "password_reset_email_sent": "If an account exists for this email, we've sent a password reset link.",
       "password_reset_success": "Password updated successfully",
+      "two_factor_code_sent": "Verification code sent to your email",
+      "two_factor_enabled": "Two-factor authentication enabled",
+      "two_factor_disabled": "Two-factor authentication disabled",
       "profile_data": "Profile loaded",
       "profile_updated": "Profile updated",
       "logout_success": "Signed out successfully",
@@ -785,6 +869,10 @@
     "invalid_or_expired_code": "Invalid or expired confirmation code.",
     "too_many_code_attempts": "Too many incorrect code attempts. Request a new code.",
     "invalid_current_password": "Current password is incorrect.",
+    "invalid_or_expired_challenge": "This login code expired. Sign in again.",
+    "two_factor_resend_cooldown": "Wait before requesting another code.",
+    "two_factor_already_enabled": "Two-factor authentication is already enabled.",
+    "two_factor_not_enabled": "Two-factor authentication is not enabled.",
     "category_not_found": "Category not found.",
     "category_name_already_exists": "A category with this name already exists.",
     "category_slug_already_exists": "A category with this slug already exists.",
@@ -857,7 +945,7 @@
   "messages": {
     "verification_email_sent": "Verification email sent. Check your inbox.",
     "user_verified": "Email verified successfully",
-    "password_reset_email_sent": "If an account exists, a password reset link has been sent.",
+    "password_reset_email_sent": "If an account exists for this email, we've sent a password reset link.",
     "password_reset_success": "Password updated successfully",
     "profile_data": "Profile loaded",
     "profile_updated": "Profile updated",

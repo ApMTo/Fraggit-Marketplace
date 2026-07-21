@@ -11,6 +11,7 @@ import type {
   CreateLotPayload,
   FindLotsParams,
   FindSellerLotsParams,
+  UpdateLotPayload,
 } from '@/types/lot';
 
 export function useLots(
@@ -61,6 +62,20 @@ export function useCreateLot() {
   return useMutation({
     mutationFn: (payload: CreateLotPayload) => listingsService.create(payload),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: listingKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: listingKeys.sellerLists() });
+    },
+  });
+}
+
+export function useUpdateLot() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateLotPayload }) =>
+      listingsService.update(id, payload),
+    onSuccess: (lot) => {
+      queryClient.setQueryData(listingKeys.detail(lot.id), lot);
       queryClient.invalidateQueries({ queryKey: listingKeys.lists() });
       queryClient.invalidateQueries({ queryKey: listingKeys.sellerLists() });
     },
