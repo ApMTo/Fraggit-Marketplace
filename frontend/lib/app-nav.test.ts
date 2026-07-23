@@ -20,6 +20,34 @@ describe('app nav', () => {
     ).toEqual(['dashboard', 'orders', 'chat', 'profile']);
   });
 
+  it('includes moderation for moderators and admin for admins', () => {
+    expect(
+      getAppNavItems({
+        isAuthenticated: true,
+        role: 'MODERATOR',
+        group: 'account',
+      }).map((item) => item.id),
+    ).toContain('moderation');
+
+    expect(
+      getAppNavItems({
+        isAuthenticated: true,
+        role: 'MODERATOR',
+        group: 'account',
+      }).map((item) => item.id),
+    ).not.toContain('admin');
+
+    expect(
+      getAppNavItems({
+        isAuthenticated: true,
+        role: 'ADMIN',
+        group: 'account',
+      }).map((item) => item.id),
+    ).toEqual(
+      expect.arrayContaining(['moderation', 'admin']),
+    );
+  });
+
   it('includes admin link in account menu for moderators and admins', () => {
     expect(
       getAppNavItems({

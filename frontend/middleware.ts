@@ -6,6 +6,7 @@ const PROTECTED_PREFIXES = [
   '/profile',
   '/settings',
   '/admin',
+  '/moderation',
   '/orders',
   '/chat',
 ];

@@ -115,7 +115,11 @@ export class ListingsService {
       select: LOT_DETAIL_SELECT,
     });
 
-    if (!lot) {
+    if (
+      !lot ||
+      lot.status === LotStatus.REMOVED ||
+      lot.status === LotStatus.UNDER_REVIEW
+    ) {
       throw new NotFoundException('lot_not_found');
     }
 

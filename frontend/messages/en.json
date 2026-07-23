@@ -18,7 +18,8 @@
       "chat": "Chat",
       "profile": "Profile",
       "settings": "Settings",
-      "admin": "Admin"
+      "admin": "Admin",
+      "moderation": "Moderation"
     },
     "search": {
       "placeholder": "Search games…",
@@ -184,7 +185,8 @@
     "listings": "Listings Page",
     "orders": "Orders Page",
     "chat": "Chat Page",
-    "admin": "Admin Page"
+    "admin": "Admin Page",
+    "moderation": "Moderation"
   },
   "orders": {
     "title": "Orders",
@@ -1029,5 +1031,160 @@
     "width_min_value": "Width must be at least 1.",
     "height_must_be_integer": "Height must be an integer.",
     "height_min_value": "Height must be at least 1."
+  },
+  "moderation": {
+    "nav": {
+      "overview": "Overview",
+      "users": "Users",
+      "lots": "Lots",
+      "reports": "Reports",
+      "tickets": "Tickets",
+      "audit": "Audit"
+    },
+    "actions": {
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "reason": "Reason",
+      "reasonPlaceholder": "Describe why this action is needed"
+    },
+    "report": {
+      "title": "Report",
+      "cancel": "Cancel",
+      "submit": "Submit report",
+      "reason": "Reason",
+      "details": "Details",
+      "detailsPlaceholder": "Optional details",
+      "success": "Report submitted",
+      "error": "Could not submit report",
+      "button": "Report",
+      "reasons": {
+        "SPAM": "Spam",
+        "SCAM": "Scam",
+        "ABUSE": "Abuse",
+        "STOLEN": "Stolen goods",
+        "OTHER": "Other"
+      }
+    },
+    "overview": {
+      "openReports": "Open reports",
+      "openTickets": "Open tickets",
+      "error": "Could not load overview"
+    },
+    "users": {
+      "title": "Users",
+      "detailTitle": "User",
+      "searchPlaceholder": "Search by username, email…",
+      "empty": "No users found",
+      "error": "Could not load users",
+      "emptySection": "Nothing here yet",
+      "recentLots": "Recent lots",
+      "historyTitle": "User audit history",
+      "reasonTitle": "Confirm action",
+      "actionSuccess": "Action completed",
+      "actionError": "Action failed",
+      "columns": {
+        "user": "User",
+        "role": "Role",
+        "status": "Status",
+        "created": "Created"
+      },
+      "actions": {
+        "suspend": "Suspend",
+        "ban": "Ban",
+        "restore": "Restore",
+        "revokeSessions": "Force logout",
+        "reset2fa": "Reset 2FA",
+        "makeModerator": "Make moderator"
+      }
+    },
+    "lots": {
+      "title": "Lots",
+      "searchPlaceholder": "Search lots…",
+      "empty": "No lots found",
+      "error": "Could not load lots",
+      "reasonTitle": "Confirm lot action",
+      "actionSuccess": "Lot updated",
+      "actionError": "Could not update lot",
+      "workflow": "Queue flow: Under review → Approve (back to sale) or Reject (remove). Click a lot to see who changed it and why.",
+      "historyTitle": "Lot audit history",
+      "selectForHistory": "Select a lot to see its moderation history.",
+      "filters": {
+        "ALL": "All",
+        "UNDER_REVIEW": "Under review",
+        "OPEN": "Open",
+        "REMOVED": "Removed"
+      },
+      "status": {
+        "OPEN": "Open",
+        "CLOSED": "Closed",
+        "ARCHIVED": "Archived",
+        "REMOVED": "Removed",
+        "UNDER_REVIEW": "Under review"
+      },
+      "columns": {
+        "title": "Title",
+        "seller": "Seller",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "actions": {
+        "remove": "Remove",
+        "underReview": "Hold for review",
+        "restore": "Restore",
+        "approve": "Approve",
+        "reject": "Reject",
+        "history": "History"
+      }
+    },
+    "audit": {
+      "title": "Audit log",
+      "hint": "Every moderation action is logged here: who did what, to which target, and why.",
+      "empty": "No audit entries yet",
+      "error": "Could not load audit log"
+    },
+    "reports": {
+      "title": "Reports",
+      "empty": "No reports",
+      "error": "Could not load reports",
+      "reasonTitle": "Confirm report action",
+      "actionSuccess": "Report updated",
+      "actionError": "Could not update report",
+      "columns": {
+        "target": "Target",
+        "reason": "Reason",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "actions": {
+        "review": "In review",
+        "resolve": "Resolve",
+        "dismiss": "Dismiss"
+      }
+    },
+    "tickets": {
+      "title": "Tickets",
+      "detailTitle": "Ticket",
+      "empty": "No tickets",
+      "error": "Could not load tickets",
+      "messages": "Messages",
+      "internal": "Internal",
+      "messagePlaceholder": "Write a reply…",
+      "send": "Send",
+      "messageSent": "Message sent",
+      "resolveTitle": "Resolve ticket",
+      "actionSuccess": "Ticket updated",
+      "actionError": "Could not update ticket",
+      "columns": {
+        "subject": "Subject",
+        "type": "Type",
+        "status": "Status",
+        "reporter": "Reporter"
+      },
+      "resolve": {
+        "buyer": "Buyer favor",
+        "seller": "Seller favor",
+        "none": "No action"
+      }
+    }
   }
 }

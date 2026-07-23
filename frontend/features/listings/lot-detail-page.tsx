@@ -21,6 +21,8 @@ import { resolveApiError } from '@/lib/api-errors';
 import { userProfileHref } from '@/lib/app-nav';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/providers/AuthProvider';
+import { Button } from '@/components/ui/button';
+import { ReportDialog } from '@/features/moderation';
 
 const DESCRIPTION_COLLAPSE_AT = 320;
 
@@ -36,6 +38,7 @@ export function LotDetailPage({
   subcategorySlug,
 }: LotDetailPageProps) {
   const t = useTranslations('listings');
+  const tReport = useTranslations('moderation.report');
   const tErrors = useTranslations('errors');
   const locale = useLocale();
   const router = useRouter();
@@ -46,6 +49,7 @@ export function LotDetailPage({
   const backHref = `/listings/${categorySlug}/${subcategorySlug}`;
   const [activeImageId, setActiveImageId] = useState<string | null>(null);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   async function handleBuy() {
     if (!user) {
@@ -330,9 +334,36 @@ export function LotDetailPage({
               />
               {t('guarantee')}
             </p>
+
+            {user && !isOwnLot ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  if (!user) {
+                    router.push(
+                      `/login?next=${encodeURIComponent(pathname)}`,
+                    );
+                    return;
+                  }
+                  setReportOpen(true);
+                }}
+              >
+                {tReport('button')}
+              </Button>
+            ) : null}
           </div>
         </aside>
       </div>
+
+      <ReportDialog
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        targetType="LOT"
+        targetId={lot.id}
+      />
     </div>
   );
 }

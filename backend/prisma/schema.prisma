@@ -35,6 +35,9 @@ model User {
   role   UserRole   @default(USER)
   status UserStatus @default(PENDING_VERIFICATION)
 
+  /// Soft timed suspend; staff clears manually (no auto-expiry cron in MVP).
+  suspendedUntil DateTime?
+
   rating          Float @default(0)
   ratingCount     Int   @default(0)
   successfulSales Int   @default(0)
@@ -55,10 +58,21 @@ model User {
   sellerOrders    Order[]  @relation("SellerOrders")
   reviewsWritten  Review[] @relation("ReviewsWritten")
   reviewsReceived Review[] @relation("ReviewsReceived")
+  reviewsHidden   Review[] @relation("ReviewsHiddenBy")
 
   conversationParticipants ConversationParticipant[]
   sentMessages             Message[]                 @relation("SentMessages")
   notifications            Notification[]
+
+  reportsFiled    Report[] @relation("ReportsFiled")
+  reportsAssigned Report[] @relation("ReportsAssigned")
+  reportsResolved Report[] @relation("ReportsResolved")
+
+  moderationActions ModerationAction[] @relation("ModerationActionsActor")
+
+  ticketsFiled    Ticket[] @relation("TicketsFiled")
+  ticketsAssigned Ticket[] @relation("TicketsAssigned")
+  ticketMessages  TicketMessage[]
 }
 
 enum AttributeType {
@@ -157,6 +171,8 @@ enum LotStatus {
   OPEN
   CLOSED
   ARCHIVED
+  REMOVED
+  UNDER_REVIEW
 }
 
 model Lot {
@@ -264,6 +280,8 @@ model Order {
   updatedAt DateTime @updatedAt
 
   review Review?
+
+  tickets Ticket[]
 
   @@index([lotId])
   @@index([buyerId])
@@ -374,18 +392,206 @@ model Review {
   rating Int
   text   String @db.Text
 
+  hiddenAt   DateTime?
+  hiddenById String?
+  hiddenBy   User?     @relation("ReviewsHiddenBy", fields: [hiddenById], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([revieweeId])
   @@index([reviewerId])
   @@index([createdAt])
+  @@index([hiddenAt])
+}
+
+enum ReportTargetType {
+  USER
+  LOT
+  REVIEW
+  MESSAGE
+}
+
+enum ReportReason {
+  SPAM
+  SCAM
+  ABUSE
+  STOLEN
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+model Report {
+  id String @id @default(uuid())
+
+  reporterId String
+  reporter   User   @relation("ReportsFiled", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  targetType ReportTargetType
+  targetId   String
+
+  reason  ReportReason
+  details String?      @db.Text
+
+  status ReportStatus @default(OPEN)
+
+  assignedToId String?
+  assignedTo   User?   @relation("ReportsAssigned", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  resolvedById String?
+  resolvedBy   User?   @relation("ReportsResolved", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  resolutionNote String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([reporterId, targetType, targetId, status])
+  @@index([status, createdAt])
+  @@index([targetType, targetId])
+  @@index([reporterId, createdAt])
+  @@index([assignedToId])
+}
+
+enum ModerationTargetType {
+  USER
+  LOT
+  REVIEW
+  REPORT
+  TICKET
+}
+
+enum ModerationActionType {
+  USER_STATUS_CHANGE
+  USER_ROLE_CHANGE
+  USER_SESSIONS_REVOKE
+  USER_2FA_RESET
+  LOT_REMOVE
+  LOT_RESTORE
+  LOT_UNDER_REVIEW
+  REVIEW_HIDE
+  REVIEW_UNHIDE
+  REPORT_ASSIGN
+  REPORT_RESOLVE
+  REPORT_DISMISS
+  TICKET_CREATE
+  TICKET_UPDATE
+  TICKET_RESOLVE
+  TICKET_MESSAGE
+}
+
+model ModerationAction {
+  id String @id @default(uuid())
+
+  actorId String
+  actor   User   @relation("ModerationActionsActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  actionType ModerationActionType
+  targetType ModerationTargetType
+  targetId   String
+
+  before   Json?
+  after    Json?
+  reason   String  @db.Text
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([targetType, targetId, createdAt])
+  @@index([actorId, createdAt])
+  @@index([actionType, createdAt])
+}
+
+enum TicketType {
+  ORDER_DISPUTE
+  SUPPORT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_USER
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  NORMAL
+  HIGH
+}
+
+enum TicketResolution {
+  NONE
+  BUYER_FAVOR
+  SELLER_FAVOR
+  NO_ACTION
+}
+
+model Ticket {
+  id String @id @default(uuid())
+
+  type TicketType
+
+  orderId String?
+  order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  reporterId String
+  reporter   User   @relation("TicketsFiled", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  subject String
+  body    String @db.Text
+
+  status   TicketStatus   @default(OPEN)
+  priority TicketPriority @default(NORMAL)
+
+  assigneeId String?
+  assignee   User?   @relation("TicketsAssigned", fields: [assigneeId], references: [id], onDelete: SetNull)
+
+  /// Recorded decision only — payments/escrow side-effects come later.
+  resolution     TicketResolution @default(NONE)
+  resolutionNote String?          @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages TicketMessage[]
+
+  @@index([status, createdAt])
+  @@index([orderId])
+  @@index([reporterId, createdAt])
+  @@index([assigneeId])
+}
+
+model TicketMessage {
+  id String @id @default(uuid())
+
+  ticketId String
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  body       String  @db.Text
+  isInternal Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([ticketId, createdAt])
+  @@index([authorId])
 }
 
 enum NotificationType {
   ORDER_CREATED
   ORDER_CREDENTIALS
   ORDER_APPROVED
+  TICKET_REPLY
 }
 
 model Notification {

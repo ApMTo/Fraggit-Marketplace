@@ -6,6 +6,7 @@ export type AppNavItemId =
   | 'orders'
   | 'chat'
   | 'profile'
+  | 'moderation'
   | 'admin';
 
 export type AppNavGroup = 'header' | 'account';
@@ -40,11 +41,18 @@ const APP_NAV_ITEMS: AppNavItem[] = [
     showWhen: 'authenticated',
   },
   {
+    id: 'moderation',
+    href: '/moderation',
+    group: 'account',
+    showWhen: 'authenticated',
+    roles: ['MODERATOR', 'ADMIN', 'SUPER_ADMIN', 'OWNER'],
+  },
+  {
     id: 'admin',
     href: '/admin',
     group: 'account',
     showWhen: 'authenticated',
-    roles: ['ADMIN', 'MODERATOR', 'OWNER', 'SUPER_ADMIN'],
+    roles: ['ADMIN', 'SUPER_ADMIN', 'OWNER'],
   },
 ];
 

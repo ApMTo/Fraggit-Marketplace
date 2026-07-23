@@ -13,4 +13,5 @@ export {
 } from './notifications.service';
 export { ordersService, orderKeys } from './orders.service';
 export { reviewsService, reviewKeys } from './reviews.service';
+export { moderationService, moderationKeys } from './moderation.service';
 
