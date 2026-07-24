@@ -16,7 +16,7 @@ export function LandingSection({
   return (
     <section id={id} className={`py-16 sm:py-24 ${className}`}>
       <div
-        className={`mx-auto w-full max-w-[1240px] px-5 ${containerClassName}`}
+        className={`mx-auto w-full max-w-site px-5 ${containerClassName}`}
       >
         {children}
       </div>

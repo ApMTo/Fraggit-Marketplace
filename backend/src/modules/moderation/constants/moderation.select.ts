@@ -101,6 +101,15 @@ export const MOD_TICKET_LIST_SELECT = {
       status: true,
       buyerId: true,
       sellerId: true,
+      autoApproveAt: true,
+      disputePausedFromStatus: true,
+      autoApproveRemainingMs: true,
+      lot: {
+        select: {
+          id: true,
+          title: true,
+        },
+      },
     },
   },
 } satisfies Prisma.TicketSelect;

@@ -36,7 +36,7 @@ export function CategoryBrowseHero({
             alt=""
             fill
             priority
-            sizes="(max-width: 1240px) 100vw, 1240px"
+            sizes="(max-width: 1520px) 100vw, 1520px"
             className="object-cover"
           />
         ) : (

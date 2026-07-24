@@ -55,7 +55,7 @@ export async function requireAdminUser(): Promise<AuthUser> {
   const user = await requireSessionUser();
 
   if (!ADMIN_ROLES.has(user.role)) {
-    redirect('/dashboard');
+    redirect('/');
   }
 
   return user;
@@ -65,7 +65,7 @@ export async function requireModeratorUser(): Promise<AuthUser> {
   const user = await requireSessionUser();
 
   if (!MODERATOR_ROLES.has(user.role)) {
-    redirect('/dashboard');
+    redirect('/');
   }
 
   return user;

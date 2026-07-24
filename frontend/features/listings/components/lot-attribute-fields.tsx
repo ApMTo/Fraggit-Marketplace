@@ -2,9 +2,9 @@
 
 import type { ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
+import { DropdownItem, DropdownMenu } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
@@ -124,24 +124,46 @@ function AttributeField({
         </FieldShell>
       );
 
-    case 'SELECT':
+    case 'SELECT': {
+      const selected = typeof value === 'string' ? value : '';
+
       return (
         <FieldShell label={label} error={error}>
-          <Select
-            value={typeof value === 'string' ? value : ''}
-            onChange={(event) => onChange(event.target.value)}
-            onBlur={onBlur}
+          <DropdownMenu
+            variant="field"
+            align="start"
             hasError={Boolean(error)}
+            trigger={
+              <span className={selected ? undefined : 'text-muted'}>
+                {selected || t('selectPlaceholder')}
+              </span>
+            }
           >
-            <option value="">{t('selectPlaceholder')}</option>
+            <DropdownItem
+              isActive={!selected}
+              onSelect={() => {
+                onChange('');
+                onBlur();
+              }}
+            >
+              {t('selectPlaceholder')}
+            </DropdownItem>
             {(attribute.options ?? []).map((option) => (
-              <option key={option} value={option}>
+              <DropdownItem
+                key={option}
+                isActive={selected === option}
+                onSelect={() => {
+                  onChange(option);
+                  onBlur();
+                }}
+              >
                 {option}
-              </option>
+              </DropdownItem>
             ))}
-          </Select>
+          </DropdownMenu>
         </FieldShell>
       );
+    }
 
     case 'MULTISELECT': {
       const selected = Array.isArray(value) ? value : [];

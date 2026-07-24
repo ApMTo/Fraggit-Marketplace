@@ -1,6 +1,5 @@
 export { HomePage } from './home';
 export { LoginPage, RegisterPage, VerifyEmailPage } from './auth';
-export { DashboardPage } from './dashboard';
 export { ProfilePage } from './profile';
 export { AdminPage } from './admin/admin-page';
 export {

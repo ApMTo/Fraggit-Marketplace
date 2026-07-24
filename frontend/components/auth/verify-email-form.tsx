@@ -71,11 +71,11 @@ export function VerifyEmailForm({ token }: VerifyEmailFormProps) {
               </div>
               <Button
                 onClick={() => {
-                  router.push('/dashboard');
+                  router.push('/');
                   router.refresh();
                 }}
               >
-                {t('goToDashboard')}
+                {t('continue')}
               </Button>
             </>
           ) : null}

@@ -44,6 +44,7 @@ type EditLotFormValues = {
   description: string;
   price: string;
   stock: string;
+  serviceQuestion: string;
   attributes: Record<string, LotAttributeInputValue>;
   keepImages: LotImage[];
   preview: File | null;
@@ -78,6 +79,7 @@ function buildInitialValues(
     description: lot.description ?? '',
     price: String(lot.price),
     stock: String(lot.stock),
+    serviceQuestion: lot.serviceQuestion ?? '',
     attributes: nextAttributes,
     keepImages: [...lot.images].sort((a, b) => a.sortOrder - b.sortOrder),
     preview: null,
@@ -263,6 +265,16 @@ function EditLotForm({
         errors.stock = tCreate('validation.stockMin');
       }
 
+      if (lot.type === 'SERVICE') {
+        if (values.serviceQuestion.trim().length < 1) {
+          errors.serviceQuestion = tCreate(
+            'validation.serviceQuestionRequired',
+          );
+        } else if (values.serviceQuestion.trim().length > 2000) {
+          errors.serviceQuestion = tCreate('validation.serviceQuestionMax');
+        }
+      }
+
       const attributeErrors: Record<string, string> = {};
       for (const definition of attributeDefinitions) {
         const value = values.attributes[definition.id];
@@ -289,6 +301,8 @@ function EditLotForm({
             description: values.description.trim() || null,
             price: Number(values.price),
             stock: Number(values.stock),
+            serviceQuestion:
+              lot.type === 'SERVICE' ? values.serviceQuestion.trim() : null,
             attributes: buildAttributeInputs(
               attributeDefinitions,
               values.attributes,
@@ -523,6 +537,50 @@ function EditLotForm({
               ) : null}
             </div>
           </div>
+
+          <div className="space-y-1 rounded-[var(--radius-md)] border border-border bg-surface-elevated px-3 py-2.5">
+            <p className="text-xs text-muted">{tCreate('fields.type')}</p>
+            <p className="text-sm font-medium text-foreground">
+              {lot.type === 'SERVICE'
+                ? tCreate('typeService')
+                : tCreate('typeAccount')}
+            </p>
+            <p className="text-xs text-subtle">{t('typeLocked')}</p>
+          </div>
+
+          {lot.type === 'SERVICE' ? (
+            <div className="space-y-2">
+              <Label htmlFor="edit-lot-service-question">
+                {tCreate('fields.serviceQuestion')}
+              </Label>
+              <Textarea
+                id="edit-lot-service-question"
+                name="serviceQuestion"
+                value={formik.values.serviceQuestion}
+                onChange={(event) => {
+                  clearFormError();
+                  formik.handleChange(event);
+                }}
+                onBlur={formik.handleBlur}
+                hasError={Boolean(
+                  formik.touched.serviceQuestion &&
+                    formik.errors.serviceQuestion,
+                )}
+                rows={4}
+                placeholder={tCreate('serviceQuestionPlaceholder')}
+              />
+              {formik.touched.serviceQuestion &&
+              formik.errors.serviceQuestion ? (
+                <p className="text-xs text-destructive">
+                  {formik.errors.serviceQuestion}
+                </p>
+              ) : (
+                <p className="text-xs text-subtle">
+                  {tCreate('serviceQuestionHint')}
+                </p>
+              )}
+            </div>
+          ) : null}
         </section>
 
         <section className="space-y-4 border-t border-border pt-6">

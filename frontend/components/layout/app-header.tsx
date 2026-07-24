@@ -5,6 +5,7 @@ import { AppNavLinks } from '@/components/layout/app-nav-links';
 import { HeaderCategorySearch } from '@/components/layout/header-category-search';
 import { HeaderPreferences } from '@/components/layout/header-preferences';
 import { MobileMenu } from '@/components/layout/mobile-menu';
+import { SellNavButton } from '@/components/layout/sell-nav-button';
 import { UserMenu } from '@/components/layout/user-menu';
 import { Logo } from '@/components/layout/logo';
 import { BrandButton, SecondaryButton } from '@/components/ui/nav-button';
@@ -14,42 +15,43 @@ import { useAuth } from '@/providers/AuthProvider';
 
 export function AppHeader() {
   const t = useTranslations('auth');
-  const tListings = useTranslations('listings');
   const { isAuthenticated, isLoading } = useAuth();
   const showAuthChrome = !isLoading && isAuthenticated;
 
   return (
     <header className="glass-header sticky top-0 z-50 border-b border-border">
-      <div className="mx-auto flex h-[68px] max-w-[1240px] items-center gap-3 px-5 sm:gap-4">
+      <div className="mx-auto flex h-16 max-w-site items-center gap-3 px-5 lg:gap-4">
         <Logo />
 
         <HeaderCategorySearch />
 
         <nav
           aria-label="Main"
-          className="hidden items-center gap-1 md:flex lg:gap-2"
+          className="hidden shrink-0 items-center md:flex"
         >
           <AppNavLinks orientation="horizontal" />
         </nav>
 
-        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-2.5">
           {showAuthChrome ? (
-            <>
+            <div className="flex items-center gap-0.5">
               <ChatNavIcon enabled />
               <NotificationsBell enabled />
-            </>
+            </div>
           ) : null}
 
-          <div className="hidden md:flex md:items-center md:gap-2 lg:gap-3">
+          <div className="hidden items-center gap-2 md:flex">
             <HeaderPreferences />
 
             {isLoading ? (
-              <span className="size-8 animate-pulse rounded-[var(--radius-md)] bg-surface-elevated" />
+              <span className="size-9 animate-pulse rounded-full bg-surface-elevated" />
             ) : isAuthenticated ? (
               <>
-                <BrandButton href="/listings/new" size="sm">
-                  {tListings('createLot')}
-                </BrandButton>
+                <span
+                  className="mx-0.5 hidden h-5 w-px bg-border sm:block"
+                  aria-hidden="true"
+                />
+                <SellNavButton className="size-p" />
                 <UserMenu />
               </>
             ) : (

@@ -5,8 +5,10 @@ import {
   moderationKeys,
   moderationService,
 } from '@/services/moderation.service';
+import { orderKeys } from '@/services/orders.service';
 import type {
   CreateReportPayload,
+  CreateTicketPayload,
   LotStatus,
   ModerationReasonPayload,
   ModerationTargetType,
@@ -60,6 +62,7 @@ export function useModLots(params: {
 
 export function useModReports(params: {
   status?: ReportStatus;
+  targetType?: string;
   page?: number;
   limit?: number;
 }) {
@@ -109,6 +112,9 @@ export function useModerationMutations() {
 
   const invalidateAll = () =>
     void queryClient.invalidateQueries({ queryKey: moderationKeys.all });
+
+  const invalidateOrders = () =>
+    void queryClient.invalidateQueries({ queryKey: orderKeys.all });
 
   return {
     updateUserStatus: useMutation({
@@ -185,6 +191,14 @@ export function useModerationMutations() {
       mutationFn: (payload: CreateReportPayload) =>
         moderationService.createReport(payload),
     }),
+    createTicket: useMutation({
+      mutationFn: (payload: CreateTicketPayload) =>
+        moderationService.createTicket(payload),
+      onSuccess: () => {
+        invalidateAll();
+        invalidateOrders();
+      },
+    }),
     updateReport: useMutation({
       mutationFn: ({
         id,
@@ -221,7 +235,10 @@ export function useModerationMutations() {
           reason: string;
         };
       }) => moderationService.resolveTicket(id, payload),
-      onSuccess: invalidateAll,
+      onSuccess: () => {
+        invalidateAll();
+        invalidateOrders();
+      },
     }),
     addTicketMessage: useMutation({
       mutationFn: ({

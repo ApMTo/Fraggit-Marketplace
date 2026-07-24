@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,12 @@ import type { UserRole as AuthRole } from '@/types/auth';
 
 type Props = { title: string; ticketId: string };
 
-const ADMIN_ROLES: AuthRole[] = ['ADMIN', 'SUPER_ADMIN', 'OWNER'];
+const ADMIN_ROLES: AuthRole[] = [
+  'MODERATOR',
+  'ADMIN',
+  'SUPER_ADMIN',
+  'OWNER',
+];
 
 type TicketMessage = {
   id: string;
@@ -67,6 +73,37 @@ export function ModerationTicketDetailPage({ title, ticketId }: Props) {
                 <dt className="text-muted-foreground">{t('columns.reporter')}</dt>
                 <dd>@{ticket.reporter.username}</dd>
               </div>
+              {ticket.order ? (
+                <>
+                  <div>
+                    <dt className="text-muted-foreground">{t('columns.order')}</dt>
+                    <dd>
+                      <Link
+                        href={`/orders/${ticket.order.id}`}
+                        className="underline-offset-2 hover:underline"
+                      >
+                        #{ticket.order.orderNumber}
+                      </Link>
+                      {' · '}
+                      {ticket.order.status}
+                    </dd>
+                  </div>
+                  {ticket.order.lot ? (
+                    <div>
+                      <dt className="text-muted-foreground">{t('columns.lot')}</dt>
+                      <dd>{ticket.order.lot.title}</dd>
+                    </div>
+                  ) : null}
+                  {ticket.order.autoApproveRemainingMs != null ? (
+                    <div>
+                      <dt className="text-muted-foreground">
+                        {t('columns.timerPaused')}
+                      </dt>
+                      <dd>{t('timerPaused')}</dd>
+                    </div>
+                  ) : null}
+                </>
+              ) : null}
             </dl>
 
             {canResolve && ticket.status !== 'RESOLVED' ? (

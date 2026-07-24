@@ -46,7 +46,7 @@ export async function generateMetadata({
 
 function ListingsFallback() {
   return (
-    <div className="mx-auto flex w-full max-w-[1240px] justify-center px-5 py-20">
+    <div className="mx-auto flex w-full max-w-site justify-center px-5 py-20">
       <Spinner size="lg" />
     </div>
   );

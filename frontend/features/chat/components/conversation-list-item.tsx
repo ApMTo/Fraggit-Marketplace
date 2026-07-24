@@ -22,11 +22,15 @@ export function ConversationListItemRow({
   const { otherParticipant, lastMessage, unreadCount, lastMessageAt } =
     conversation;
 
-  const preview = getConversationPreview(lastMessage, {
-    image: t('preview.image'),
-    system: t('preview.system'),
-    empty: t('preview.empty'),
-  });
+  const preview = getConversationPreview(
+    lastMessage,
+    {
+      image: t('preview.image'),
+      system: t('preview.system'),
+      empty: t('preview.empty'),
+    },
+    t,
+  );
 
   const timeLabel = formatChatListTime(
     lastMessageAt ?? conversation.createdAt,

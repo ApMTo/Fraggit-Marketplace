@@ -24,7 +24,7 @@ export function ModerationShell({ title, children }: ModerationShellProps) {
   const t = useTranslations('moderation.nav');
 
   return (
-    <div className="mx-auto w-full max-w-[1240px] px-4 py-8 sm:px-6">
+    <div className="mx-auto w-full max-w-site px-4 py-8 sm:px-6">
       <header className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
           {title}

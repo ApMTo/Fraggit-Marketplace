@@ -31,7 +31,7 @@ type LoginFormProps = {
   redirectTo?: string;
 };
 
-export function LoginForm({ redirectTo = '/dashboard' }: LoginFormProps) {
+export function LoginForm({ redirectTo = '/' }: LoginFormProps) {
   const t = useTranslations('auth');
   const tErrors = useTranslations('auth.errors');
   const tValidation = useTranslations('auth.validation');

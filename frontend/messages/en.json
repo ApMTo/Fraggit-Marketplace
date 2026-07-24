@@ -13,7 +13,6 @@
       "closeMenu": "Close menu",
       "home": "Home",
       "listings": "Listings",
-      "dashboard": "Dashboard",
       "orders": "Orders",
       "chat": "Chat",
       "profile": "Profile",
@@ -33,7 +32,41 @@
     "empty": "No notifications yet",
     "loading": "Loading…",
     "loadError": "Could not load notifications",
-    "markAllRead": "Mark all as read"
+    "markAllRead": "Mark all as read",
+    "items": {
+      "orderCreated": {
+        "seller": {
+          "title": "New order",
+          "body": "A buyer placed order #{orderNumber} ({listingTitle})."
+        },
+        "buyer": {
+          "title": "Order placed",
+          "body": "Order #{orderNumber} was created successfully."
+        }
+      },
+      "orderCredentials": {
+        "buyer": {
+          "title": "Order delivery data",
+          "body": "The seller sent delivery data for order #{orderNumber}."
+        }
+      },
+      "orderServiceCompleted": {
+        "buyer": {
+          "title": "Service completed",
+          "body": "The seller marked the service for order #{orderNumber} as completed."
+        }
+      },
+      "orderApproved": {
+        "seller": {
+          "title": "Order completed",
+          "body": "Order #{orderNumber} was confirmed by the buyer."
+        },
+        "buyer": {
+          "title": "Order completed",
+          "body": "Order #{orderNumber} was completed successfully."
+        }
+      }
+    }
   },
   "landing": {
     "meta": {
@@ -180,7 +213,6 @@
     "home": "Home Page",
     "login": "Login Page",
     "register": "Register Page",
-    "dashboard": "Dashboard Page",
     "profile": "Profile Page",
     "listings": "Listings Page",
     "orders": "Orders Page",
@@ -192,6 +224,23 @@
     "title": "Orders",
     "detailTitle": "Order",
     "subtitle": "Your purchases and sales in one place.",
+    "tabsLabel": "Order sections",
+    "activeTabsLabel": "Active order role",
+    "tabs": {
+      "active": "Active",
+      "purchases": "My purchases",
+      "sales": "My sales",
+      "buying": "Buying",
+      "selling": "Selling"
+    },
+    "empty": {
+      "activeTitle": "No active orders",
+      "activeDescription": "Orders in progress will appear here.",
+      "purchasesTitle": "No purchases yet",
+      "purchasesDescription": "When you buy a lot, it will show up here.",
+      "salesTitle": "No sales yet",
+      "salesDescription": "When someone buys your lot, it will show up here."
+    },
     "backToOrders": "Back to orders",
     "orderNumber": "Order #{number}",
     "lotSummary": "Lot details for this order",
@@ -201,6 +250,10 @@
     "roleSeller": "You are the seller",
     "buyerStatusHint": "Wait for the seller to send data, then confirm the order.",
     "sellerStatusHint": "Send delivery data so the buyer can confirm receipt.",
+    "buyerStatusHintService": "Wait for the seller to complete the service, then confirm the order.",
+    "sellerStatusHintService": "Complete the service using the buyer’s answer, then mark it done.",
+    "lotTypeAccount": "Account",
+    "lotTypeService": "Service",
     "credentialsTitle": "Delivery data",
     "credentialsLabel": "Data to deliver",
     "credentialsPlaceholder": "Login, password, key, or other details…",
@@ -210,17 +263,39 @@
     "credentialsRequired": "Enter delivery data.",
     "credentialsSubmitted": "Data submitted",
     "submitCredentials": "Submit data",
+    "serviceTitle": "Service details",
+    "serviceSellerHint": "Use the buyer’s answer to complete the service, then mark it done.",
+    "serviceBuyerHint": "Your answer is below. Wait for the seller to finish the service.",
+    "serviceQuestionLabel": "Seller question",
+    "buyerAnswerLabel": "Your answer",
+    "serviceWaiting": "Waiting for the seller to complete the service.",
+    "completeService": "Mark service as completed",
+    "serviceCompleted": "Service marked as completed",
     "confirmOrder": "Confirm order",
     "confirmBlockedUntilData": "Confirmation unlocks after the seller sends data.",
+    "confirmBlockedUntilService": "Confirmation unlocks after the seller completes the service.",
     "waitingBuyerConfirm": "Waiting for the buyer to confirm.",
     "orderCompleted": "Order completed",
     "confirmSuccess": "Order confirmed",
+    "openDispute": "Open dispute",
+    "disputeActive": "Order is under review. Auto-confirm is paused.",
     "guarantee": "Fraggit guarantee",
     "confirmDialog": {
       "title": "Confirm order",
       "description": "By confirming, you agree that you have the account, you have changed all credentials, the seller will receive payment, and a refund will no longer be possible.",
+      "descriptionService": "By confirming, you agree that the service was completed as described, the seller will receive payment, and a refund will no longer be possible.",
       "confirm": "Confirm",
       "cancel": "Cancel"
+    },
+    "dispute": {
+      "title": "Open dispute",
+      "hint": "Describe the problem. The order goes under review and the 3-day auto-confirm timer pauses until staff decides.",
+      "subject": "Dispute for order #{number}",
+      "body": "What happened?",
+      "bodyPlaceholder": "Describe the issue with this order…",
+      "submit": "Open dispute",
+      "cancel": "Cancel",
+      "success": "Dispute opened. Auto-confirm is paused."
     },
     "review": {
       "title": "Leave a review",
@@ -236,7 +311,9 @@
     },
     "status": {
       "PENDING": "Awaiting data",
+      "PENDING_SERVICE": "Awaiting completion",
       "AWAITING_BUYER_CONFIRMATION": "Awaiting confirmation",
+      "DISPUTED": "Under review",
       "APPROVED": "Completed"
     },
     "emptyTitle": "No orders yet",
@@ -284,6 +361,12 @@
       "image": "Image",
       "system": "System message",
       "empty": "No messages yet"
+    },
+    "system": {
+      "orderCreated": "Order #{orderNumber} created.",
+      "orderCredentials": "The seller sent delivery data for order #{orderNumber}.",
+      "orderServiceCompleted": "The seller marked the service for order #{orderNumber} as completed.",
+      "orderApproved": "Order #{orderNumber} completed."
     }
   },
   "profile": {
@@ -435,6 +518,11 @@
     "buying": "Purchasing…",
     "editLot": "Edit lot",
     "guarantee": "Fraggit Guarantee",
+    "typeAccount": "Account",
+    "typeService": "Service",
+    "buyerAnswerLabel": "Answer the seller’s question",
+    "buyerAnswerPlaceholder": "Your Player ID, server, or other details…",
+    "buyerAnswerRequired": "Answer the seller’s question to continue.",
     "lotDetails": "Lot details",
     "loadErrorTitle": "Couldn't load listings",
     "loadErrorDescription": "Something went wrong. Please try again.",
@@ -459,6 +547,7 @@
     "filterTextPlaceholder": "Enter value…",
     "filterNumberPlaceholder": "Enter number…",
     "createLot": "Create lot",
+    "sell": "Sell",
     "table": {
       "attributes": "Details",
       "seller": "Seller",
@@ -482,9 +571,19 @@
         "price": "Price",
         "stock": "Stock",
         "category": "Category",
-        "subcategory": "Subcategory"
+        "subcategory": "Subcategory",
+        "type": "Lot type",
+        "serviceQuestion": "Question for the buyer"
       },
+      "typeAccount": "Account",
+      "typeService": "Service",
+      "typeAccountHint": "You will send login/password or other delivery data after purchase.",
+      "typeServiceHint": "The buyer answers your question at checkout; you mark the service as done.",
+      "serviceQuestionPlaceholder": "e.g. Your Player ID and server:",
+      "serviceQuestionHint": "You can put several questions in one field, each on a new line.",
       "selectCategory": "Select a category",
+      "searchCategory": "Search for a game…",
+      "clearCategory": "Clear category",
       "selectSubcategory": "Select a subcategory",
       "selectPlaceholder": "Select…",
       "noSubcategories": "This category has no subcategories yet.",
@@ -508,6 +607,8 @@
         "stockMin": "Stock must be at least 1.",
         "categoryRequired": "Select a category.",
         "subcategoryRequired": "Select a subcategory.",
+        "serviceQuestionRequired": "Enter a question for the buyer.",
+        "serviceQuestionMax": "Question must be at most 2000 characters.",
         "attributeRequired": "This field is required.",
         "photoType": "Only JPEG, PNG, and WebP images are allowed.",
         "photoSize": "Each photo must be 5MB or smaller."
@@ -518,6 +619,7 @@
       "subtitle": "Update the details of your listing.",
       "back": "Back to lot",
       "categoryLocked": "Category and subcategory cannot be changed.",
+      "typeLocked": "Lot type cannot be changed.",
       "replacePreview": "Replace preview",
       "submit": "Save changes",
       "success": "Lot updated successfully",
@@ -731,8 +833,8 @@
       "successDescription": "Your account is active. You can now access the marketplace.",
       "errorTitle": "Verification failed",
       "errorDescription": "This link may have expired or already been used.",
-      "goToDashboard": "Go to dashboard",
       "goToLogin": "Sign in",
+      "continue": "Continue",
       "tryAgain": "Register again"
     },
     "forgot": {
@@ -922,7 +1024,19 @@
     "order_not_found": "Order not found.",
     "order_forbidden": "You do not have access to this order.",
     "order_credentials_not_allowed": "Credentials cannot be submitted for this order.",
+    "order_complete_service_not_allowed": "This service order cannot be marked complete right now.",
+    "order_buyer_answer_required": "Answer the seller’s question to place the order.",
+    "order_buyer_answer_not_allowed": "An answer is not required for this listing.",
+    "lot_service_question_missing": "This service listing is missing a buyer question.",
+    "service_question_required": "Enter a question for the buyer.",
     "order_confirm_not_allowed": "This order cannot be confirmed right now.",
+    "dispute_requires_order": "A dispute must be linked to an order.",
+    "dispute_forbidden": "You cannot open a dispute on this order.",
+    "dispute_not_allowed": "This order cannot be disputed right now.",
+    "dispute_already_open": "A dispute is already open for this order.",
+    "ticket_not_found": "Ticket not found.",
+    "ticket_forbidden": "You do not have access to this ticket.",
+    "invalid_ticket_resolution": "Choose a valid ticket resolution.",
     "review_forbidden": "You cannot review this order.",
     "review_order_not_approved": "You can only review completed orders.",
     "review_already_exists": "You have already reviewed this order.",
@@ -1149,6 +1263,28 @@
       "reasonTitle": "Confirm report action",
       "actionSuccess": "Report updated",
       "actionError": "Could not update report",
+      "openLots": "Lots queue",
+      "openUser": "User",
+      "lotStatus": "Lot: {status}",
+      "lotUnderReviewTitle": "Put lot under review",
+      "lotRemoveTitle": "Remove lot",
+      "lotActionSuccess": "Lot updated",
+      "filters": {
+        "status": {
+          "ALL": "All statuses",
+          "OPEN": "Open",
+          "IN_REVIEW": "In review",
+          "RESOLVED": "Resolved",
+          "DISMISSED": "Dismissed"
+        },
+        "target": {
+          "ALL": "All targets",
+          "LOT": "Lots",
+          "USER": "Users",
+          "REVIEW": "Reviews",
+          "MESSAGE": "Messages"
+        }
+      },
       "columns": {
         "target": "Target",
         "reason": "Reason",
@@ -1158,7 +1294,9 @@
       "actions": {
         "review": "In review",
         "resolve": "Resolve",
-        "dismiss": "Dismiss"
+        "dismiss": "Dismiss",
+        "lotUnderReview": "Lot under review",
+        "lotRemove": "Remove lot"
       }
     },
     "tickets": {
@@ -1174,16 +1312,20 @@
       "resolveTitle": "Resolve ticket",
       "actionSuccess": "Ticket updated",
       "actionError": "Could not update ticket",
+      "timerPaused": "Auto-confirm paused",
       "columns": {
         "subject": "Subject",
         "type": "Type",
         "status": "Status",
-        "reporter": "Reporter"
+        "reporter": "Reporter",
+        "order": "Order",
+        "lot": "Lot",
+        "timerPaused": "Timer"
       },
       "resolve": {
         "buyer": "Buyer favor",
         "seller": "Seller favor",
-        "none": "No action"
+        "none": "No action (resume timer)"
       }
     }
   }

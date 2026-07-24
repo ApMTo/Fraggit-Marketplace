@@ -2,7 +2,6 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 const PROTECTED_PREFIXES = [
-  '/dashboard',
   '/profile',
   '/settings',
   '/admin',
@@ -56,10 +55,10 @@ export function middleware(request: NextRequest) {
   }
 
   if (isGuestPath(pathname) && sessionActive) {
-    const dashboardUrl = request.nextUrl.clone();
-    dashboardUrl.pathname = '/dashboard';
-    dashboardUrl.search = '';
-    return NextResponse.redirect(dashboardUrl);
+    const homeUrl = request.nextUrl.clone();
+    homeUrl.pathname = '/';
+    homeUrl.search = '';
+    return NextResponse.redirect(homeUrl);
   }
 
   return NextResponse.next();

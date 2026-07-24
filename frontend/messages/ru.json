@@ -13,7 +13,6 @@
       "closeMenu": "Закрыть меню",
       "home": "Главная",
       "listings": "Объявления",
-      "dashboard": "Кабинет",
       "orders": "Заказы",
       "chat": "Чат",
       "profile": "Профиль",
@@ -33,7 +32,41 @@
     "empty": "Пока нет уведомлений",
     "loading": "Загрузка…",
     "loadError": "Не удалось загрузить уведомления",
-    "markAllRead": "Прочитать все"
+    "markAllRead": "Прочитать все",
+    "items": {
+      "orderCreated": {
+        "seller": {
+          "title": "Новый заказ",
+          "body": "Покупатель оформил заказ #{orderNumber} ({listingTitle})."
+        },
+        "buyer": {
+          "title": "Заказ оформлен",
+          "body": "Заказ #{orderNumber} успешно создан."
+        }
+      },
+      "orderCredentials": {
+        "buyer": {
+          "title": "Данные по заказу",
+          "body": "Продавец передал данные для заказа #{orderNumber}."
+        }
+      },
+      "orderServiceCompleted": {
+        "buyer": {
+          "title": "Услуга выполнена",
+          "body": "Продавец отметил услугу по заказу #{orderNumber} как выполненную."
+        }
+      },
+      "orderApproved": {
+        "seller": {
+          "title": "Заказ завершён",
+          "body": "Заказ #{orderNumber} подтверждён покупателем."
+        },
+        "buyer": {
+          "title": "Заказ завершён",
+          "body": "Заказ #{orderNumber} успешно завершён."
+        }
+      }
+    }
   },
   "landing": {
     "meta": {
@@ -180,7 +213,6 @@
     "home": "Главная страница",
     "login": "Страница входа",
     "register": "Страница регистрации",
-    "dashboard": "Панель управления",
     "profile": "Страница профиля",
     "listings": "Страница объявлений",
     "orders": "Страница заказов",
@@ -192,6 +224,23 @@
     "title": "Заказы",
     "detailTitle": "Заказ",
     "subtitle": "Покупки и продажи в одном месте.",
+    "tabsLabel": "Разделы заказов",
+    "activeTabsLabel": "Роль в активных заказах",
+    "tabs": {
+      "active": "Активные",
+      "purchases": "Мои заказы",
+      "sales": "Продажи",
+      "buying": "Покупаю",
+      "selling": "Продаю"
+    },
+    "empty": {
+      "activeTitle": "Нет активных заказов",
+      "activeDescription": "Заказы в процессе появятся здесь.",
+      "purchasesTitle": "Покупок пока нет",
+      "purchasesDescription": "Когда вы купите лот, он появится здесь.",
+      "salesTitle": "Продаж пока нет",
+      "salesDescription": "Когда кто-то купит ваш лот, заказ появится здесь."
+    },
     "backToOrders": "К заказам",
     "orderNumber": "Заказ #{number}",
     "lotSummary": "Данные лота по этому заказу",
@@ -201,6 +250,10 @@
     "roleSeller": "Вы продавец",
     "buyerStatusHint": "Дождитесь данных от продавца, затем подтвердите заказ.",
     "sellerStatusHint": "Передайте данные покупателю, чтобы он мог подтвердить получение.",
+    "buyerStatusHintService": "Дождитесь выполнения услуги, затем подтвердите заказ.",
+    "sellerStatusHintService": "Выполните услугу по ответу покупателя, затем отметьте как выполненную.",
+    "lotTypeAccount": "Аккаунт",
+    "lotTypeService": "Услуга",
     "credentialsTitle": "Данные",
     "credentialsLabel": "Данные для передачи",
     "credentialsPlaceholder": "Логин, пароль, ключ или другая информация…",
@@ -210,17 +263,39 @@
     "credentialsRequired": "Введите данные для передачи.",
     "credentialsSubmitted": "Данные отправлены",
     "submitCredentials": "Отправить данные",
+    "serviceTitle": "Детали услуги",
+    "serviceSellerHint": "Используйте ответ покупателя, выполните услугу и отметьте её как выполненную.",
+    "serviceBuyerHint": "Ваш ответ ниже. Дождитесь, пока продавец выполнит услугу.",
+    "serviceQuestionLabel": "Вопрос продавца",
+    "buyerAnswerLabel": "Ваш ответ",
+    "serviceWaiting": "Ожидаем, пока продавец выполнит услугу.",
+    "completeService": "Услуга выполнена",
+    "serviceCompleted": "Услуга отмечена как выполненная",
     "confirmOrder": "Подтвердить заказ",
     "confirmBlockedUntilData": "Подтверждение станет доступно после того, как продавец отправит данные.",
+    "confirmBlockedUntilService": "Подтверждение станет доступно после выполнения услуги продавцом.",
     "waitingBuyerConfirm": "Ожидаем подтверждение покупателя.",
     "orderCompleted": "Заказ завершён",
     "confirmSuccess": "Заказ подтверждён",
+    "openDispute": "Открыть спор",
+    "disputeActive": "Заказ на проверке. Автоподтверждение остановлено.",
     "guarantee": "Гарантия Fraggit",
     "confirmDialog": {
       "title": "Подтверждение заказа",
       "description": "После подтверждения вы соглашаетесь, что аккаунт у вас, вы сменили все данные, продавец получит деньги, а возврат средств будет невозможен.",
+      "descriptionService": "После подтверждения вы соглашаетесь, что услуга выполнена как описано, продавец получит деньги, а возврат средств будет невозможен.",
       "confirm": "Подтвердить",
       "cancel": "Отмена"
+    },
+    "dispute": {
+      "title": "Открыть спор",
+      "hint": "Опишите проблему. Заказ уйдёт на проверку, а таймер автоподтверждения (3 дня) остановится до решения модерации.",
+      "subject": "Спор по заказу #{number}",
+      "body": "Что случилось?",
+      "bodyPlaceholder": "Опишите проблему с этим заказом…",
+      "submit": "Открыть спор",
+      "cancel": "Отмена",
+      "success": "Спор открыт. Автоподтверждение на паузе."
     },
     "review": {
       "title": "Написать отзыв",
@@ -236,7 +311,9 @@
     },
     "status": {
       "PENDING": "Ожидает данные",
+      "PENDING_SERVICE": "Ожидает выполнения",
       "AWAITING_BUYER_CONFIRMATION": "Ждёт подтверждения",
+      "DISPUTED": "На проверке",
       "APPROVED": "Завершён"
     },
     "emptyTitle": "Заказов пока нет",
@@ -284,6 +361,12 @@
       "image": "Изображение",
       "system": "Системное сообщение",
       "empty": "Нет сообщений"
+    },
+    "system": {
+      "orderCreated": "Заказ #{orderNumber} создан.",
+      "orderCredentials": "Продавец передал данные по заказу #{orderNumber}.",
+      "orderServiceCompleted": "Продавец отметил услугу по заказу #{orderNumber} как выполненную.",
+      "orderApproved": "Заказ #{orderNumber} завершён."
     }
   },
   "profile": {
@@ -435,6 +518,11 @@
     "buying": "Оформляем…",
     "editLot": "Редактировать",
     "guarantee": "Гарантия Fraggit",
+    "typeAccount": "Аккаунт",
+    "typeService": "Услуга",
+    "buyerAnswerLabel": "Ответьте на вопрос продавца",
+    "buyerAnswerPlaceholder": "Ваш Player ID, сервер или другие данные…",
+    "buyerAnswerRequired": "Ответьте на вопрос продавца, чтобы продолжить.",
     "lotDetails": "Детали лота",
     "loadErrorTitle": "Не удалось загрузить объявления",
     "loadErrorDescription": "Что-то пошло не так. Попробуйте снова.",
@@ -459,6 +547,7 @@
     "filterTextPlaceholder": "Введите значение…",
     "filterNumberPlaceholder": "Введите число…",
     "createLot": "Создать лот",
+    "sell": "Продать",
     "table": {
       "attributes": "Параметры",
       "seller": "Продавец",
@@ -482,9 +571,19 @@
         "price": "Цена",
         "stock": "Количество",
         "category": "Категория",
-        "subcategory": "Подкатегория"
+        "subcategory": "Подкатегория",
+        "type": "Тип лота",
+        "serviceQuestion": "Вопрос покупателю"
       },
+      "typeAccount": "Аккаунт",
+      "typeService": "Услуга",
+      "typeAccountHint": "После покупки вы передадите логин/пароль или другие данные.",
+      "typeServiceHint": "Покупатель ответит на ваш вопрос при покупке; вы отметите услугу как выполненную.",
+      "serviceQuestionPlaceholder": "Например: Ваш Player ID и сервер:",
+      "serviceQuestionHint": "Можно написать несколько вопросов в одном поле, каждый с новой строки.",
       "selectCategory": "Выберите категорию",
+      "searchCategory": "Найдите игру…",
+      "clearCategory": "Очистить категорию",
       "selectSubcategory": "Выберите подкатегорию",
       "selectPlaceholder": "Выберите…",
       "noSubcategories": "У этой категории пока нет подкатегорий.",
@@ -508,6 +607,8 @@
         "stockMin": "Количество должно быть не меньше 1.",
         "categoryRequired": "Выберите категорию.",
         "subcategoryRequired": "Выберите подкатегорию.",
+        "serviceQuestionRequired": "Введите вопрос для покупателя.",
+        "serviceQuestionMax": "Вопрос — максимум 2000 символов.",
         "attributeRequired": "Это поле обязательно.",
         "photoType": "Допустимы только JPEG, PNG и WebP.",
         "photoSize": "Каждое фото — не больше 5 МБ."
@@ -518,6 +619,7 @@
       "subtitle": "Обновите данные вашего объявления.",
       "back": "К лоту",
       "categoryLocked": "Категорию и подкатегорию изменить нельзя.",
+      "typeLocked": "Тип лота изменить нельзя.",
       "replacePreview": "Заменить превью",
       "submit": "Сохранить",
       "success": "Лот успешно обновлён",
@@ -731,8 +833,8 @@
       "successDescription": "Аккаунт активирован. Можно пользоваться маркетплейсом.",
       "errorTitle": "Не удалось подтвердить",
       "errorDescription": "Ссылка могла истечь или уже была использована.",
-      "goToDashboard": "Перейти в панель",
       "goToLogin": "Войти",
+      "continue": "Продолжить",
       "tryAgain": "Зарегистрироваться снова"
     },
     "forgot": {
@@ -922,7 +1024,19 @@
     "order_not_found": "Заказ не найден.",
     "order_forbidden": "Нет доступа к этому заказу.",
     "order_credentials_not_allowed": "Для этого заказа нельзя отправить данные.",
+    "order_complete_service_not_allowed": "Сейчас нельзя отметить эту услугу как выполненную.",
+    "order_buyer_answer_required": "Ответьте на вопрос продавца, чтобы оформить заказ.",
+    "order_buyer_answer_not_allowed": "Для этого лота ответ не нужен.",
+    "lot_service_question_missing": "У этого лота-услуги нет вопроса для покупателя.",
+    "service_question_required": "Введите вопрос для покупателя.",
     "order_confirm_not_allowed": "Этот заказ сейчас нельзя подтвердить.",
+    "dispute_requires_order": "Спор должен быть привязан к заказу.",
+    "dispute_forbidden": "Нельзя открыть спор по этому заказу.",
+    "dispute_not_allowed": "Сейчас нельзя открыть спор по этому заказу.",
+    "dispute_already_open": "По этому заказу уже есть открытый спор.",
+    "ticket_not_found": "Тикет не найден.",
+    "ticket_forbidden": "Нет доступа к этому тикету.",
+    "invalid_ticket_resolution": "Выберите корректное решение по тикету.",
     "review_forbidden": "Вы не можете оставить отзыв по этому заказу.",
     "review_order_not_approved": "Отзыв можно оставить только по завершённому заказу.",
     "review_already_exists": "Вы уже оставили отзыв по этому заказу.",
@@ -1149,6 +1263,28 @@
       "reasonTitle": "Подтвердите действие с жалобой",
       "actionSuccess": "Жалоба обновлена",
       "actionError": "Не удалось обновить жалобу",
+      "openLots": "Очередь лотов",
+      "openUser": "Пользователь",
+      "lotStatus": "Лот: {status}",
+      "lotUnderReviewTitle": "Отправить лот на проверку",
+      "lotRemoveTitle": "Снять лот",
+      "lotActionSuccess": "Лот обновлён",
+      "filters": {
+        "status": {
+          "ALL": "Все статусы",
+          "OPEN": "Открытые",
+          "IN_REVIEW": "В работе",
+          "RESOLVED": "Решённые",
+          "DISMISSED": "Отклонённые"
+        },
+        "target": {
+          "ALL": "Все цели",
+          "LOT": "Лоты",
+          "USER": "Пользователи",
+          "REVIEW": "Отзывы",
+          "MESSAGE": "Сообщения"
+        }
+      },
       "columns": {
         "target": "Цель",
         "reason": "Причина",
@@ -1158,7 +1294,9 @@
       "actions": {
         "review": "В работу",
         "resolve": "Решить",
-        "dismiss": "Отклонить"
+        "dismiss": "Отклонить",
+        "lotUnderReview": "Лот на проверку",
+        "lotRemove": "Снять лот"
       }
     },
     "tickets": {
@@ -1174,16 +1312,20 @@
       "resolveTitle": "Решить тикет",
       "actionSuccess": "Тикет обновлён",
       "actionError": "Не удалось обновить тикет",
+      "timerPaused": "Автоподтверждение на паузе",
       "columns": {
         "subject": "Тема",
         "type": "Тип",
         "status": "Статус",
-        "reporter": "Автор"
+        "reporter": "Автор",
+        "order": "Заказ",
+        "lot": "Лот",
+        "timerPaused": "Таймер"
       },
       "resolve": {
         "buyer": "В пользу покупателя",
         "seller": "В пользу продавца",
-        "none": "Без действий"
+        "none": "Без действий (вернуть таймер)"
       }
     }
   }

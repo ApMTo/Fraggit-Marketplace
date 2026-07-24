@@ -21,7 +21,7 @@ export function LandingFooter({
 }: LandingFooterProps) {
   return (
     <footer className="border-t border-border bg-surface/60">
-      <div className="mx-auto w-full max-w-[1240px] px-5 py-12 sm:py-16">
+      <div className="mx-auto w-full max-w-site px-5 py-12 sm:py-16">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr]">
           <div className="space-y-4">
             <Logo />

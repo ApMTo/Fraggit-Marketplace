@@ -2,7 +2,6 @@ import type { UserRole } from '@/types/auth';
 
 export type AppNavItemId =
   | 'listings'
-  | 'dashboard'
   | 'orders'
   | 'chat'
   | 'profile'
@@ -21,12 +20,6 @@ type AppNavItem = {
 
 const APP_NAV_ITEMS: AppNavItem[] = [
   { id: 'listings', href: '/listings', group: 'header', showWhen: 'always' },
-  {
-    id: 'dashboard',
-    href: '/dashboard',
-    group: 'account',
-    showWhen: 'authenticated',
-  },
   {
     id: 'orders',
     href: '/orders',

@@ -17,7 +17,7 @@ describe('app nav', () => {
         role: 'USER',
         group: 'account',
       }).map((item) => item.id),
-    ).toEqual(['dashboard', 'orders', 'chat', 'profile']);
+    ).toEqual(['orders', 'chat', 'profile']);
   });
 
   it('includes moderation for moderators and admin for admins', () => {

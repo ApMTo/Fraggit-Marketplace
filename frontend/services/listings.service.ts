@@ -88,10 +88,15 @@ function buildCreateLotFormData(payload: CreateLotPayload): FormData {
   formData.append('price', String(payload.price));
   formData.append('categoryId', payload.categoryId);
   formData.append('subcategoryId', payload.subcategoryId);
+  formData.append('type', payload.type);
   formData.append('attributes', JSON.stringify(payload.attributes));
 
   if (payload.description != null && payload.description !== '') {
     formData.append('description', payload.description);
+  }
+
+  if (payload.type === 'SERVICE' && payload.serviceQuestion) {
+    formData.append('serviceQuestion', payload.serviceQuestion);
   }
 
   if (payload.stock != null) {
@@ -119,6 +124,10 @@ function buildUpdateLotFormData(payload: UpdateLotPayload): FormData {
 
   if (payload.description != null && payload.description !== '') {
     formData.append('description', payload.description);
+  }
+
+  if (payload.serviceQuestion != null && payload.serviceQuestion !== '') {
+    formData.append('serviceQuestion', payload.serviceQuestion);
   }
 
   if (payload.stock != null) {

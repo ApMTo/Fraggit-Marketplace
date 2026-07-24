@@ -30,6 +30,7 @@ export {
   useOrder,
   useCreateOrder,
   useSubmitOrderCredentials,
+  useCompleteOrderService,
   useConfirmOrder,
 } from './use-orders';
 export {

@@ -1,14 +1,26 @@
 import { Injectable } from '@nestjs/common';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { ORDER_DETAIL_SELECT, OrderDetail } from '../constants/order.select';
+
+type ApproveOptions = {
+  /** Statuses from which approval is allowed. Default: AWAITING_BUYER_CONFIRMATION. */
+  fromStatuses?: OrderStatus[];
+  tx?: Prisma.TransactionClient;
+};
 
 @Injectable()
 export class OrderCompletionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async approveOrder(orderId: string): Promise<OrderDetail | null> {
-    return this.prisma.$transaction(async (tx) => {
+  async approveOrder(
+    orderId: string,
+    options?: ApproveOptions,
+  ): Promise<OrderDetail | null> {
+    const fromStatuses = options?.fromStatuses ?? [
+      OrderStatus.AWAITING_BUYER_CONFIRMATION,
+    ];
+    const run = async (tx: Prisma.TransactionClient) => {
       const order = await tx.order.findUnique({
         where: { id: orderId },
         select: {
@@ -22,7 +34,7 @@ export class OrderCompletionService {
         return null;
       }
 
-      if (order.status !== OrderStatus.AWAITING_BUYER_CONFIRMATION) {
+      if (!fromStatuses.includes(order.status)) {
         return null;
       }
 
@@ -34,6 +46,8 @@ export class OrderCompletionService {
           status: OrderStatus.APPROVED,
           approvedAt: now,
           autoApproveAt: null,
+          disputePausedFromStatus: null,
+          autoApproveRemainingMs: null,
         },
       });
 
@@ -46,6 +60,12 @@ export class OrderCompletionService {
         where: { id: orderId },
         select: ORDER_DETAIL_SELECT,
       });
-    });
+    };
+
+    if (options?.tx) {
+      return run(options.tx);
+    }
+
+    return this.prisma.$transaction(run);
   }
 }

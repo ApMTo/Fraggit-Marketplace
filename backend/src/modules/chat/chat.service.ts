@@ -142,6 +142,12 @@ export class ChatService {
     return this.chatOrderService.onOrderCredentialsSubmitted(params);
   }
 
+  onOrderServiceCompleted(
+    params: Parameters<ChatOrderService['onOrderServiceCompleted']>[0],
+  ) {
+    return this.chatOrderService.onOrderServiceCompleted(params);
+  }
+
   onOrderApproved(params: Parameters<ChatOrderService['onOrderApproved']>[0]) {
     return this.chatOrderService.onOrderApproved(params);
   }

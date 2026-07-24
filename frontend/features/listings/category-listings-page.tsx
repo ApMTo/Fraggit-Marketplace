@@ -172,7 +172,7 @@ export function CategoryListingsPage({
 
   if (bootLoading) {
     return (
-      <div className="mx-auto flex w-full max-w-[1240px] justify-center px-5 py-20">
+      <div className="mx-auto flex w-full max-w-site justify-center px-5 py-20">
         <Spinner size="lg" />
       </div>
     );
@@ -322,7 +322,7 @@ export function CategoryListingsPage({
 
 function PageFrame({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto w-full max-w-[1240px] px-5 py-10">{children}</div>
+    <div className="mx-auto w-full max-w-site px-5 py-10">{children}</div>
   );
 }
 
@@ -336,7 +336,7 @@ function BrowseShell({
   children: ReactNode;
 }) {
   return (
-    <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-5 px-5 py-8 sm:py-10">
+    <div className="mx-auto flex w-full max-w-site flex-col gap-5 px-5 py-8 sm:py-10">
       <CategoryBrowseHero category={category} createHref={createHref} />
       {children}
     </div>

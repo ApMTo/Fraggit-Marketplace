@@ -77,6 +77,8 @@ describe('OrderCompletionService', () => {
       data: expect.objectContaining({
         status: OrderStatus.APPROVED,
         autoApproveAt: null,
+        disputePausedFromStatus: null,
+        autoApproveRemainingMs: null,
       }),
     });
     expect(tx.user.update).toHaveBeenCalledWith({

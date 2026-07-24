@@ -6,6 +6,10 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell } from 'lucide-react';
 import { formatChatListTime } from '@/lib/chat-time';
+import {
+  formatNotificationBody,
+  formatNotificationTitle,
+} from '@/lib/format-notification';
 import { cn } from '@/lib/utils';
 import { useNotificationsRealtime } from '@/hooks/use-notifications-realtime';
 import {
@@ -99,7 +103,7 @@ export function NotificationsBell({ enabled }: NotificationsBellProps) {
         aria-controls={menuId}
         aria-label={t('open')}
         onClick={() => setOpen((value) => !value)}
-        className="relative inline-flex size-9 cursor-pointer items-center justify-center rounded-[var(--radius-md)] text-foreground transition-[background-color,color] duration-300 hover:bg-surface-elevated"
+        className="relative inline-flex size-9 cursor-pointer items-center justify-center rounded-[var(--radius-sm)] text-muted transition-[background-color,color] duration-300 hover:bg-surface-elevated hover:text-foreground"
       >
         <Bell className="size-4" />
         {unreadCount > 0 ? (
@@ -176,9 +180,12 @@ function NotificationRow({
   locale: string;
   onSelect: () => void;
 }) {
+  const t = useTranslations('notifications');
   const time = formatChatListTime(notification.createdAt, locale);
   const isUnread = !notification.readAt;
   const href = notification.href || '/orders';
+  const title = formatNotificationTitle(notification, t);
+  const body = formatNotificationBody(notification, t);
 
   return (
     <Link
@@ -191,17 +198,13 @@ function NotificationRow({
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="text-sm font-medium text-foreground">
-          {notification.title}
-        </p>
+        <p className="text-sm font-medium text-foreground">{title}</p>
         {isUnread ? (
           <span className="mt-1 size-1.5 shrink-0 rounded-full bg-brand-cyan" />
         ) : null}
       </div>
-      {notification.body ? (
-        <p className="mt-0.5 line-clamp-2 text-xs text-muted">
-          {notification.body}
-        </p>
+      {body ? (
+        <p className="mt-0.5 line-clamp-2 text-xs text-muted">{body}</p>
       ) : null}
       {time ? (
         <time

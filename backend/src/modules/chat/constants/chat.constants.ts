@@ -27,6 +27,7 @@ export const CHAT_WS_EVENTS = {
 export const CHAT_SYSTEM_EVENT = {
   ORDER_CREATED: 'order_created',
   ORDER_CREDENTIALS: 'order_credentials',
+  ORDER_SERVICE_COMPLETED: 'order_service_completed',
   ORDER_APPROVED: 'order_approved',
 } as const;
 

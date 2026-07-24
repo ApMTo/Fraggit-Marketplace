@@ -5,7 +5,7 @@
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { LotStatus, OrderStatus, Prisma } from '@prisma/client';
+import { LotStatus, LotType, OrderStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { ORDER_AUTO_APPROVAL_MS } from './constants/order.constants';
 import {
@@ -51,6 +51,8 @@ export class OrdersService {
         price: true,
         stock: true,
         status: true,
+        type: true,
+        serviceQuestion: true,
       },
     });
 
@@ -70,6 +72,19 @@ export class OrdersService {
       throw new ConflictException('insufficient_stock');
     }
 
+    const buyerAnswer = dto.buyerAnswer?.trim() ?? '';
+
+    if (lot.type === LotType.SERVICE) {
+      if (!buyerAnswer) {
+        throw new BadRequestException('order_buyer_answer_required');
+      }
+      if (!lot.serviceQuestion?.trim()) {
+        throw new ConflictException('lot_service_question_missing');
+      }
+    } else if (buyerAnswer) {
+      throw new BadRequestException('order_buyer_answer_not_allowed');
+    }
+
     const payment = await this.orderPaymentService.processPayment(
       buyerId,
       lot.id,
@@ -83,7 +98,13 @@ export class OrdersService {
     const order = await this.prisma.$transaction(async (tx) => {
       const currentLot = await tx.lot.findUnique({
         where: { id: lot.id },
-        select: { stock: true, status: true, price: true },
+        select: {
+          stock: true,
+          status: true,
+          price: true,
+          type: true,
+          serviceQuestion: true,
+        },
       });
 
       if (
@@ -113,6 +134,11 @@ export class OrdersService {
           sellerId: lot.sellerId,
           price: currentLot.price,
           status: OrderStatus.PENDING,
+          serviceQuestion:
+            currentLot.type === LotType.SERVICE
+              ? currentLot.serviceQuestion
+              : null,
+          buyerAnswer: currentLot.type === LotType.SERVICE ? buyerAnswer : null,
         },
         select: ORDER_DETAIL_SELECT,
       });
@@ -196,6 +222,7 @@ export class OrdersService {
       select: {
         sellerId: true,
         status: true,
+        lot: { select: { type: true } },
       },
     });
 
@@ -205,6 +232,10 @@ export class OrdersService {
 
     if (order.sellerId !== sellerId) {
       throw new ForbiddenException('order_forbidden');
+    }
+
+    if (order.lot.type !== LotType.ACCOUNT) {
+      throw new ConflictException('order_credentials_not_allowed');
     }
 
     if (order.status !== OrderStatus.PENDING) {
@@ -226,6 +257,60 @@ export class OrdersService {
     });
 
     await this.chatService.onOrderCredentialsSubmitted({
+      orderId: updated.id,
+      orderNumber: updated.orderNumber,
+      buyerId: updated.buyerId,
+      sellerId: updated.sellerId,
+      listingId: updated.lotId,
+      listingTitle: updated.lot.title,
+    });
+
+    return updated;
+  }
+
+  async completeService(
+    sellerId: string,
+    orderId: string,
+  ): Promise<OrderDetail> {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      select: {
+        sellerId: true,
+        status: true,
+        lot: { select: { type: true } },
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException('order_not_found');
+    }
+
+    if (order.sellerId !== sellerId) {
+      throw new ForbiddenException('order_forbidden');
+    }
+
+    if (order.lot.type !== LotType.SERVICE) {
+      throw new ConflictException('order_complete_service_not_allowed');
+    }
+
+    if (order.status !== OrderStatus.PENDING) {
+      throw new ConflictException('order_complete_service_not_allowed');
+    }
+
+    const now = new Date();
+    const autoApproveAt = new Date(now.getTime() + ORDER_AUTO_APPROVAL_MS);
+
+    const updated = await this.prisma.order.update({
+      where: { id: orderId },
+      data: {
+        credentialsProvidedAt: now,
+        autoApproveAt,
+        status: OrderStatus.AWAITING_BUYER_CONFIRMATION,
+      },
+      select: ORDER_DETAIL_SELECT,
+    });
+
+    await this.chatService.onOrderServiceCompleted({
       orderId: updated.id,
       orderNumber: updated.orderNumber,
       buyerId: updated.buyerId,

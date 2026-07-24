@@ -14,7 +14,7 @@ export function ListingsHubPage() {
   const { data: categories, isLoading, isError } = useCategories();
 
   return (
-    <div className="relative mx-auto flex w-full max-w-[1240px] flex-col gap-10 px-5 py-8 sm:gap-12 sm:py-10">
+    <div className="relative mx-auto flex w-full max-w-site flex-col gap-10 px-5 py-8 sm:gap-12 sm:py-10">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 -top-8 h-56 bg-[radial-gradient(ellipse_at_top,var(--blue-a12),transparent_70%)]"

@@ -1,5 +1,6 @@
 ﻿import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
+import { OrdersModule } from '../orders/orders.module';
 import { SessionsModule } from '../sessions/sessions.module';
 import { ModerationController } from './moderation.controller';
 import { ModerationAuditService } from './services/moderation-audit.service';
@@ -10,7 +11,7 @@ import { ModerationTicketsService } from './services/moderation-tickets.service'
 import { ModerationUsersService } from './services/moderation-users.service';
 
 @Module({
-  imports: [AuthModule, SessionsModule],
+  imports: [AuthModule, SessionsModule, OrdersModule],
   controllers: [ModerationController],
   providers: [
     ModerationAuditService,

@@ -1,9 +1,12 @@
 export type OrderStatus =
   | 'PENDING'
   | 'AWAITING_BUYER_CONFIRMATION'
+  | 'DISPUTED'
   | 'APPROVED';
 
 export type OrderRole = 'buyer' | 'seller';
+
+export type LotType = 'ACCOUNT' | 'SERVICE';
 
 export type OrderUser = {
   id: string;
@@ -17,6 +20,7 @@ export type OrderLot = {
   title: string;
   price: string | number;
   status: string;
+  type: LotType;
   previewUrl: string | null;
   images: Array<{
     url: string;
@@ -32,9 +36,13 @@ export type OrderDetail = {
   sellerId: string;
   price: string | number;
   status: OrderStatus;
+  serviceQuestion: string | null;
+  buyerAnswer: string | null;
   credentials: string | null;
   credentialsProvidedAt: string | null;
   autoApproveAt: string | null;
+  disputePausedFromStatus: OrderStatus | null;
+  autoApproveRemainingMs: number | null;
   approvedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -53,6 +61,8 @@ export type OrderListItem = {
   status: OrderStatus;
   credentialsProvidedAt: string | null;
   autoApproveAt: string | null;
+  disputePausedFromStatus: OrderStatus | null;
+  autoApproveRemainingMs: number | null;
   approvedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -77,6 +87,7 @@ export type FindOrdersParams = {
 
 export type CreateOrderPayload = {
   lotId: string;
+  buyerAnswer?: string;
 };
 
 export type SubmitCredentialsPayload = {

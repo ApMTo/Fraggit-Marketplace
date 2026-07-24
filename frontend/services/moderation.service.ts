@@ -1,6 +1,7 @@
 import api from '@/lib/api';
 import type {
   CreateReportPayload,
+  CreateTicketPayload,
   ModAuditAction,
   ModLot,
   ModOverview,
@@ -151,8 +152,17 @@ export const moderationService = {
     return data;
   },
 
+  async createTicket(payload: CreateTicketPayload): Promise<{ ticket: ModTicket }> {
+    const { data } = await api.post<{ ticket: ModTicket }>(
+      '/moderation/tickets',
+      payload,
+    );
+    return data;
+  },
+
   async getReports(params: {
     status?: ReportStatus;
+    targetType?: string;
     page?: number;
     limit?: number;
   }): Promise<Paginated<ModReport>> {

@@ -11,8 +11,7 @@ export function getLandingLinks({
     return {
       startShopping: '/listings',
       becomeSeller: '/listings/new',
-      createAccount: '/dashboard',
-      dashboard: '/dashboard',
+      createAccount: '/listings',
     };
   }
 
@@ -20,6 +19,5 @@ export function getLandingLinks({
     startShopping: '/listings',
     becomeSeller: '/register',
     createAccount: '/register',
-    dashboard: '/dashboard',
   };
 }

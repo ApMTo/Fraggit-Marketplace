@@ -91,7 +91,9 @@ export class ModerationReportsService {
       this.prisma.report.count({ where }),
     ]);
 
-    return { items, total, page: query.page, limit: query.limit };
+    const enriched = await this.enrichReportTargets(items);
+
+    return { items: enriched, total, page: query.page, limit: query.limit };
   }
 
   async update(actorId: string, reportId: string, dto: UpdateReportDto) {
@@ -166,6 +168,57 @@ export class ModerationReportsService {
         status: { in: [ReportStatus.OPEN, ReportStatus.IN_REVIEW] },
       },
     });
+  }
+
+  private async enrichReportTargets(
+    items: Array<
+      Prisma.ReportGetPayload<{ select: typeof MOD_REPORT_LIST_SELECT }>
+    >,
+  ) {
+    const lotIds = items
+      .filter((r) => r.targetType === ReportTargetType.LOT)
+      .map((r) => r.targetId);
+    const userIds = items
+      .filter((r) => r.targetType === ReportTargetType.USER)
+      .map((r) => r.targetId);
+
+    const [lots, users] = await Promise.all([
+      lotIds.length
+        ? this.prisma.lot.findMany({
+            where: { id: { in: lotIds } },
+            select: {
+              id: true,
+              title: true,
+              status: true,
+              seller: { select: { id: true, username: true } },
+            },
+          })
+        : Promise.resolve([]),
+      userIds.length
+        ? this.prisma.user.findMany({
+            where: { id: { in: userIds } },
+            select: {
+              id: true,
+              username: true,
+              displayName: true,
+              status: true,
+            },
+          })
+        : Promise.resolve([]),
+    ]);
+
+    const lotMap = new Map(lots.map((l) => [l.id, l]));
+    const userMap = new Map(users.map((u) => [u.id, u]));
+
+    return items.map((report) => ({
+      ...report,
+      target:
+        report.targetType === ReportTargetType.LOT
+          ? (lotMap.get(report.targetId) ?? null)
+          : report.targetType === ReportTargetType.USER
+            ? (userMap.get(report.targetId) ?? null)
+            : null,
+    }));
   }
 
   private async assertTargetExists(

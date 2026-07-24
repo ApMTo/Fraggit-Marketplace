@@ -32,10 +32,14 @@ export function UserMenu() {
 
   return (
     <DropdownMenu
+      size="sm"
+      align="end"
       trigger={
         <>
-          <UserRound className="size-4 text-brand-cyan" />
-          <span>{user.displayName}</span>
+          <div className="flex items-center gap-2">
+            <UserRound className="size-3.5 shrink-0 text-muted" />
+            <span className="max-w-24 truncate">{user.displayName}</span>
+          </div>
         </>
       }
     >

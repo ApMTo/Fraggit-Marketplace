@@ -175,6 +175,11 @@ enum LotStatus {
   UNDER_REVIEW
 }
 
+enum LotType {
+  ACCOUNT
+  SERVICE
+}
+
 model Lot {
   id String @id @default(uuid())
 
@@ -184,6 +189,12 @@ model Lot {
 
   /// Cover image for browse/detail. Falls back to category.previewUrl when omitted on create.
   previewUrl String?
+
+  /// ACCOUNT: seller delivers credentials. SERVICE: buyer answers questions, seller marks done.
+  type LotType @default(ACCOUNT)
+
+  /// Question(s) the buyer must answer when purchasing a SERVICE lot.
+  serviceQuestion String? @db.Text
 
   price Decimal @db.Decimal(12, 2)
 
@@ -250,6 +261,8 @@ model LotImage {
 enum OrderStatus {
   PENDING
   AWAITING_BUYER_CONFIRMATION
+  /// Dispute opened — auto-approve timer paused until staff resolves.
+  DISPUTED
   APPROVED
 }
 
@@ -271,9 +284,19 @@ model Order {
 
   status OrderStatus @default(PENDING)
 
+  /// Snapshot of lot.serviceQuestion at purchase time (SERVICE orders).
+  serviceQuestion String? @db.Text
+
+  /// Buyer's answer to the service question (SERVICE orders).
+  buyerAnswer String? @db.Text
+
   credentials            String?   @db.Text
   credentialsProvidedAt  DateTime?
   autoApproveAt          DateTime?
+  /// Status before DISPUTED (PENDING or AWAITING_BUYER_CONFIRMATION).
+  disputePausedFromStatus OrderStatus?
+  /// Remaining auto-approve window (ms) frozen when dispute opened.
+  autoApproveRemainingMs  Int?
   approvedAt             DateTime?
 
   createdAt DateTime @default(now())

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -7,6 +8,7 @@ import {
 import {
   ModerationActionType,
   ModerationTargetType,
+  OrderStatus,
   Prisma,
   TicketResolution,
   TicketStatus,
@@ -15,6 +17,7 @@ import {
 } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { RoleHierarchy } from '../../auth/enums/roles.enum';
+import { OrderCompletionService } from '../../orders/services/order-completion.service';
 import { MOD_TICKET_LIST_SELECT } from '../constants/moderation.select';
 import {
   CreateTicketDto,
@@ -25,33 +28,28 @@ import {
 } from '../dto/moderation-tickets.dto';
 import { ModerationAuditService } from './moderation-audit.service';
 
+const OPEN_TICKET_STATUSES: TicketStatus[] = [
+  TicketStatus.OPEN,
+  TicketStatus.IN_PROGRESS,
+  TicketStatus.WAITING_USER,
+];
+
+const DISPUTABLE_ORDER_STATUSES: OrderStatus[] = [
+  OrderStatus.PENDING,
+  OrderStatus.AWAITING_BUYER_CONFIRMATION,
+];
+
 @Injectable()
 export class ModerationTicketsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: ModerationAuditService,
+    private readonly orderCompletion: OrderCompletionService,
   ) {}
 
   async create(reporterId: string, dto: CreateTicketDto) {
     if (dto.type === TicketType.ORDER_DISPUTE) {
-      if (!dto.orderId) {
-        throw new BadRequestException({
-          code: 'errors.dispute_requires_order',
-        });
-      }
-
-      const order = await this.prisma.order.findUnique({
-        where: { id: dto.orderId },
-        select: { id: true, buyerId: true, sellerId: true },
-      });
-
-      if (!order) {
-        throw new NotFoundException({ code: 'errors.order_not_found' });
-      }
-
-      if (order.buyerId !== reporterId && order.sellerId !== reporterId) {
-        throw new ForbiddenException({ code: 'errors.dispute_forbidden' });
-      }
+      return this.createOrderDispute(reporterId, dto);
     }
 
     const ticket = await this.prisma.$transaction(async (tx) => {
@@ -194,7 +192,10 @@ export class ModerationTicketsService {
   }
 
   /**
-   * Records dispute outcome only. Escrow/payments side-effects intentionally omitted.
+   * Resolves dispute and applies order side-effects:
+   * - SELLER_FAVOR → approve order (if timer was running) or restore PENDING
+   * - BUYER_FAVOR → keep DISPUTED (refund/escrow later)
+   * - NO_ACTION → restore previous status + resume remaining auto-approve timer
    */
   async resolve(actorId: string, ticketId: string, dto: ResolveTicketDto) {
     if (dto.resolution === TicketResolution.NONE) {
@@ -206,6 +207,15 @@ export class ModerationTicketsService {
     const ticket = await this.requireTicket(ticketId);
 
     return this.prisma.$transaction(async (tx) => {
+      if (
+        ticket.type === TicketType.ORDER_DISPUTE &&
+        ticket.orderId &&
+        ticket.status !== TicketStatus.RESOLVED &&
+        ticket.status !== TicketStatus.CLOSED
+      ) {
+        await this.applyDisputeResolution(tx, ticket.orderId, dto.resolution);
+      }
+
       const updated = await tx.ticket.update({
         where: { id: ticketId },
         data: {
@@ -232,8 +242,9 @@ export class ModerationTicketsService {
             resolution: updated.resolution,
           },
           metadata: {
-            // Payments microservice hook: apply escrow release/refund here later.
             paymentsSideEffect: 'noop',
+            orderId: ticket.orderId,
+            disputeResolution: dto.resolution,
           },
         },
         tx,
@@ -318,12 +329,189 @@ export class ModerationTicketsService {
     return this.prisma.ticket.count({
       where: {
         status: {
-          in: [
-            TicketStatus.OPEN,
-            TicketStatus.IN_PROGRESS,
-            TicketStatus.WAITING_USER,
-          ],
+          in: OPEN_TICKET_STATUSES,
         },
+      },
+    });
+  }
+
+  private async createOrderDispute(reporterId: string, dto: CreateTicketDto) {
+    if (!dto.orderId) {
+      throw new BadRequestException({
+        code: 'errors.dispute_requires_order',
+      });
+    }
+
+    const order = await this.prisma.order.findUnique({
+      where: { id: dto.orderId },
+      select: {
+        id: true,
+        buyerId: true,
+        sellerId: true,
+        status: true,
+        autoApproveAt: true,
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException({ code: 'errors.order_not_found' });
+    }
+
+    if (order.buyerId !== reporterId && order.sellerId !== reporterId) {
+      throw new ForbiddenException({ code: 'errors.dispute_forbidden' });
+    }
+
+    if (!DISPUTABLE_ORDER_STATUSES.includes(order.status)) {
+      throw new ConflictException({ code: 'errors.dispute_not_allowed' });
+    }
+
+    const existing = await this.prisma.ticket.findFirst({
+      where: {
+        type: TicketType.ORDER_DISPUTE,
+        orderId: order.id,
+        status: { in: OPEN_TICKET_STATUSES },
+      },
+      select: { id: true },
+    });
+
+    if (existing) {
+      throw new ConflictException({ code: 'errors.dispute_already_open' });
+    }
+
+    const now = new Date();
+    let autoApproveRemainingMs: number | null = null;
+
+    if (
+      order.status === OrderStatus.AWAITING_BUYER_CONFIRMATION &&
+      order.autoApproveAt
+    ) {
+      autoApproveRemainingMs = Math.max(
+        0,
+        order.autoApproveAt.getTime() - now.getTime(),
+      );
+    }
+
+    const ticket = await this.prisma.$transaction(async (tx) => {
+      await tx.order.update({
+        where: { id: order.id },
+        data: {
+          status: OrderStatus.DISPUTED,
+          disputePausedFromStatus: order.status,
+          autoApproveAt: null,
+          autoApproveRemainingMs,
+        },
+      });
+
+      const created = await tx.ticket.create({
+        data: {
+          type: TicketType.ORDER_DISPUTE,
+          orderId: order.id,
+          reporterId,
+          subject: dto.subject.trim(),
+          body: dto.body.trim(),
+          priority: dto.priority ?? undefined,
+        },
+        select: MOD_TICKET_LIST_SELECT,
+      });
+
+      await this.audit.append(
+        {
+          actorId: reporterId,
+          actionType: ModerationActionType.TICKET_CREATE,
+          targetType: ModerationTargetType.TICKET,
+          targetId: created.id,
+          reason: 'order_dispute_opened',
+          after: {
+            type: created.type,
+            status: created.status,
+            orderId: order.id,
+            orderStatus: OrderStatus.DISPUTED,
+            autoApproveRemainingMs,
+          },
+        },
+        tx,
+      );
+
+      return created;
+    });
+
+    return { ticket };
+  }
+
+  private async applyDisputeResolution(
+    tx: Prisma.TransactionClient,
+    orderId: string,
+    resolution: TicketResolution,
+  ) {
+    const order = await tx.order.findUnique({
+      where: { id: orderId },
+      select: {
+        id: true,
+        status: true,
+        disputePausedFromStatus: true,
+        autoApproveRemainingMs: true,
+      },
+    });
+
+    if (!order || order.status !== OrderStatus.DISPUTED) {
+      return;
+    }
+
+    if (resolution === TicketResolution.SELLER_FAVOR) {
+      if (
+        order.disputePausedFromStatus ===
+        OrderStatus.AWAITING_BUYER_CONFIRMATION
+      ) {
+        await this.orderCompletion.approveOrder(orderId, {
+          fromStatuses: [OrderStatus.DISPUTED],
+          tx,
+        });
+        return;
+      }
+
+      await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: OrderStatus.PENDING,
+          disputePausedFromStatus: null,
+          autoApproveRemainingMs: null,
+          autoApproveAt: null,
+        },
+      });
+      return;
+    }
+
+    if (resolution === TicketResolution.BUYER_FAVOR) {
+      await tx.order.update({
+        where: { id: orderId },
+        data: {
+          autoApproveAt: null,
+          autoApproveRemainingMs: null,
+          disputePausedFromStatus: null,
+        },
+      });
+      return;
+    }
+
+    // NO_ACTION — restore previous status and remaining timer
+    const restoreStatus =
+      order.disputePausedFromStatus ?? OrderStatus.AWAITING_BUYER_CONFIRMATION;
+
+    let autoApproveAt: Date | null = null;
+    if (
+      restoreStatus === OrderStatus.AWAITING_BUYER_CONFIRMATION &&
+      order.autoApproveRemainingMs != null
+    ) {
+      autoApproveAt = new Date(Date.now() + order.autoApproveRemainingMs);
+    }
+
+    await tx.order.update({
+      where: { id: orderId },
+      data: {
+        status: restoreStatus,
+        autoApproveAt,
+        autoApproveRemainingMs: null,
+        disputePausedFromStatus: null,
       },
     });
   }
@@ -333,6 +521,8 @@ export class ModerationTicketsService {
       where: { id: ticketId },
       select: {
         id: true,
+        type: true,
+        orderId: true,
         status: true,
         priority: true,
         assigneeId: true,

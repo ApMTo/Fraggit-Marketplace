@@ -80,6 +80,20 @@ export type ModReport = {
   updatedAt: string;
   reporter: { id: string; username: string; displayName: string };
   assignedTo: { id: string; username: string; displayName: string } | null;
+  target?:
+    | {
+        id: string;
+        title: string;
+        status: LotStatus;
+        seller: { id: string; username: string };
+      }
+    | {
+        id: string;
+        username: string;
+        displayName: string;
+        status: UserStatus;
+      }
+    | null;
 };
 
 export type ModTicket = {
@@ -104,6 +118,10 @@ export type ModTicket = {
     status: string;
     buyerId: string;
     sellerId: string;
+    autoApproveAt: string | null;
+    disputePausedFromStatus: string | null;
+    autoApproveRemainingMs: number | null;
+    lot: { id: string; title: string } | null;
   } | null;
 };
 
@@ -152,6 +170,14 @@ export type CreateReportPayload = {
   targetId: string;
   reason: ReportReason;
   details?: string;
+};
+
+export type CreateTicketPayload = {
+  type: TicketType;
+  orderId?: string;
+  subject: string;
+  body: string;
+  priority?: TicketPriority;
 };
 
 export type UpdateUserStatusPayload = {

@@ -2,6 +2,8 @@ import type { AttributeType } from './category';
 
 export type LotStatus = 'OPEN' | 'CLOSED' | 'ARCHIVED';
 
+export type LotType = 'ACCOUNT' | 'SERVICE';
+
 export type LotSort = 'default' | 'newest' | 'price_asc' | 'price_desc';
 
 export type LotImage = {
@@ -30,6 +32,7 @@ export type LotListItem = {
   title: string;
   description: string | null;
   previewUrl: string | null;
+  type: LotType;
   price: string | number;
   stock: number;
   status: LotStatus;
@@ -58,6 +61,8 @@ export type LotDetail = {
   title: string;
   description: string | null;
   previewUrl: string | null;
+  type: LotType;
+  serviceQuestion: string | null;
   price: string | number;
   stock: number;
   status: LotStatus;
@@ -109,6 +114,8 @@ export type CreateLotPayload = {
   stock?: number;
   categoryId: string;
   subcategoryId: string;
+  type: LotType;
+  serviceQuestion?: string | null;
   attributes: CreateLotAttributeInput[];
   preview?: File | null;
   photos?: File[];
@@ -119,6 +126,7 @@ export type UpdateLotPayload = {
   description?: string | null;
   price: number;
   stock?: number;
+  serviceQuestion?: string | null;
   attributes: CreateLotAttributeInput[];
   keepImageIds: string[];
   preview?: File | null;

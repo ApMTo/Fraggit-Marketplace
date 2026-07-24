@@ -6,8 +6,7 @@ describe('getLandingLinks', () => {
     expect(getLandingLinks({ isAuthenticated: true })).toEqual({
       startShopping: '/listings',
       becomeSeller: '/listings/new',
-      createAccount: '/dashboard',
-      dashboard: '/dashboard',
+      createAccount: '/listings',
     });
   });
 
@@ -16,7 +15,6 @@ describe('getLandingLinks', () => {
       startShopping: '/listings',
       becomeSeller: '/register',
       createAccount: '/register',
-      dashboard: '/dashboard',
     });
   });
 });
