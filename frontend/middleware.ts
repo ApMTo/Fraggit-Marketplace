@@ -8,6 +8,7 @@ const PROTECTED_PREFIXES = [
   '/moderation',
   '/orders',
   '/chat',
+  '/reports',
 ];
 
 const PROTECTED_EXACT = new Set(['/listings/new']);

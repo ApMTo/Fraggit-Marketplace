@@ -1,7 +1,10 @@
 export type NotificationType =
   | 'ORDER_CREATED'
   | 'ORDER_CREDENTIALS'
-  | 'ORDER_APPROVED';
+  | 'ORDER_APPROVED'
+  | 'TICKET_REPLY'
+  | 'REPORT_STATUS'
+  | 'TICKET_RESOLVED';
 
 export type AppNotification = {
   id: string;

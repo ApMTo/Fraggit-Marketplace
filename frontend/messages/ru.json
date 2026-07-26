@@ -15,6 +15,7 @@
       "listings": "Объявления",
       "orders": "Заказы",
       "chat": "Чат",
+      "reports": "Мои жалобы",
       "profile": "Профиль",
       "settings": "Настройки",
       "admin": "Админ",
@@ -65,7 +66,54 @@
           "title": "Заказ завершён",
           "body": "Заказ #{orderNumber} успешно завершён."
         }
+      },
+      "orderPart": " по заказу #{orderNumber}",
+      "noteSuffix": " Комментарий: {note}",
+      "reportStatus": {
+        "resolved": {
+          "title": "Жалоба рассмотрена",
+          "body": "Ваша жалоба рассмотрена и отмечена как решённая.{note}"
+        },
+        "dismissed": {
+          "title": "Жалоба закрыта",
+          "body": "Ваша жалоба рассмотрена и закрыта без действий.{note}"
+        }
+      },
+      "ticketResolved": {
+        "buyerFavor": {
+          "title": "Решение по обращению",
+          "body": "Модерация приняла решение в пользу покупателя{orderPart}.{note}"
+        },
+        "sellerFavor": {
+          "title": "Решение по обращению",
+          "body": "Модерация приняла решение в пользу продавца{orderPart}.{note}"
+        },
+        "noAction": {
+          "title": "Обращение закрыто",
+          "body": "Модерация закрыла обращение без изменения исхода{orderPart}.{note}"
+        }
       }
+    }
+  },
+  "myReports": {
+    "title": "Мои жалобы",
+    "subtitle": "Статусы ваших жалоб и ответы модерации",
+    "empty": "Жалоб пока нет",
+    "emptyHint": "Когда вы пожалуетесь на лот, пользователя или сообщение, они появятся здесь.",
+    "error": "Не удалось загрузить жалобы",
+    "moderatorReply": "Ответ модерации",
+    "noReply": "Комментарий не указан",
+    "targetLabels": {
+      "LOT": "Лот",
+      "USER": "Пользователь",
+      "REVIEW": "Отзыв",
+      "MESSAGE": "Сообщение"
+    },
+    "statusLabels": {
+      "OPEN": "Открыта",
+      "IN_REVIEW": "В работе",
+      "RESOLVED": "Решена",
+      "DISMISSED": "Отклонена"
     }
   },
   "landing": {
@@ -278,7 +326,9 @@
     "orderCompleted": "Заказ завершён",
     "confirmSuccess": "Заказ подтверждён",
     "openDispute": "Открыть спор",
-    "disputeActive": "Заказ на проверке. Автоподтверждение остановлено.",
+    "disputeActive": "Заказ на проверке. Автоподтверждение на паузе, пока модерация не примет решение.",
+    "disputeActiveTitle": "Спор на рассмотрении",
+    "disputeActiveHint": "Обе стороны ждут решения модерации. Когда вердикт будет готов, вы получите уведомление.",
     "guarantee": "Гарантия Fraggit",
     "confirmDialog": {
       "title": "Подтверждение заказа",
@@ -1148,6 +1198,7 @@
   },
   "moderation": {
     "nav": {
+      "section": "Модерация",
       "overview": "Обзор",
       "users": "Пользователи",
       "lots": "Лоты",
@@ -1158,8 +1209,8 @@
     "actions": {
       "cancel": "Отмена",
       "confirm": "Подтвердить",
-      "reason": "Причина",
-      "reasonPlaceholder": "Опишите, зачем нужно это действие"
+      "reason": "Комментарий",
+      "reasonPlaceholder": "При вердикте этот текст уйдёт пользователю в уведомлении"
     },
     "report": {
       "title": "Пожаловаться",
@@ -1187,6 +1238,11 @@
     "users": {
       "title": "Пользователи",
       "detailTitle": "Пользователь",
+      "listTitle": "Все пользователи",
+      "listCount": "{count, plural, one {# пользователь} few {# пользователя} many {# пользователей} other {# пользователей}}",
+      "selectTitle": "Выберите пользователя",
+      "selectDescription": "Выберите пользователя в списке, чтобы посмотреть профиль и принять меры.",
+      "backToList": "Все пользователи",
       "searchPlaceholder": "Поиск по username, email…",
       "empty": "Пользователи не найдены",
       "error": "Не удалось загрузить пользователей",
@@ -1213,6 +1269,11 @@
     },
     "lots": {
       "title": "Лоты",
+      "listTitle": "Все лоты",
+      "listCount": "{count, plural, one {# лот} few {# лота} many {# лотов} other {# лотов}}",
+      "selectTitle": "Выберите лот",
+      "selectDescription": "Выберите лот в списке, чтобы модерировать и посмотреть историю.",
+      "backToList": "Все лоты",
       "searchPlaceholder": "Поиск лотов…",
       "empty": "Лоты не найдены",
       "error": "Не удалось загрузить лоты",
@@ -1260,6 +1321,15 @@
       "title": "Жалобы",
       "empty": "Жалоб нет",
       "error": "Не удалось загрузить жалобы",
+      "listTitle": "Все жалобы",
+      "listCount": "{count, plural, one {# жалоба} few {# жалобы} many {# жалоб} other {# жалоб}}",
+      "noActive": "Активных жалоб нет",
+      "showClosed": "Показать закрытые ({count})",
+      "hideClosed": "Скрыть закрытые",
+      "selectTitle": "Выберите жалобу",
+      "selectDescription": "Выберите жалобу в списке, чтобы посмотреть детали и принять решение.",
+      "backToList": "Все жалобы",
+      "resolutionNote": "Комментарий по решению",
       "reasonTitle": "Подтвердите действие с жалобой",
       "actionSuccess": "Жалоба обновлена",
       "actionError": "Не удалось обновить жалобу",
@@ -1268,7 +1338,29 @@
       "lotStatus": "Лот: {status}",
       "lotUnderReviewTitle": "Отправить лот на проверку",
       "lotRemoveTitle": "Снять лот",
+      "lotApproveTitle": "Одобрить лот (вернуть в продажу)",
+      "lotRejectTitle": "Отклонить лот (снять)",
+      "lotRestoreTitle": "Восстановить лот",
       "lotActionSuccess": "Лот обновлён",
+      "reporter": "Автор жалобы",
+      "statusLabels": {
+        "OPEN": "Открыта",
+        "IN_REVIEW": "В работе",
+        "RESOLVED": "Решена",
+        "DISMISSED": "Отклонена"
+      },
+      "targetLabels": {
+        "LOT": "Лот",
+        "USER": "Пользователь",
+        "REVIEW": "Отзыв",
+        "MESSAGE": "Сообщение"
+      },
+      "sections": {
+        "LOT": "Жалобы на лоты",
+        "USER": "Жалобы на пользователей",
+        "REVIEW": "Жалобы на отзывы",
+        "MESSAGE": "Жалобы на сообщения"
+      },
       "filters": {
         "status": {
           "ALL": "Все статусы",
@@ -1296,12 +1388,20 @@
         "resolve": "Решить",
         "dismiss": "Отклонить",
         "lotUnderReview": "Лот на проверку",
-        "lotRemove": "Снять лот"
+        "lotRemove": "Снять лот",
+        "lotApprove": "Одобрить лот",
+        "lotReject": "Отклонить лот",
+        "lotRestore": "Восстановить лот"
       }
     },
     "tickets": {
       "title": "Тикеты",
       "detailTitle": "Тикет",
+      "listTitle": "Все тикеты",
+      "listCount": "{count, plural, one {# тикет} few {# тикета} many {# тикетов} other {# тикетов}}",
+      "selectTitle": "Выберите тикет",
+      "selectDescription": "Выберите тикет в списке, чтобы ответить и решить.",
+      "backToList": "Все тикеты",
       "empty": "Тикетов нет",
       "error": "Не удалось загрузить тикеты",
       "messages": "Сообщения",
@@ -1310,9 +1410,29 @@
       "send": "Отправить",
       "messageSent": "Сообщение отправлено",
       "resolveTitle": "Решить тикет",
+      "resolveHint": "Выберите исход. Покупатель и продавец получат уведомление с вашим комментарием.",
       "actionSuccess": "Тикет обновлён",
       "actionError": "Не удалось обновить тикет",
       "timerPaused": "Автоподтверждение на паузе",
+      "resolutionLabel": "Решение",
+      "resolutionNoteLabel": "Комментарий для пользователей",
+      "statusLabels": {
+        "OPEN": "Открыт",
+        "IN_PROGRESS": "В работе",
+        "WAITING_USER": "Ждёт пользователя",
+        "RESOLVED": "Решён",
+        "CLOSED": "Закрыт"
+      },
+      "typeLabels": {
+        "ORDER_DISPUTE": "Спор по заказу",
+        "SUPPORT": "Поддержка"
+      },
+      "resolutionLabels": {
+        "NONE": "Нет",
+        "BUYER_FAVOR": "В пользу покупателя",
+        "SELLER_FAVOR": "В пользу продавца",
+        "NO_ACTION": "Без действий"
+      },
       "columns": {
         "subject": "Тема",
         "type": "Тип",
@@ -1324,8 +1444,11 @@
       },
       "resolve": {
         "buyer": "В пользу покупателя",
+        "buyerHint": "Оставить спор для возврата / в пользу покупателя",
         "seller": "В пользу продавца",
-        "none": "Без действий (вернуть таймер)"
+        "sellerHint": "При необходимости подтвердить заказ в пользу продавца",
+        "none": "Без действий",
+        "noneHint": "Вернуть прежний статус заказа и таймер"
       }
     }
   }

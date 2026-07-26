@@ -24,7 +24,7 @@ export function ModerationOverviewPage({ title }: Props) {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           <Link
-            href="/moderation/reports"
+            href="/moderation/reports/lots"
             className="surface-card block rounded-lg p-5 transition-colors hover:bg-muted/40"
           >
             <p className="text-sm text-muted-foreground">{t('openReports')}</p>

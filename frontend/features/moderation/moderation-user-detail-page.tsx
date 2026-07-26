@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
@@ -7,8 +8,8 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Spinner } from '@/components/ui/spinner';
 import { AuditLog } from '@/features/moderation/components/audit-log';
-import { ModerationShell } from '@/features/moderation/components/moderation-shell';
 import { ReasonActionDialog } from '@/features/moderation/components/reason-action-dialog';
+import { ModerationUsersPage } from '@/features/moderation/moderation-users-page';
 import { useAuth } from '@/hooks';
 import { useModerationMutations, useModUser } from '@/hooks/use-moderation';
 import type { UserRole } from '@/types/auth';
@@ -67,7 +68,7 @@ export function ModerationUserDetailPage({ title, userId }: Props) {
   };
 
   return (
-    <ModerationShell title={title}>
+    <ModerationUsersPage title={title}>
       {isLoading ? (
         <div className="flex justify-center py-16">
           <Spinner />
@@ -75,13 +76,24 @@ export function ModerationUserDetailPage({ title, userId }: Props) {
       ) : isError || !data ? (
         <EmptyState title={t('error')} />
       ) : (
-        <div className="space-y-6">
-          <section className="surface-card rounded-lg p-5">
+        <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-4 sm:p-5">
+          <Link
+            href="/moderation/users"
+            className="inline-block text-sm text-muted-foreground hover:text-foreground lg:hidden"
+          >
+            ← {t('backToList')}
+          </Link>
+
+          <section>
             <h2 className="text-lg font-semibold">
               {data.user.displayName}{' '}
-              <span className="text-muted-foreground">@{data.user.username}</span>
+              <span className="text-muted-foreground">
+                @{data.user.username}
+              </span>
             </h2>
-            <p className="mt-1 text-sm text-muted-foreground">{data.user.email}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {data.user.email}
+            </p>
             <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-3">
               <div>
                 <dt className="text-muted-foreground">{t('columns.role')}</dt>
@@ -102,7 +114,9 @@ export function ModerationUserDetailPage({ title, userId }: Props) {
                 type="button"
                 variant="secondary"
                 size="sm"
-                onClick={() => setAction({ type: 'status', status: 'SUSPENDED' })}
+                onClick={() =>
+                  setAction({ type: 'status', status: 'SUSPENDED' })
+                }
               >
                 {t('actions.suspend')}
               </Button>
@@ -145,7 +159,9 @@ export function ModerationUserDetailPage({ title, userId }: Props) {
                   type="button"
                   variant="secondary"
                   size="sm"
-                  onClick={() => setAction({ type: 'role', role: 'MODERATOR' })}
+                  onClick={() =>
+                    setAction({ type: 'role', role: 'MODERATOR' })
+                  }
                 >
                   {t('actions.makeModerator')}
                 </Button>
@@ -153,7 +169,7 @@ export function ModerationUserDetailPage({ title, userId }: Props) {
             </div>
           </section>
 
-          <section className="surface-card rounded-lg p-5">
+          <section>
             <h3 className="font-medium">{t('recentLots')}</h3>
             <ul className="mt-3 space-y-2 text-sm">
               {data.lots.length === 0 ? (
@@ -183,6 +199,6 @@ export function ModerationUserDetailPage({ title, userId }: Props) {
         onClose={() => setAction(null)}
         onConfirm={runAction}
       />
-    </ModerationShell>
+    </ModerationUsersPage>
   );
 }

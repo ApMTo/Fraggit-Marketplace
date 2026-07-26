@@ -1,15 +1,12 @@
 import type { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
-import { ModerationReportsPage } from '@/features/moderation';
+import { redirect } from 'next/navigation';
 import { requireModeratorUser } from '@/lib/auth.server';
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('moderation.reports');
-  return { title: `${t('title')} | Fraggit` };
-}
+export const metadata: Metadata = {
+  title: 'Reports | Fraggit',
+};
 
 export default async function Page() {
   await requireModeratorUser();
-  const t = await getTranslations('moderation.reports');
-  return <ModerationReportsPage title={t('title')} />;
+  redirect('/moderation/reports/lots');
 }

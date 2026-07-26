@@ -36,9 +36,33 @@ export const NOTIFICATION_KEYS = {
       body: 'items.orderApproved.buyer.body',
     },
   },
+  reportStatus: {
+    resolved: {
+      title: 'items.reportStatus.resolved.title',
+      body: 'items.reportStatus.resolved.body',
+    },
+    dismissed: {
+      title: 'items.reportStatus.dismissed.title',
+      body: 'items.reportStatus.dismissed.body',
+    },
+  },
+  ticketResolved: {
+    buyerFavor: {
+      title: 'items.ticketResolved.buyerFavor.title',
+      body: 'items.ticketResolved.buyerFavor.body',
+    },
+    sellerFavor: {
+      title: 'items.ticketResolved.sellerFavor.title',
+      body: 'items.ticketResolved.sellerFavor.body',
+    },
+    noAction: {
+      title: 'items.ticketResolved.noAction.title',
+      body: 'items.ticketResolved.noAction.body',
+    },
+  },
 } as const;
 
-/** English templates for offline email (params: {orderNumber}, {listingTitle}). */
+/** English templates for offline email (params: {orderNumber}, {listingTitle}, {orderPart}, {note}). */
 const EMAIL_EN: Record<string, string> = {
   [NOTIFICATION_KEYS.orderCreated.seller.title]: 'New order',
   [NOTIFICATION_KEYS.orderCreated.seller.body]:
@@ -58,15 +82,43 @@ const EMAIL_EN: Record<string, string> = {
   [NOTIFICATION_KEYS.orderApproved.buyer.title]: 'Order completed',
   [NOTIFICATION_KEYS.orderApproved.buyer.body]:
     'Order #{orderNumber} was completed successfully.',
+  [NOTIFICATION_KEYS.reportStatus.resolved.title]: 'Report resolved',
+  [NOTIFICATION_KEYS.reportStatus.resolved.body]:
+    'Your report was reviewed and marked as resolved.{note}',
+  [NOTIFICATION_KEYS.reportStatus.dismissed.title]: 'Report closed',
+  [NOTIFICATION_KEYS.reportStatus.dismissed.body]:
+    'Your report was reviewed and closed without action.{note}',
+  [NOTIFICATION_KEYS.ticketResolved.buyerFavor.title]: 'Decision ready',
+  [NOTIFICATION_KEYS.ticketResolved.buyerFavor.body]:
+    'Moderation decided in favor of the buyer{orderPart}.{note}',
+  [NOTIFICATION_KEYS.ticketResolved.sellerFavor.title]: 'Decision ready',
+  [NOTIFICATION_KEYS.ticketResolved.sellerFavor.body]:
+    'Moderation decided in favor of the seller{orderPart}.{note}',
+  [NOTIFICATION_KEYS.ticketResolved.noAction.title]: 'Case closed',
+  [NOTIFICATION_KEYS.ticketResolved.noAction.body]:
+    'Moderation closed the case without changing the outcome{orderPart}.{note}',
 };
 
 export function resolveNotificationEmailText(
   key: string,
   params: Record<string, string | number | undefined | null> = {},
 ): string {
+  const enriched = { ...params };
+  if (enriched.orderNumber && !enriched.orderPart) {
+    enriched.orderPart = ` for order #${enriched.orderNumber}`;
+  }
+  if (enriched.note && String(enriched.note).trim()) {
+    enriched.note = ` Note: ${String(enriched.note).trim()}`;
+  } else {
+    enriched.note = '';
+  }
+  if (!enriched.orderPart) {
+    enriched.orderPart = '';
+  }
+
   const template = EMAIL_EN[key] ?? key;
   return template.replace(/\{(\w+)\}/g, (_, name: string) => {
-    const value = params[name];
+    const value = enriched[name];
     return value == null ? '' : String(value);
   });
 }

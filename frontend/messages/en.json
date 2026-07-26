@@ -15,6 +15,7 @@
       "listings": "Listings",
       "orders": "Orders",
       "chat": "Chat",
+      "reports": "My reports",
       "profile": "Profile",
       "settings": "Settings",
       "admin": "Admin",
@@ -65,7 +66,54 @@
           "title": "Order completed",
           "body": "Order #{orderNumber} was completed successfully."
         }
+      },
+      "orderPart": " for order #{orderNumber}",
+      "noteSuffix": " Note: {note}",
+      "reportStatus": {
+        "resolved": {
+          "title": "Report resolved",
+          "body": "Your report was reviewed and marked as resolved.{note}"
+        },
+        "dismissed": {
+          "title": "Report closed",
+          "body": "Your report was reviewed and closed without action.{note}"
+        }
+      },
+      "ticketResolved": {
+        "buyerFavor": {
+          "title": "Decision ready",
+          "body": "Moderation decided in favor of the buyer{orderPart}.{note}"
+        },
+        "sellerFavor": {
+          "title": "Decision ready",
+          "body": "Moderation decided in favor of the seller{orderPart}.{note}"
+        },
+        "noAction": {
+          "title": "Case closed",
+          "body": "Moderation closed the case without changing the outcome{orderPart}.{note}"
+        }
       }
+    }
+  },
+  "myReports": {
+    "title": "My reports",
+    "subtitle": "Statuses of your reports and moderation replies",
+    "empty": "No reports yet",
+    "emptyHint": "When you report a lot, user, or message, it will show up here.",
+    "error": "Could not load reports",
+    "moderatorReply": "Moderation reply",
+    "noReply": "No comment provided",
+    "targetLabels": {
+      "LOT": "Lot",
+      "USER": "User",
+      "REVIEW": "Review",
+      "MESSAGE": "Message"
+    },
+    "statusLabels": {
+      "OPEN": "Open",
+      "IN_REVIEW": "In review",
+      "RESOLVED": "Resolved",
+      "DISMISSED": "Dismissed"
     }
   },
   "landing": {
@@ -278,7 +326,9 @@
     "orderCompleted": "Order completed",
     "confirmSuccess": "Order confirmed",
     "openDispute": "Open dispute",
-    "disputeActive": "Order is under review. Auto-confirm is paused.",
+    "disputeActive": "Order is under review. Auto-confirm is paused until moderation decides.",
+    "disputeActiveTitle": "Dispute in progress",
+    "disputeActiveHint": "Both sides wait for a staff decision. You will get a notification when the verdict is ready.",
     "guarantee": "Fraggit guarantee",
     "confirmDialog": {
       "title": "Confirm order",
@@ -1148,6 +1198,7 @@
   },
   "moderation": {
     "nav": {
+      "section": "Moderation",
       "overview": "Overview",
       "users": "Users",
       "lots": "Lots",
@@ -1158,8 +1209,8 @@
     "actions": {
       "cancel": "Cancel",
       "confirm": "Confirm",
-      "reason": "Reason",
-      "reasonPlaceholder": "Describe why this action is needed"
+      "reason": "Comment",
+      "reasonPlaceholder": "For verdicts this note is sent to the user in a notification"
     },
     "report": {
       "title": "Report",
@@ -1187,6 +1238,11 @@
     "users": {
       "title": "Users",
       "detailTitle": "User",
+      "listTitle": "All users",
+      "listCount": "{count, plural, one {# user} other {# users}}",
+      "selectTitle": "Select a user",
+      "selectDescription": "Choose a user from the list to review profile and take action.",
+      "backToList": "All users",
       "searchPlaceholder": "Search by username, email…",
       "empty": "No users found",
       "error": "Could not load users",
@@ -1213,6 +1269,11 @@
     },
     "lots": {
       "title": "Lots",
+      "listTitle": "All lots",
+      "listCount": "{count, plural, one {# lot} other {# lots}}",
+      "selectTitle": "Select a lot",
+      "selectDescription": "Choose a lot from the list to moderate and see its history.",
+      "backToList": "All lots",
       "searchPlaceholder": "Search lots…",
       "empty": "No lots found",
       "error": "Could not load lots",
@@ -1260,6 +1321,15 @@
       "title": "Reports",
       "empty": "No reports",
       "error": "Could not load reports",
+      "listTitle": "All reports",
+      "listCount": "{count, plural, one {# report} other {# reports}}",
+      "noActive": "No active reports",
+      "showClosed": "Show closed ({count})",
+      "hideClosed": "Hide closed",
+      "selectTitle": "Select a report",
+      "selectDescription": "Choose a report from the list to review details and take action.",
+      "backToList": "All reports",
+      "resolutionNote": "Resolution note",
       "reasonTitle": "Confirm report action",
       "actionSuccess": "Report updated",
       "actionError": "Could not update report",
@@ -1268,7 +1338,29 @@
       "lotStatus": "Lot: {status}",
       "lotUnderReviewTitle": "Put lot under review",
       "lotRemoveTitle": "Remove lot",
+      "lotApproveTitle": "Approve lot (back to sale)",
+      "lotRejectTitle": "Reject lot (remove)",
+      "lotRestoreTitle": "Restore lot",
       "lotActionSuccess": "Lot updated",
+      "reporter": "Reporter",
+      "statusLabels": {
+        "OPEN": "Open",
+        "IN_REVIEW": "In review",
+        "RESOLVED": "Resolved",
+        "DISMISSED": "Dismissed"
+      },
+      "targetLabels": {
+        "LOT": "Lot",
+        "USER": "User",
+        "REVIEW": "Review",
+        "MESSAGE": "Message"
+      },
+      "sections": {
+        "LOT": "Reports on lots",
+        "USER": "Reports on users",
+        "REVIEW": "Reports on reviews",
+        "MESSAGE": "Reports on messages"
+      },
       "filters": {
         "status": {
           "ALL": "All statuses",
@@ -1296,12 +1388,20 @@
         "resolve": "Resolve",
         "dismiss": "Dismiss",
         "lotUnderReview": "Lot under review",
-        "lotRemove": "Remove lot"
+        "lotRemove": "Remove lot",
+        "lotApprove": "Approve lot",
+        "lotReject": "Reject lot",
+        "lotRestore": "Restore lot"
       }
     },
     "tickets": {
       "title": "Tickets",
       "detailTitle": "Ticket",
+      "listTitle": "All tickets",
+      "listCount": "{count, plural, one {# ticket} other {# tickets}}",
+      "selectTitle": "Select a ticket",
+      "selectDescription": "Choose a ticket from the list to reply and resolve.",
+      "backToList": "All tickets",
       "empty": "No tickets",
       "error": "Could not load tickets",
       "messages": "Messages",
@@ -1310,9 +1410,29 @@
       "send": "Send",
       "messageSent": "Message sent",
       "resolveTitle": "Resolve ticket",
+      "resolveHint": "Choose an outcome. The buyer and seller will get a notification with your note.",
       "actionSuccess": "Ticket updated",
       "actionError": "Could not update ticket",
       "timerPaused": "Auto-confirm paused",
+      "resolutionLabel": "Decision",
+      "resolutionNoteLabel": "Note for users",
+      "statusLabels": {
+        "OPEN": "Open",
+        "IN_PROGRESS": "In progress",
+        "WAITING_USER": "Waiting for user",
+        "RESOLVED": "Resolved",
+        "CLOSED": "Closed"
+      },
+      "typeLabels": {
+        "ORDER_DISPUTE": "Order dispute",
+        "SUPPORT": "Support"
+      },
+      "resolutionLabels": {
+        "NONE": "None",
+        "BUYER_FAVOR": "Buyer favor",
+        "SELLER_FAVOR": "Seller favor",
+        "NO_ACTION": "No action"
+      },
       "columns": {
         "subject": "Subject",
         "type": "Type",
@@ -1324,8 +1444,11 @@
       },
       "resolve": {
         "buyer": "Buyer favor",
+        "buyerHint": "Refund path / keep disputed for buyer",
         "seller": "Seller favor",
-        "none": "No action (resume timer)"
+        "sellerHint": "Approve order for the seller when applicable",
+        "none": "No action",
+        "noneHint": "Restore previous order status and resume timer"
       }
     }
   }

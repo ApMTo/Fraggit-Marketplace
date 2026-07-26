@@ -615,6 +615,8 @@ enum NotificationType {
   ORDER_CREDENTIALS
   ORDER_APPROVED
   TICKET_REPLY
+  REPORT_STATUS
+  TICKET_RESOLVED
 }
 
 model Notification {

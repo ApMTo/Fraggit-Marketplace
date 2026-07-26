@@ -19,12 +19,14 @@ import {
   UpdateReportDto,
 } from '../dto/moderation-reports.dto';
 import { ModerationAuditService } from './moderation-audit.service';
+import { ModerationNotificationsService } from './moderation-notifications.service';
 
 @Injectable()
 export class ModerationReportsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: ModerationAuditService,
+    private readonly notifications: ModerationNotificationsService,
   ) {}
 
   async create(reporterId: string, dto: CreateReportDto) {
@@ -96,11 +98,36 @@ export class ModerationReportsService {
     return { items: enriched, total, page: query.page, limit: query.limit };
   }
 
+  async findMyReports(reporterId: string, query: FindReportsQueryDto) {
+    const where: Prisma.ReportWhereInput = {
+      reporterId,
+      ...(query.status ? { status: query.status } : {}),
+      ...(query.targetType ? { targetType: query.targetType } : {}),
+    };
+    const skip = (query.page - 1) * query.limit;
+
+    const [items, total] = await Promise.all([
+      this.prisma.report.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: query.limit,
+        select: MOD_REPORT_LIST_SELECT,
+      }),
+      this.prisma.report.count({ where }),
+    ]);
+
+    const enriched = await this.enrichReportTargets(items);
+
+    return { items: enriched, total, page: query.page, limit: query.limit };
+  }
+
   async update(actorId: string, reportId: string, dto: UpdateReportDto) {
     const report = await this.prisma.report.findUnique({
       where: { id: reportId },
       select: {
         id: true,
+        reporterId: true,
         status: true,
         assignedToId: true,
         resolvedById: true,
@@ -116,6 +143,9 @@ export class ModerationReportsService {
     const isClosing =
       nextStatus === ReportStatus.RESOLVED ||
       nextStatus === ReportStatus.DISMISSED;
+    const wasOpen =
+      report.status === ReportStatus.OPEN ||
+      report.status === ReportStatus.IN_REVIEW;
 
     const actionType =
       nextStatus === ReportStatus.DISMISSED
@@ -124,7 +154,7 @@ export class ModerationReportsService {
           ? ModerationActionType.REPORT_RESOLVE
           : ModerationActionType.REPORT_ASSIGN;
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const updated = await tx.report.update({
         where: { id: reportId },
         data: {
@@ -160,6 +190,21 @@ export class ModerationReportsService {
 
       return { report: updated };
     });
+
+    if (
+      wasOpen &&
+      (nextStatus === ReportStatus.RESOLVED ||
+        nextStatus === ReportStatus.DISMISSED)
+    ) {
+      await this.notifications.notifyReportStatus({
+        reporterId: report.reporterId,
+        reportId: report.id,
+        status: nextStatus,
+        note: result.report.resolutionNote,
+      });
+    }
+
+    return result;
   }
 
   async countOpen() {

@@ -27,6 +27,7 @@ import {
   UpdateTicketDto,
 } from '../dto/moderation-tickets.dto';
 import { ModerationAuditService } from './moderation-audit.service';
+import { ModerationNotificationsService } from './moderation-notifications.service';
 
 const OPEN_TICKET_STATUSES: TicketStatus[] = [
   TicketStatus.OPEN,
@@ -45,6 +46,7 @@ export class ModerationTicketsService {
     private readonly prisma: PrismaService,
     private readonly audit: ModerationAuditService,
     private readonly orderCompletion: OrderCompletionService,
+    private readonly notifications: ModerationNotificationsService,
   ) {}
 
   async create(reporterId: string, dto: CreateTicketDto) {
@@ -205,13 +207,15 @@ export class ModerationTicketsService {
     }
 
     const ticket = await this.requireTicket(ticketId);
+    const alreadyClosed =
+      ticket.status === TicketStatus.RESOLVED ||
+      ticket.status === TicketStatus.CLOSED;
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       if (
         ticket.type === TicketType.ORDER_DISPUTE &&
         ticket.orderId &&
-        ticket.status !== TicketStatus.RESOLVED &&
-        ticket.status !== TicketStatus.CLOSED
+        !alreadyClosed
       ) {
         await this.applyDisputeResolution(tx, ticket.orderId, dto.resolution);
       }
@@ -252,6 +256,28 @@ export class ModerationTicketsService {
 
       return { ticket: updated };
     });
+
+    if (!alreadyClosed) {
+      const recipientIds = [ticket.reporterId];
+      if (result.ticket.order) {
+        recipientIds.push(
+          result.ticket.order.buyerId,
+          result.ticket.order.sellerId,
+        );
+      }
+
+      await this.notifications.notifyTicketResolved({
+        recipientIds,
+        ticketId: result.ticket.id,
+        orderId: result.ticket.orderId,
+        orderNumber: result.ticket.order?.orderNumber,
+        listingTitle: result.ticket.order?.lot?.title,
+        resolution: dto.resolution,
+        note: result.ticket.resolutionNote,
+      });
+    }
+
+    return result;
   }
 
   async addMessage(

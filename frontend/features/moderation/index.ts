@@ -6,5 +6,6 @@ export { ModerationReportsPage } from './moderation-reports-page';
 export { ModerationTicketsPage } from './moderation-tickets-page';
 export { ModerationTicketDetailPage } from './moderation-ticket-detail-page';
 export { ModerationAuditPage } from './moderation-audit-page';
+export { MyReportsPage } from './my-reports-page';
 export { ReportDialog } from './components/report-dialog';
 export { AuditLog } from './components/audit-log';

@@ -405,9 +405,13 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
             ) : null}
 
             {order.status === 'DISPUTED' ? (
-              <p className="text-center text-xs text-destructive">
-                {t('disputeActive')}
-              </p>
+              <div className="space-y-2 rounded-[var(--radius-md)] border border-destructive/30 bg-destructive/5 p-3 text-center">
+                <p className="text-sm font-semibold text-destructive">
+                  {t('disputeActiveTitle')}
+                </p>
+                <p className="text-xs text-muted">{t('disputeActive')}</p>
+                <p className="text-xs text-muted">{t('disputeActiveHint')}</p>
+              </div>
             ) : null}
 
             {canDispute ? (

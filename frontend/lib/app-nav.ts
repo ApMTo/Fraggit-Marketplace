@@ -4,6 +4,7 @@ export type AppNavItemId =
   | 'listings'
   | 'orders'
   | 'chat'
+  | 'reports'
   | 'profile'
   | 'moderation'
   | 'admin';
@@ -27,6 +28,12 @@ const APP_NAV_ITEMS: AppNavItem[] = [
     showWhen: 'authenticated',
   },
   { id: 'chat', href: '/chat', group: 'account', showWhen: 'authenticated' },
+  {
+    id: 'reports',
+    href: '/reports',
+    group: 'account',
+    showWhen: 'authenticated',
+  },
   {
     id: 'profile',
     href: '/profile',

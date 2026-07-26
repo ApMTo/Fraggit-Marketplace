@@ -227,6 +227,15 @@ export class ModerationController {
     return this.reports.create(user.id, dto);
   }
 
+  @Get('reports/mine')
+  @ApiOperation({ summary: 'List reports created by the current user' })
+  findMyReports(
+    @CurrentUser() user: AuthUser,
+    @Query() query: FindReportsQueryDto,
+  ) {
+    return this.reports.findMyReports(user.id, query);
+  }
+
   @Get('reports')
   @Roles(UserRole.MODERATOR)
   findReports(@Query() query: FindReportsQueryDto) {

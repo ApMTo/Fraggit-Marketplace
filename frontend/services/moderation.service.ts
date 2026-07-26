@@ -31,6 +31,8 @@ export const moderationKeys = {
     [...moderationKeys.all, 'lots', params] as const,
   reports: (params: Record<string, unknown>) =>
     [...moderationKeys.all, 'reports', params] as const,
+  myReports: (params: Record<string, unknown>) =>
+    [...moderationKeys.all, 'my-reports', params] as const,
   tickets: (params: Record<string, unknown>) =>
     [...moderationKeys.all, 'tickets', params] as const,
   ticket: (id: string) => [...moderationKeys.all, 'ticket', id] as const,
@@ -168,6 +170,19 @@ export const moderationService = {
   }): Promise<Paginated<ModReport>> {
     const { data } = await api.get<Paginated<ModReport>>(
       '/moderation/reports',
+      { params },
+    );
+    return data;
+  },
+
+  async getMyReports(params: {
+    status?: ReportStatus;
+    targetType?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<Paginated<ModReport>> {
+    const { data } = await api.get<Paginated<ModReport>>(
+      '/moderation/reports/mine',
       { params },
     );
     return data;

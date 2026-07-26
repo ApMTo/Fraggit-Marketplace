@@ -20,10 +20,10 @@ function notificationParams(
   const record = metadata as Record<string, unknown>;
   const params: Record<string, string> = {};
 
-  for (const key of ['orderNumber', 'listingTitle'] as const) {
+  for (const key of ['orderNumber', 'listingTitle', 'note'] as const) {
     const value = record[key];
-    if (typeof value === 'string') {
-      params[key] = value;
+    if (typeof value === 'string' || typeof value === 'number') {
+      params[key] = String(value);
     }
   }
 

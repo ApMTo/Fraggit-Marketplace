@@ -72,6 +72,21 @@ export function useModReports(params: {
   });
 }
 
+export function useMyReports(params: {
+  status?: ReportStatus;
+  targetType?: string;
+  page?: number;
+  limit?: number;
+  enabled?: boolean;
+} = {}) {
+  const { enabled = true, ...query } = params;
+  return useQuery({
+    queryKey: moderationKeys.myReports(query),
+    queryFn: () => moderationService.getMyReports(query),
+    enabled,
+  });
+}
+
 export function useModTickets(params: {
   status?: TicketStatus;
   page?: number;
