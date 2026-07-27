@@ -12,6 +12,7 @@ import { SellNavButton } from '@/components/layout/sell-nav-button';
 import { BrandButton, SecondaryButton } from '@/components/ui/nav-button';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/providers/AuthProvider';
+import { isStaffRole } from '@/lib/staff';
 
 function subscribeToClient() {
   return () => {};
@@ -112,7 +113,7 @@ function MobileMenuContent() {
         <div className="space-y-4 border-t border-border bg-surface px-5 py-4">
           <div className="flex items-center justify-between gap-3">
             <HeaderPreferences />
-            {isAuthenticated ? (
+            {isAuthenticated && !isStaffRole(user?.role) ? (
               <SellNavButton onClick={close} />
             ) : null}
           </div>

@@ -96,6 +96,40 @@ export class ModerationNotificationsService {
     );
   }
 
+  async notifyLotDisputeMessage(params: {
+    recipientIds: string[];
+    roomId: string;
+    lotId: string;
+    lotTitle: string;
+    reportId?: string;
+    authorUsername?: string;
+    preview?: string;
+    href: string;
+  }): Promise<void> {
+    const keys = NOTIFICATION_KEYS.lotDisputeMessage;
+    const uniqueRecipients = [...new Set(params.recipientIds)];
+    const preview = params.preview?.trim() ? ` ${params.preview.trim()}` : '';
+
+    await this.deliver(
+      uniqueRecipients.map((userId): CreateNotificationInput => ({
+        userId,
+        type: NotificationType.LOT_DISPUTE_MESSAGE,
+        title: keys.title,
+        body: keys.body,
+        href: params.href,
+        entityType: 'lot_dispute_room',
+        entityId: params.roomId,
+        metadata: {
+          lotId: params.lotId,
+          listingTitle: params.lotTitle,
+          reportId: params.reportId,
+          authorUsername: params.authorUsername,
+          preview,
+        },
+      })),
+    );
+  }
+
   private async deliver(inputs: CreateNotificationInput[]): Promise<void> {
     const notifications = await this.notificationsService.createMany(inputs);
 

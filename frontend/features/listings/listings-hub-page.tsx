@@ -7,10 +7,11 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Spinner } from '@/components/ui/spinner';
 import { CategoryBrowseCard } from '@/features/listings/components/category-browse-card';
 import { useAuth, useCategories } from '@/hooks';
+import { isStaffRole } from '@/lib/staff';
 
 export function ListingsHubPage() {
   const t = useTranslations('listings');
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { data: categories, isLoading, isError } = useCategories();
 
   return (
@@ -30,7 +31,7 @@ export function ListingsHubPage() {
           </p>
         </div>
 
-        {isAuthenticated ? (
+        {isAuthenticated && !isStaffRole(user?.role) ? (
           <Link
             href="/listings/new"
             className="btn-primary inline-flex h-11 shrink-0 items-center gap-2 px-5 text-sm"

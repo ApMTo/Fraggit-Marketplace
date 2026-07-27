@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { ModerationReportsPage } from '@/features/moderation';
-import { requireModeratorUser } from '@/lib/auth.server';
+import { requireAdminUser } from '@/lib/auth.server';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('moderation.reports');
@@ -9,7 +9,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
-  await requireModeratorUser();
+  await requireAdminUser();
   const t = await getTranslations('moderation.reports');
   return (
     <ModerationReportsPage title={t('sections.LOT')} targetType="LOT" />

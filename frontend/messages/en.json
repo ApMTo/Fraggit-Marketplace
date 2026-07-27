@@ -92,8 +92,49 @@
           "title": "Case closed",
           "body": "Moderation closed the case without changing the outcome{orderPart}.{note}"
         }
+      },
+      "lotDisputeMessage": {
+        "title": "Mediation chat",
+        "body": "New message about {listingTitle}.{preview}"
       }
     }
+  },
+  "lotDispute": {
+    "title": "Mediation",
+    "subtitle": "Discuss the report with the seller, buyer, and moderation. Everyone in this chat is notified about new messages.",
+    "participants": "Participants",
+    "messagePlaceholder": "Write a message…",
+    "send": "Send",
+    "sendError": "Could not send the message",
+    "loadError": "Could not load the mediation chat",
+    "empty": "No messages yet",
+    "closed": "Closed",
+    "closedHint": "This mediation chat is closed.",
+    "retry": "Try again",
+    "noDisputeRoom": "Dispute chat is not available for this order yet.",
+    "systemAuthor": "System",
+    "moderatorAuthor": "Moderator · @{username}",
+    "adminAuthor": "Admin · @{username}",
+    "unknownAuthor": "Unknown",
+    "reportMeta": "Report from @{reporter} · {status}",
+    "reportStatus": {
+      "OPEN": "Open",
+      "IN_REVIEW": "In review",
+      "RESOLVED": "Resolved",
+      "DISMISSED": "Dismissed"
+    },
+    "system": {
+      "reportOpened": "Report filed by @{reporter}. Moderation may join this chat.",
+      "reportInReview": "Moderation marked the report as in review.",
+      "reportClosed": "The report was closed. This chat is read-only.",
+      "ticketOpened": "Order dispute opened by @{reporter}. Buyer, seller, and moderation can discuss here.",
+      "ticketClosed": "The dispute was resolved. This chat is read-only.",
+      "ticketClaimed": "@{assignee} took this ticket."
+    },
+    "staffClaimRequired": "Take the ticket above before you can write here as staff.",
+    "staffPartyConflict": "You are a party in this dispute and cannot write here as moderation.",
+    "orderTitle": "Dispute chat",
+    "orderSubtitle": "You, the other party, and moderation. New messages notify everyone in this chat."
   },
   "myReports": {
     "title": "My reports",
@@ -598,6 +639,7 @@
     "filterNumberPlaceholder": "Enter number…",
     "createLot": "Create lot",
     "sell": "Sell",
+    "staffCannotTrade": "Staff accounts cannot buy or sell on the marketplace.",
     "table": {
       "attributes": "Details",
       "seller": "Seller",
@@ -610,6 +652,7 @@
       "title": "Create a lot",
       "subtitle": "Choose a category and fill in the required attributes.",
       "back": "Back to listings",
+      "staffBlocked": "Staff accounts cannot create listings. Use the moderation panel for disputes and reports.",
       "sectionBasics": "Basics",
       "sectionCategory": "Category",
       "sectionAttributes": "Attributes",
@@ -1070,6 +1113,8 @@
     "unknown_filter_key": "Unknown filter \"{key}\".",
     "invalid_filter_value": "Invalid filter value for \"{key}\".",
     "order_cannot_buy_own_lot": "You cannot buy your own listing.",
+    "staff_cannot_trade": "Staff accounts cannot buy or sell on the marketplace.",
+    "ticket_claim_party_conflict": "You cannot take this ticket because you are the buyer or seller in this dispute.",
     "insufficient_stock": "Not enough stock for this order.",
     "order_not_found": "Order not found.",
     "order_forbidden": "You do not have access to this order.",
@@ -1086,6 +1131,10 @@
     "dispute_already_open": "A dispute is already open for this order.",
     "ticket_not_found": "Ticket not found.",
     "ticket_forbidden": "You do not have access to this ticket.",
+    "lot_dispute_not_found": "Mediation chat not found.",
+    "lot_dispute_forbidden": "You do not have access to this mediation chat.",
+    "lot_dispute_closed": "This mediation chat is closed.",
+    "ticket_claim_required": "Take this ticket before replying in the dispute chat.",
     "invalid_ticket_resolution": "Choose a valid ticket resolution.",
     "review_forbidden": "You cannot review this order.",
     "review_order_not_approved": "You can only review completed orders.",
@@ -1330,6 +1379,28 @@
       "selectDescription": "Choose a report from the list to review details and take action.",
       "backToList": "All reports",
       "resolutionNote": "Resolution note",
+      "conversation": {
+        "title": "Conversation",
+        "privateTitle": "Private chat (buyer & seller)",
+        "auditNotice": "Opening a private conversation is written to the audit log.",
+        "reveal": "Show conversation",
+        "participants": "Participants",
+        "reportedBadge": "Reported message",
+        "deletedSender": "Deleted user",
+        "imageMessage": "Image",
+        "systemMessage": "System message",
+        "openAttachment": "Open attachment",
+        "error": "Could not load the conversation",
+        "noOrder": "No purchase on this lot yet — there is no buyer–seller chat.",
+        "noConversation": "Buyer and seller have not started a private chat yet.",
+        "noMessages": "The private chat has no messages yet."
+      },
+      "lotDispute": {
+        "title": "Mediation chat",
+        "hint": "Visible to the reporter, seller, buyer (if any), and staff. Messages notify participants.",
+        "orderHint": "Shared with buyer, seller, and staff. Messages notify all participants.",
+        "error": "Could not load the mediation chat"
+      },
       "reasonTitle": "Confirm report action",
       "actionSuccess": "Report updated",
       "actionError": "Could not update report",
@@ -1400,7 +1471,7 @@
       "listTitle": "All tickets",
       "listCount": "{count, plural, one {# ticket} other {# tickets}}",
       "selectTitle": "Select a ticket",
-      "selectDescription": "Choose a ticket from the list to reply and resolve.",
+      "selectDescription": "Pick a ticket, take it if you are staff, then use the dispute chat with buyer and seller.",
       "backToList": "All tickets",
       "empty": "No tickets",
       "error": "Could not load tickets",
@@ -1442,6 +1513,23 @@
         "lot": "Lot",
         "timerPaused": "Timer"
       },
+      "workflow": {
+        "title": "Dispute parties",
+        "staffHint": "Staff cannot buy or sell on the platform — you join only as moderation. Take the ticket to speak in the shared dispute chat.",
+        "buyer": "Buyer",
+        "seller": "Seller",
+        "openedBy": "Opened by",
+        "assignee": "Assignee",
+        "unassigned": "Not assigned",
+        "claim": "Take ticket",
+        "claimSuccess": "Ticket assigned to you",
+        "claimError": "Could not take ticket",
+        "youAreAssignee": "You are handling this ticket",
+        "claimBeforeReply": "Take the ticket to reply in the dispute chat",
+        "partyCannotClaim": "You are a party in this dispute and cannot take the ticket as moderation."
+      },
+      "listAssignee": "Assignee: {name}",
+      "listUnassigned": "Unassigned",
       "resolve": {
         "buyer": "Buyer favor",
         "buyerHint": "Refund path / keep disputed for buyer",

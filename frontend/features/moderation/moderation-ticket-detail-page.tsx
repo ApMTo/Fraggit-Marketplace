@@ -6,31 +6,21 @@ import { useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { ReasonActionDialog } from '@/features/moderation/components/reason-action-dialog';
+import { TicketDisputeWorkflow } from '@/features/moderation/components/ticket-dispute-workflow';
+import { TicketLotMediation } from '@/features/moderation/components/ticket-lot-mediation';
+import { TicketPrivateConversation } from '@/features/moderation/components/ticket-private-conversation';
 import { ModerationTicketsPage } from '@/features/moderation/moderation-tickets-page';
 import { useAuth } from '@/hooks';
+import { isStaffRole } from '@/lib/staff';
 import { useModerationMutations, useModTicket } from '@/hooks/use-moderation';
 import type { TicketResolution, TicketStatus } from '@/types/moderation';
 import type { UserRole as AuthRole } from '@/types/auth';
 
 type Props = { title: string; ticketId: string };
 
-const ADMIN_ROLES: AuthRole[] = [
-  'MODERATOR',
-  'ADMIN',
-  'SUPER_ADMIN',
-  'OWNER',
-];
-
-type TicketMessage = {
-  id: string;
-  body: string;
-  isInternal: boolean;
-  createdAt: string;
-  author: { username: string; displayName: string };
-};
+const ADMIN_ROLES: AuthRole[] = ['ADMIN', 'SUPER_ADMIN', 'OWNER'];
 
 function statusTone(status: TicketStatus): string {
   switch (status) {
@@ -54,13 +44,18 @@ export function ModerationTicketDetailPage({ title, ticketId }: Props) {
   const { user } = useAuth();
   const { data, isLoading, isError } = useModTicket(ticketId);
   const mutations = useModerationMutations();
-  const [message, setMessage] = useState('');
   const [resolveTo, setResolveTo] = useState<TicketResolution | null>(null);
 
+  const ticket = data as typeof data | undefined;
   const canResolve = user && ADMIN_ROLES.includes(user.role);
-  const ticket = data as
-    | (typeof data & { messages?: TicketMessage[] })
-    | undefined;
+  const isStaff = isStaffRole(user?.role);
+  const isAssignee = Boolean(user && ticket?.assigneeId === user.id);
+  const isDisputeParty = Boolean(
+    user &&
+      ticket?.order &&
+      (ticket.order.buyerId === user.id ||
+        ticket.order.sellerId === user.id),
+  );
 
   return (
     <ModerationTicketsPage title={title}>
@@ -157,6 +152,28 @@ export function ModerationTicketDetailPage({ title, ticketId }: Props) {
               ) : null}
             </dl>
 
+            {ticket.type === 'ORDER_DISPUTE' && user ? (
+              <div className="mt-5">
+                <TicketDisputeWorkflow
+                  ticket={ticket}
+                  ticketId={ticketId}
+                  currentUserId={user.id}
+                  currentUserRole={user.role}
+                />
+              </div>
+            ) : null}
+
+            {ticket.type === 'ORDER_DISPUTE' ? (
+              <div className="mt-5">
+                <TicketLotMediation
+                  ticketId={ticketId}
+                  staffReplyLocked={Boolean(
+                    isStaff && (!isAssignee || isDisputeParty),
+                  )}
+                />
+              </div>
+            ) : null}
+
             {canResolve && ticket.status !== 'RESOLVED' ? (
               <div className="mt-5 space-y-3 border-t border-border/60 pt-4">
                 <p className="text-sm text-muted-foreground">{t('resolveHint')}</p>
@@ -199,48 +216,9 @@ export function ModerationTicketDetailPage({ title, ticketId }: Props) {
             ) : null}
           </section>
 
-          <section>
-            <h3 className="font-medium">{t('messages')}</h3>
-            <ul className="mt-3 space-y-3">
-              {(ticket.messages ?? []).map((msg: TicketMessage) => (
-                <li
-                  key={msg.id}
-                  className="rounded-md border border-border/70 p-3 text-sm"
-                >
-                  <p className="text-xs text-muted-foreground">
-                    @{msg.author.username}
-                    {msg.isInternal ? ` · ${t('internal')}` : ''}
-                  </p>
-                  <p className="mt-1 whitespace-pre-wrap">{msg.body}</p>
-                </li>
-              ))}
-            </ul>
-
-            <form
-              className="mt-4 flex gap-2"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                if (message.trim().length < 1) return;
-                try {
-                  await mutations.addTicketMessage.mutateAsync({
-                    id: ticketId,
-                    payload: { body: message.trim(), isInternal: false },
-                  });
-                  setMessage('');
-                  toast.success(t('messageSent'));
-                } catch {
-                  toast.error(t('actionError'));
-                }
-              }}
-            >
-              <Input
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder={t('messagePlaceholder')}
-              />
-              <Button type="submit">{t('send')}</Button>
-            </form>
-          </section>
+          {ticket.type === 'ORDER_DISPUTE' ? (
+            <TicketPrivateConversation ticketId={ticketId} />
+          ) : null}
         </div>
       )}
 

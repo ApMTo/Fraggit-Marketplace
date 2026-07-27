@@ -11,12 +11,14 @@ import { Logo } from '@/components/layout/logo';
 import { BrandButton, SecondaryButton } from '@/components/ui/nav-button';
 import { ChatNavIcon } from '@/features/chat/components/chat-nav-icon';
 import { NotificationsBell } from '@/features/notifications/components/notifications-bell';
+import { isStaffRole } from '@/lib/staff';
 import { useAuth } from '@/providers/AuthProvider';
 
 export function AppHeader() {
   const t = useTranslations('auth');
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const showAuthChrome = !isLoading && isAuthenticated;
+  const showSell = showAuthChrome && !isStaffRole(user?.role);
 
   return (
     <header className="glass-header sticky top-0 z-50 border-b border-border">
@@ -51,7 +53,7 @@ export function AppHeader() {
                   className="mx-0.5 hidden h-5 w-px bg-border sm:block"
                   aria-hidden="true"
                 />
-                <SellNavButton className="size-p" />
+                {showSell ? <SellNavButton className="size-p" /> : null}
                 <UserMenu />
               </>
             ) : (

@@ -10,6 +10,7 @@ import {
   Prisma,
   ReportStatus,
   ReportTargetType,
+  UserRole,
 } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { MOD_REPORT_LIST_SELECT } from '../constants/moderation.select';
@@ -18,6 +19,10 @@ import {
   FindReportsQueryDto,
   UpdateReportDto,
 } from '../dto/moderation-reports.dto';
+import {
+  allowedReportTargets,
+  assertCanHandleReportTarget,
+} from '../policies/moderation-policy';
 import { ModerationAuditService } from './moderation-audit.service';
 import { ModerationNotificationsService } from './moderation-notifications.service';
 
@@ -54,7 +59,7 @@ export class ModerationReportsService {
     }
 
     try {
-      return await this.prisma.report.create({
+      const report = await this.prisma.report.create({
         data: {
           reporterId,
           targetType: dto.targetType,
@@ -64,6 +69,8 @@ export class ModerationReportsService {
         },
         select: MOD_REPORT_LIST_SELECT,
       });
+
+      return report;
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -75,10 +82,14 @@ export class ModerationReportsService {
     }
   }
 
-  async findReports(query: FindReportsQueryDto) {
+  async findReports(query: FindReportsQueryDto, actorRole: UserRole) {
+    if (query.targetType) {
+      assertCanHandleReportTarget(actorRole, query.targetType);
+    }
+
     const where: Prisma.ReportWhereInput = {
       ...(query.status ? { status: query.status } : {}),
-      ...(query.targetType ? { targetType: query.targetType } : {}),
+      targetType: query.targetType ?? { in: allowedReportTargets(actorRole) },
     };
     const skip = (query.page - 1) * query.limit;
 
@@ -122,12 +133,18 @@ export class ModerationReportsService {
     return { items: enriched, total, page: query.page, limit: query.limit };
   }
 
-  async update(actorId: string, reportId: string, dto: UpdateReportDto) {
+  async update(
+    actorId: string,
+    actorRole: UserRole,
+    reportId: string,
+    dto: UpdateReportDto,
+  ) {
     const report = await this.prisma.report.findUnique({
       where: { id: reportId },
       select: {
         id: true,
         reporterId: true,
+        targetType: true,
         status: true,
         assignedToId: true,
         resolvedById: true,
@@ -138,6 +155,8 @@ export class ModerationReportsService {
     if (!report) {
       throw new NotFoundException({ code: 'errors.report_not_found' });
     }
+
+    assertCanHandleReportTarget(actorRole, report.targetType);
 
     const nextStatus = dto.status ?? report.status;
     const isClosing =
@@ -207,10 +226,11 @@ export class ModerationReportsService {
     return result;
   }
 
-  async countOpen() {
+  async countOpen(actorRole: UserRole) {
     return this.prisma.report.count({
       where: {
         status: { in: [ReportStatus.OPEN, ReportStatus.IN_REVIEW] },
+        targetType: { in: allowedReportTargets(actorRole) },
       },
     });
   }

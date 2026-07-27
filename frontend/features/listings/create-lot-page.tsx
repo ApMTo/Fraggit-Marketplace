@@ -27,7 +27,9 @@ import {
   useListingFilterAttributes,
   useSubcategories,
 } from '@/hooks';
+import { useAuth } from '@/providers/AuthProvider';
 import { resolveApiError } from '@/lib/api-errors';
+import { isStaffRole } from '@/lib/staff';
 import type { AttributeDefinitionPublic, CategoryPublic } from '@/types/category';
 import type { LotAttributeInputValue, LotType } from '@/types/lot';
 import {
@@ -56,6 +58,8 @@ export function CreateLotPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const createLot = useCreateLot();
+  const { user } = useAuth();
+  const staffCannotTrade = isStaffRole(user?.role);
   const previewInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
@@ -337,6 +341,21 @@ export function CreateLotPage() {
     (formik.errors.attributes as Record<string, string> | undefined) ?? {};
   const attributeTouched =
     (formik.touched.attributes as Record<string, boolean> | undefined) ?? {};
+
+  if (staffCannotTrade) {
+    return (
+      <div className="mx-auto flex w-full max-w-[760px] flex-col gap-6 px-5 py-10">
+        <Link
+          href="/listings"
+          className="inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" aria-hidden="true" />
+          {t('back')}
+        </Link>
+        <p className="text-sm text-muted-foreground">{t('staffBlocked')}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-[760px] flex-col gap-6 px-5 py-10">

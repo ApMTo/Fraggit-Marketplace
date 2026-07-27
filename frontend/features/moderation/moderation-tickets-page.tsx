@@ -101,6 +101,15 @@ export function ModerationTicketsPage({ title, children }: Props) {
                           {t(`statusLabels.${ticket.status}`)}
                         </span>
                         <span>@{ticket.reporter.username}</span>
+                        {ticket.type === 'ORDER_DISPUTE' ? (
+                          <span>
+                            {ticket.assignee
+                              ? t('listAssignee', {
+                                  name: `@${ticket.assignee.username}`,
+                                })
+                              : t('listUnassigned')}
+                          </span>
+                        ) : null}
                       </span>
                     </Link>
                   </li>

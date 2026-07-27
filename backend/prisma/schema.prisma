@@ -73,6 +73,8 @@ model User {
   ticketsFiled    Ticket[] @relation("TicketsFiled")
   ticketsAssigned Ticket[] @relation("TicketsAssigned")
   ticketMessages  TicketMessage[]
+
+  lotDisputeMessages LotDisputeMessage[]
 }
 
 enum AttributeType {
@@ -214,6 +216,7 @@ model Lot {
   attributes LotAttributeValue[]
   images     LotImage[]
   orders     Order[]
+  disputeRooms LotDisputeRoom[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -305,6 +308,8 @@ model Order {
   review Review?
 
   tickets Ticket[]
+
+  disputeRooms LotDisputeRoom[]
 
   @@index([lotId])
   @@index([buyerId])
@@ -472,6 +477,8 @@ model Report {
 
   resolutionNote String? @db.Text
 
+  disputeRoom LotDisputeRoom?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -482,12 +489,68 @@ model Report {
   @@index([assignedToId])
 }
 
+enum LotDisputeRoomStatus {
+  OPEN
+  CLOSED
+}
+
+enum LotDisputeMessageKind {
+  TEXT
+  SYSTEM
+}
+
+model LotDisputeRoom {
+  id String @id @default(uuid())
+
+  lotId String
+  lot   Lot @relation(fields: [lotId], references: [id], onDelete: Cascade)
+
+  reportId String? @unique
+  report   Report? @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  orderId String?
+  order   Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  ticketId String? @unique
+  ticket   Ticket? @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  status LotDisputeRoomStatus @default(OPEN)
+
+  messages LotDisputeMessage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([lotId, status])
+  @@index([orderId, status])
+}
+
+model LotDisputeMessage {
+  id String @id @default(uuid())
+
+  roomId String
+  room   LotDisputeRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  authorId String?
+  author   User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  kind     LotDisputeMessageKind
+  body     String                @db.Text
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([roomId, createdAt])
+  @@index([authorId])
+}
+
 enum ModerationTargetType {
   USER
   LOT
   REVIEW
   REPORT
   TICKET
+  CONVERSATION
 }
 
 enum ModerationActionType {
@@ -507,6 +570,7 @@ enum ModerationActionType {
   TICKET_UPDATE
   TICKET_RESOLVE
   TICKET_MESSAGE
+  CHAT_VIEW
 }
 
 model ModerationAction {
@@ -586,6 +650,8 @@ model Ticket {
 
   messages TicketMessage[]
 
+  disputeRoom LotDisputeRoom?
+
   @@index([status, createdAt])
   @@index([orderId])
   @@index([reporterId, createdAt])
@@ -617,6 +683,7 @@ enum NotificationType {
   TICKET_REPLY
   REPORT_STATUS
   TICKET_RESOLVED
+  LOT_DISPUTE_MESSAGE
 }
 
 model Notification {

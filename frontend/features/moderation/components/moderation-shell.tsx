@@ -3,36 +3,59 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { useAuth } from '@/hooks';
+import type { UserRole } from '@/types/auth';
 import { cn } from '@/lib/utils';
 
-const LINKS = [
-  { href: '/moderation', id: 'overview' as const, exact: true },
-  { href: '/moderation/users', id: 'users' as const },
-  { href: '/moderation/lots', id: 'lots' as const },
-  { href: '/moderation/tickets', id: 'tickets' as const },
-  { href: '/moderation/audit', id: 'audit' as const },
+const ADMIN_ROLES: UserRole[] = ['ADMIN', 'SUPER_ADMIN', 'OWNER'];
+
+type NavLink = {
+  href: string;
+  id: 'overview' | 'users' | 'lots' | 'tickets' | 'audit';
+  exact?: boolean;
+  adminOnly?: boolean;
+};
+
+type ReportLink = {
+  href: string;
+  target: 'LOT' | 'USER' | 'REVIEW' | 'MESSAGE';
+  match: string;
+  adminOnly?: boolean;
+};
+
+const PRIMARY_LINKS: NavLink[] = [
+  { href: '/moderation', id: 'overview', exact: true },
+  { href: '/moderation/users', id: 'users' },
+  { href: '/moderation/lots', id: 'lots', adminOnly: true },
 ];
 
-const REPORT_LINKS = [
+const SECONDARY_LINKS: NavLink[] = [
+  { href: '/moderation/tickets', id: 'tickets' },
+  { href: '/moderation/audit', id: 'audit' },
+];
+
+const REPORT_LINKS: ReportLink[] = [
   {
     href: '/moderation/reports/lots',
-    target: 'LOT' as const,
+    target: 'LOT',
     match: '/moderation/reports/lots',
+    adminOnly: true,
   },
   {
     href: '/moderation/reports/users',
-    target: 'USER' as const,
+    target: 'USER',
     match: '/moderation/reports/users',
   },
   {
     href: '/moderation/reports/reviews',
-    target: 'REVIEW' as const,
+    target: 'REVIEW',
     match: '/moderation/reports/reviews',
   },
   {
     href: '/moderation/reports/messages',
-    target: 'MESSAGE' as const,
+    target: 'MESSAGE',
     match: '/moderation/reports/messages',
+    adminOnly: true,
   },
 ];
 
@@ -45,6 +68,15 @@ export function ModerationShell({ title, children }: ModerationShellProps) {
   const pathname = usePathname();
   const t = useTranslations('moderation.nav');
   const tReports = useTranslations('moderation.reports');
+  const { user } = useAuth();
+
+  const isAdmin = Boolean(user && ADMIN_ROLES.includes(user.role));
+  const isVisible = (link: { adminOnly?: boolean }) =>
+    isAdmin || !link.adminOnly;
+
+  const primaryLinks = PRIMARY_LINKS.filter(isVisible);
+  const secondaryLinks = SECONDARY_LINKS.filter(isVisible);
+  const reportLinks = REPORT_LINKS.filter(isVisible);
 
   return (
     <div className="mx-auto w-full max-w-site px-4 py-6 sm:px-6 sm:py-8">
@@ -54,7 +86,7 @@ export function ModerationShell({ title, children }: ModerationShellProps) {
             {t('section')}
           </p>
           <nav className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
-            {LINKS.slice(0, 3).map((link) => {
+            {primaryLinks.map((link) => {
               const active = link.exact
                 ? pathname === link.href
                 : pathname === link.href ||
@@ -81,7 +113,7 @@ export function ModerationShell({ title, children }: ModerationShellProps) {
                 {t('reports')}
               </p>
               <div className="flex flex-col gap-0.5">
-                {REPORT_LINKS.map((link) => {
+                {reportLinks.map((link) => {
                   const active = pathname === link.match;
                   return (
                     <Link
@@ -102,7 +134,7 @@ export function ModerationShell({ title, children }: ModerationShellProps) {
             </div>
 
             <div className="flex gap-1 lg:hidden">
-              {REPORT_LINKS.map((link) => {
+              {reportLinks.map((link) => {
                 const active = pathname === link.match;
                 return (
                   <Link
@@ -121,7 +153,7 @@ export function ModerationShell({ title, children }: ModerationShellProps) {
               })}
             </div>
 
-            {LINKS.slice(3).map((link) => {
+            {secondaryLinks.map((link) => {
               const active =
                 pathname === link.href ||
                 pathname.startsWith(`${link.href}/`);

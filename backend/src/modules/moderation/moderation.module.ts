@@ -6,6 +6,8 @@ import { OrdersModule } from '../orders/orders.module';
 import { SessionsModule } from '../sessions/sessions.module';
 import { ModerationController } from './moderation.controller';
 import { ModerationAuditService } from './services/moderation-audit.service';
+import { ModerationChatService } from './services/moderation-chat.service';
+import { ModerationLotDisputeService } from './services/moderation-lot-dispute.service';
 import { ModerationLotsService } from './services/moderation-lots.service';
 import { ModerationNotificationsService } from './services/moderation-notifications.service';
 import { ModerationReportsService } from './services/moderation-reports.service';
@@ -24,6 +26,8 @@ import { ModerationUsersService } from './services/moderation-users.service';
   controllers: [ModerationController],
   providers: [
     ModerationAuditService,
+    ModerationChatService,
+    ModerationLotDisputeService,
     ModerationNotificationsService,
     ModerationUsersService,
     ModerationLotsService,

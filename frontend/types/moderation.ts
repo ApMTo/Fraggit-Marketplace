@@ -96,6 +96,109 @@ export type ModReport = {
     | null;
 };
 
+export type ModConversationMessage = {
+  id: string;
+  conversationId: string;
+  senderId: string | null;
+  type: 'TEXT' | 'IMAGE' | 'SYSTEM';
+  content: string | null;
+  metadata: unknown;
+  createdAt: string;
+  sender: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatarUrl: string | null;
+  } | null;
+  attachments: Array<{
+    id: string;
+    url: string;
+    mimeType: string;
+    size: number;
+    width: number | null;
+    height: number | null;
+  }>;
+};
+
+export type ModReportedConversation = {
+  conversationId: string | null;
+  reportedMessageId: string | null;
+  participants: Array<{
+    id: string;
+    username: string;
+    displayName: string;
+    avatarUrl: string | null;
+  }>;
+  messages: ModConversationMessage[];
+  emptyReason?: 'no_order' | 'no_conversation' | null;
+};
+
+export type LotDisputeRoomStatus = 'OPEN' | 'CLOSED';
+
+export type LotDisputeMessageKind = 'TEXT' | 'SYSTEM';
+
+export type LotDisputeRoomSummary = {
+  id: string;
+  lotId: string;
+  orderId: string | null;
+  reportId: string | null;
+  ticketId: string | null;
+  status: LotDisputeRoomStatus;
+  createdAt: string;
+  updatedAt: string;
+  report?: {
+    id: string;
+    status: ReportStatus;
+    reason: ReportReason;
+    reporter: { id: string; username: string; displayName: string };
+  } | null;
+  ticket?: {
+    id: string;
+    status: TicketStatus;
+    reporter: { id: string; username: string; displayName: string };
+    order: {
+      id: string;
+      orderNumber: string;
+      buyerId: string;
+      sellerId: string;
+    } | null;
+  } | null;
+  lot: {
+    id: string;
+    title: string;
+    sellerId: string;
+    seller: { id: string; username: string; displayName: string };
+  };
+};
+
+export type LotDisputeMessage = {
+  id: string;
+  roomId: string;
+  authorId: string | null;
+  kind: LotDisputeMessageKind;
+  body: string;
+  metadata: unknown;
+  createdAt: string;
+  author: {
+    id: string;
+    username: string;
+    displayName: string;
+    avatarUrl: string | null;
+    role: UserRole;
+  } | null;
+};
+
+export type LotDisputeRoomDetail = {
+  room: LotDisputeRoomSummary;
+  messages: LotDisputeMessage[];
+  participants: Array<{
+    id: string;
+    username: string;
+    displayName: string;
+    avatarUrl: string | null;
+  }>;
+};
+
 export type ModTicket = {
   id: string;
   type: TicketType;
@@ -121,6 +224,8 @@ export type ModTicket = {
     autoApproveAt: string | null;
     disputePausedFromStatus: string | null;
     autoApproveRemainingMs: number | null;
+    buyer?: { id: string; username: string; displayName: string };
+    seller?: { id: string; username: string; displayName: string };
     lot: { id: string; title: string } | null;
   } | null;
 };
@@ -195,7 +300,8 @@ export type ModerationTargetType =
   | 'LOT'
   | 'REVIEW'
   | 'REPORT'
-  | 'TICKET';
+  | 'TICKET'
+  | 'CONVERSATION';
 
 export type ModAuditAction = {
   id: string;

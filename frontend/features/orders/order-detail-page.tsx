@@ -20,6 +20,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { formatLotPrice } from '@/features/listings/lib/format-lot-price';
 import { OrderReviewSection } from '@/features/orders/components/order-review-section';
+import { OrderDisputeSection } from '@/features/orders/components/order-dispute-section';
 import { DisputeDialog } from '@/features/orders/components/dispute-dialog';
 import {
   useCompleteOrderService,
@@ -192,6 +193,11 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
             : t(`status.${order.status}`)}
         </span>
       </header>
+
+      <OrderDisputeSection
+        orderId={order.id}
+        active={order.status === 'DISPUTED'}
+      />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,340px)]">
         <div className="flex min-w-0 flex-col gap-6">

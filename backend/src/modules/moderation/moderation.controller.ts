@@ -30,8 +30,13 @@ import {
 import {
   CreateReportDto,
   FindReportsQueryDto,
+  ReportConversationQueryDto,
   UpdateReportDto,
 } from './dto/moderation-reports.dto';
+import {
+  CreateLotDisputeMessageDto,
+  LotDisputeMessagesQueryDto,
+} from './dto/moderation-lot-dispute.dto';
 import {
   CreateTicketDto,
   CreateTicketMessageDto,
@@ -47,6 +52,8 @@ import {
   UpdateUserStatusDto,
 } from './dto/moderation-users.dto';
 import { ModerationAuditService } from './services/moderation-audit.service';
+import { ModerationChatService } from './services/moderation-chat.service';
+import { ModerationLotDisputeService } from './services/moderation-lot-dispute.service';
 import { ModerationLotsService } from './services/moderation-lots.service';
 import { ModerationReportsService } from './services/moderation-reports.service';
 import { ModerationReviewsService } from './services/moderation-reviews.service';
@@ -71,15 +78,17 @@ export class ModerationController {
     private readonly reviews: ModerationReviewsService,
     private readonly reports: ModerationReportsService,
     private readonly tickets: ModerationTicketsService,
+    private readonly chat: ModerationChatService,
+    private readonly lotDisputes: ModerationLotDisputeService,
     private readonly audit: ModerationAuditService,
   ) {}
 
   @Get('overview')
   @Roles(UserRole.MODERATOR)
   @ApiOperation({ summary: 'Moderation dashboard counts' })
-  async overview() {
+  async overview(@CurrentUser() actor: AuthUser) {
     const [openReports, openTickets] = await Promise.all([
-      this.reports.countOpen(),
+      this.reports.countOpen(actor.role),
       this.tickets.countOpen(),
     ]);
     return { openReports, openTickets };
@@ -150,14 +159,14 @@ export class ModerationController {
   // ── Lots ───────────────────────────────────────────────
 
   @Get('lots')
-  @Roles(UserRole.MODERATOR)
+  @Roles(UserRole.ADMIN)
   findLots(@Query() query: FindModerationLotsQueryDto) {
     return this.lots.findLots(query);
   }
 
   @Post('lots/:id/remove')
   @HttpCode(HttpStatus.OK)
-  @Roles(UserRole.MODERATOR)
+  @Roles(UserRole.ADMIN)
   @ApiHeader(CSRF_HEADER)
   removeLot(
     @CurrentUser() actor: AuthUser,
@@ -169,7 +178,7 @@ export class ModerationController {
 
   @Post('lots/:id/restore')
   @HttpCode(HttpStatus.OK)
-  @Roles(UserRole.MODERATOR)
+  @Roles(UserRole.ADMIN)
   @ApiHeader(CSRF_HEADER)
   restoreLot(
     @CurrentUser() actor: AuthUser,
@@ -181,7 +190,7 @@ export class ModerationController {
 
   @Post('lots/:id/under-review')
   @HttpCode(HttpStatus.OK)
-  @Roles(UserRole.MODERATOR)
+  @Roles(UserRole.ADMIN)
   @ApiHeader(CSRF_HEADER)
   underReviewLot(
     @CurrentUser() actor: AuthUser,
@@ -238,8 +247,28 @@ export class ModerationController {
 
   @Get('reports')
   @Roles(UserRole.MODERATOR)
-  findReports(@Query() query: FindReportsQueryDto) {
-    return this.reports.findReports(query);
+  @ApiOperation({
+    summary: 'List reports. LOT and MESSAGE queues require ADMIN+',
+  })
+  findReports(
+    @CurrentUser() actor: AuthUser,
+    @Query() query: FindReportsQueryDto,
+  ) {
+    return this.reports.findReports(query, actor.role);
+  }
+
+  @Get('reports/:id/conversation')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({
+    summary:
+      'Read private buyer–seller chat for a LOT report or message window for MESSAGE reports. Audited as CHAT_VIEW',
+  })
+  findReportedConversation(
+    @CurrentUser() actor: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: ReportConversationQueryDto,
+  ) {
+    return this.chat.findReportedConversation(actor.id, id, query.context);
   }
 
   @Patch('reports/:id')
@@ -251,7 +280,40 @@ export class ModerationController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateReportDto,
   ) {
-    return this.reports.update(actor.id, id, dto);
+    return this.reports.update(actor.id, actor.role, id, dto);
+  }
+
+  @Get('lot-disputes/order/:orderId')
+  @ApiOperation({
+    summary: 'Mediation room for an order dispute (buyer, seller, staff)',
+  })
+  findOrderDisputeRoom(
+    @CurrentUser() user: AuthUser,
+    @Param('orderId', ParseUUIDPipe) orderId: string,
+  ) {
+    return this.lotDisputes.findRoomForOrder(orderId, user.id, user.role);
+  }
+
+  @Get('lot-disputes/:roomId')
+  @ApiOperation({ summary: 'Mediation room with messages' })
+  findLotDisputeRoom(
+    @CurrentUser() user: AuthUser,
+    @Param('roomId', ParseUUIDPipe) roomId: string,
+    @Query() query: LotDisputeMessagesQueryDto,
+  ) {
+    return this.lotDisputes.findRoom(roomId, user.id, user.role, query.limit);
+  }
+
+  @Post('lot-disputes/:roomId/messages')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiHeader(CSRF_HEADER)
+  @ApiOperation({ summary: 'Post in lot mediation room' })
+  addLotDisputeMessage(
+    @CurrentUser() user: AuthUser,
+    @Param('roomId', ParseUUIDPipe) roomId: string,
+    @Body() dto: CreateLotDisputeMessageDto,
+  ) {
+    return this.lotDisputes.addMessage(roomId, user.id, user.role, dto.body);
   }
 
   // ── Tickets ────────────────────────────────────────────
@@ -276,6 +338,48 @@ export class ModerationController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.tickets.findById(id, user.id, user.role);
+  }
+
+  @Post('tickets/:id/claim')
+  @HttpCode(HttpStatus.OK)
+  @Roles(UserRole.MODERATOR)
+  @ApiHeader(CSRF_HEADER)
+  @ApiOperation({ summary: 'Assign the ticket to yourself and start work' })
+  claimTicket(
+    @CurrentUser() actor: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.tickets.claim(actor.id, id);
+  }
+
+  @Get('tickets/:id/lot-dispute')
+  @Roles(UserRole.MODERATOR)
+  @ApiOperation({ summary: 'Mediation room for an order dispute ticket' })
+  findTicketLotDispute(
+    @CurrentUser() actor: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: LotDisputeMessagesQueryDto,
+  ) {
+    return this.lotDisputes.findRoomByTicket(
+      id,
+      actor.id,
+      actor.role,
+      query.limit,
+    );
+  }
+
+  @Get('tickets/:id/conversation')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({
+    summary:
+      'Read buyer–seller private chat for an order dispute ticket. Audited as CHAT_VIEW',
+  })
+  findTicketPartiesConversation(
+    @CurrentUser() actor: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: ReportConversationQueryDto,
+  ) {
+    return this.chat.findTicketPartiesConversation(actor.id, id, query.context);
   }
 
   @Patch('tickets/:id')

@@ -57,6 +57,19 @@ export class FindReportsQueryDto {
   limit = 20;
 }
 
+export class ReportConversationQueryDto {
+  @ApiPropertyOptional({
+    default: 25,
+    description: 'Messages loaded on each side of the reported message',
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  context = 25;
+}
+
 export class UpdateReportDto {
   @ApiPropertyOptional({ enum: ReportStatus })
   @IsOptional()

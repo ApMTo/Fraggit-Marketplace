@@ -5,8 +5,9 @@
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { AttributeType, LotStatus, LotType } from '@prisma/client';
+import { AttributeType, LotStatus, LotType, UserRole } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { assertStaffCannotTrade } from '../moderation/policies/moderation-policy';
 import { AttributeDefinitionsService } from '../attribute-definitions/attribute-definitions.service';
 import { FilesService } from '../files/files.service';
 import { SubcategoriesService } from '../subcategories/subcategories.service';
@@ -48,10 +49,13 @@ export class ListingsService {
 
   async createLot(
     sellerId: string,
+    sellerRole: UserRole,
     dto: CreateLotDto,
     photos: Express.Multer.File[] = [],
     preview?: Express.Multer.File,
   ): Promise<LotDetail> {
+    assertStaffCannotTrade(sellerRole);
+
     await this.subcategoriesService.assertBelongsToCategory(
       dto.subcategoryId,
       dto.categoryId,
@@ -225,11 +229,14 @@ export class ListingsService {
 
   async updateLot(
     sellerId: string,
+    sellerRole: UserRole,
     id: string,
     dto: UpdateLotDto,
     photos: Express.Multer.File[] = [],
     preview?: Express.Multer.File,
   ): Promise<LotDetail> {
+    assertStaffCannotTrade(sellerRole);
+
     const lot = await this.prisma.lot.findUnique({
       where: { id },
       select: {

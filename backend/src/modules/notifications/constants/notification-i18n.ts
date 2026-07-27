@@ -60,6 +60,10 @@ export const NOTIFICATION_KEYS = {
       body: 'items.ticketResolved.noAction.body',
     },
   },
+  lotDisputeMessage: {
+    title: 'items.lotDisputeMessage.title',
+    body: 'items.lotDisputeMessage.body',
+  },
 } as const;
 
 /** English templates for offline email (params: {orderNumber}, {listingTitle}, {orderPart}, {note}). */
@@ -97,6 +101,9 @@ const EMAIL_EN: Record<string, string> = {
   [NOTIFICATION_KEYS.ticketResolved.noAction.title]: 'Case closed',
   [NOTIFICATION_KEYS.ticketResolved.noAction.body]:
     'Moderation closed the case without changing the outcome{orderPart}.{note}',
+  [NOTIFICATION_KEYS.lotDisputeMessage.title]: 'Lot dispute update',
+  [NOTIFICATION_KEYS.lotDisputeMessage.body]:
+    'New message in the mediation chat for {listingTitle}.{preview}',
 };
 
 export function resolveNotificationEmailText(

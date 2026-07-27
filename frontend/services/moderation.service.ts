@@ -6,6 +6,9 @@ import type {
   ModLot,
   ModOverview,
   ModReport,
+  ModReportedConversation,
+  LotDisputeRoomDetail,
+  LotDisputeRoomSummary,
   ModTicket,
   ModUser,
   ModUserDetail,
@@ -33,6 +36,20 @@ export const moderationKeys = {
     [...moderationKeys.all, 'reports', params] as const,
   myReports: (params: Record<string, unknown>) =>
     [...moderationKeys.all, 'my-reports', params] as const,
+  /**
+   * Deliberately outside `all`: every fetch writes a CHAT_VIEW audit entry, so
+   * blanket invalidation after moderation actions must not refetch it.
+   */
+  reportConversation: (id: string) =>
+    ['moderation-report-conversation', id] as const,
+  lotDisputeRoom: (roomId: string) =>
+    [...moderationKeys.all, 'lot-dispute-room', roomId] as const,
+  orderDisputeRoom: (orderId: string) =>
+    [...moderationKeys.all, 'order-dispute-room', orderId] as const,
+  ticketLotDispute: (ticketId: string) =>
+    [...moderationKeys.all, 'ticket-lot-dispute', ticketId] as const,
+  ticketConversation: (ticketId: string) =>
+    ['moderation-ticket-conversation', ticketId] as const,
   tickets: (params: Record<string, unknown>) =>
     [...moderationKeys.all, 'tickets', params] as const,
   ticket: (id: string) => [...moderationKeys.all, 'ticket', id] as const,
@@ -188,6 +205,67 @@ export const moderationService = {
     return data;
   },
 
+  async getReportConversation(id: string): Promise<ModReportedConversation> {
+    const { data } = await api.get<ModReportedConversation>(
+      `/moderation/reports/${id}/conversation`,
+    );
+    return data;
+  },
+
+  async getLotDisputeRoom(
+    roomId: string,
+    params?: { limit?: number },
+  ): Promise<LotDisputeRoomDetail> {
+    const { data } = await api.get<LotDisputeRoomDetail>(
+      `/moderation/lot-disputes/${roomId}`,
+      { params },
+    );
+    return data;
+  },
+
+  async getOrderDisputeRoom(orderId: string): Promise<LotDisputeRoomDetail | {
+    room: null;
+    messages: [];
+    participants: [];
+  }> {
+    const { data } = await api.get<
+      LotDisputeRoomDetail | {
+        room: null;
+        messages: [];
+        participants: [];
+      }
+    >(`/moderation/lot-disputes/order/${orderId}`);
+    return data;
+  },
+
+  async getTicketLotDispute(
+    ticketId: string,
+    params?: { limit?: number },
+  ): Promise<LotDisputeRoomDetail> {
+    const { data } = await api.get<LotDisputeRoomDetail>(
+      `/moderation/tickets/${ticketId}/lot-dispute`,
+      { params },
+    );
+    return data;
+  },
+
+  async getTicketConversation(
+    ticketId: string,
+  ): Promise<ModReportedConversation> {
+    const { data } = await api.get<ModReportedConversation>(
+      `/moderation/tickets/${ticketId}/conversation`,
+    );
+    return data;
+  },
+
+  async addLotDisputeMessage(roomId: string, body: string) {
+    const { data } = await api.post<{ message: LotDisputeRoomDetail['messages'][number] }>(
+      `/moderation/lot-disputes/${roomId}/messages`,
+      { body },
+    );
+    return data;
+  },
+
   async updateReport(
     id: string,
     payload: {
@@ -232,6 +310,13 @@ export const moderationService = {
     const { data } = await api.patch<{ ticket: ModTicket }>(
       `/moderation/tickets/${id}`,
       payload,
+    );
+    return data;
+  },
+
+  async claimTicket(id: string) {
+    const { data } = await api.post<{ ticket: ModTicket }>(
+      `/moderation/tickets/${id}/claim`,
     );
     return data;
   },

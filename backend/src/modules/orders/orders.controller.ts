@@ -49,7 +49,7 @@ export class OrdersController {
   })
   @ApiResponse({ status: 201, description: 'Order created' })
   create(@CurrentUser() user: AuthUser, @Body() dto: CreateOrderDto) {
-    return this.ordersService.createOrder(user.id, dto);
+    return this.ordersService.createOrder(user.id, user.role, dto);
   }
 
   @Get()

@@ -104,6 +104,12 @@ export const MOD_TICKET_LIST_SELECT = {
       autoApproveAt: true,
       disputePausedFromStatus: true,
       autoApproveRemainingMs: true,
+      buyer: {
+        select: { id: true, username: true, displayName: true },
+      },
+      seller: {
+        select: { id: true, username: true, displayName: true },
+      },
       lot: {
         select: {
           id: true,

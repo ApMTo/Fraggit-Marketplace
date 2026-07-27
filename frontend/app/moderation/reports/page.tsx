@@ -7,6 +7,10 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  await requireModeratorUser();
-  redirect('/moderation/reports/lots');
+  const user = await requireModeratorUser();
+  redirect(
+    user.role === 'MODERATOR'
+      ? '/moderation/reports/users'
+      : '/moderation/reports/lots',
+  );
 }

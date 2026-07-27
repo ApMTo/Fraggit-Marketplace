@@ -10,6 +10,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Spinner } from '@/components/ui/spinner';
 import { ModerationShell } from '@/features/moderation/components/moderation-shell';
 import { ReasonActionDialog } from '@/features/moderation/components/reason-action-dialog';
+import { ReportedConversation } from '@/features/moderation/components/reported-conversation';
 import { useModerationMutations, useModReports } from '@/hooks/use-moderation';
 import { userProfileHref } from '@/lib/app-nav';
 import { cn } from '@/lib/utils';
@@ -427,6 +428,18 @@ function ReportDetail({
             ) : null}
           </div>
         </section>
+
+        {report.targetType === 'MESSAGE' ? (
+          <ReportedConversation key={report.id} reportId={report.id} />
+        ) : null}
+
+        {report.targetType === 'LOT' ? (
+          <ReportedConversation
+            key={`${report.id}-private`}
+            reportId={report.id}
+            privateParties
+          />
+        ) : null}
 
         {report.resolutionNote ? (
           <section className="space-y-1">

@@ -87,6 +87,57 @@ export function useMyReports(params: {
   });
 }
 
+/** ADMIN+ only. Each successful load is written to the moderation audit log. */
+export function useReportConversation(reportId: string | null) {
+  return useQuery({
+    queryKey: moderationKeys.reportConversation(reportId ?? ''),
+    queryFn: () => moderationService.getReportConversation(reportId!),
+    enabled: Boolean(reportId),
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+}
+
+export function useLotDisputeRoom(roomId: string | null) {
+  return useQuery({
+    queryKey: moderationKeys.lotDisputeRoom(roomId ?? ''),
+    queryFn: () => moderationService.getLotDisputeRoom(roomId!),
+    enabled: Boolean(roomId),
+    refetchInterval: 10_000,
+  });
+}
+
+export function useOrderDisputeRoom(orderId: string, enabled = true) {
+  return useQuery({
+    queryKey: moderationKeys.orderDisputeRoom(orderId),
+    queryFn: () => moderationService.getOrderDisputeRoom(orderId),
+    enabled: Boolean(orderId) && enabled,
+    refetchInterval: 10_000,
+  });
+}
+
+export function useTicketLotDispute(ticketId: string | null) {
+  return useQuery({
+    queryKey: moderationKeys.ticketLotDispute(ticketId ?? ''),
+    queryFn: () => moderationService.getTicketLotDispute(ticketId!),
+    enabled: Boolean(ticketId),
+    refetchInterval: 10_000,
+  });
+}
+
+/** ADMIN+ only. Each fetch is audited as CHAT_VIEW. */
+export function useTicketConversation(ticketId: string | null) {
+  return useQuery({
+    queryKey: moderationKeys.ticketConversation(ticketId ?? ''),
+    queryFn: () => moderationService.getTicketConversation(ticketId!),
+    enabled: Boolean(ticketId),
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+}
+
 export function useModTickets(params: {
   status?: TicketStatus;
   page?: number;
@@ -205,13 +256,21 @@ export function useModerationMutations() {
     createReport: useMutation({
       mutationFn: (payload: CreateReportPayload) =>
         moderationService.createReport(payload),
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: moderationKeys.myReports({}) });
+      },
     }),
     createTicket: useMutation({
       mutationFn: (payload: CreateTicketPayload) =>
         moderationService.createTicket(payload),
-      onSuccess: () => {
+      onSuccess: (_data, variables) => {
         invalidateAll();
         invalidateOrders();
+        if (variables.orderId) {
+          void queryClient.invalidateQueries({
+            queryKey: moderationKeys.orderDisputeRoom(variables.orderId),
+          });
+        }
       },
     }),
     updateReport: useMutation({
@@ -234,9 +293,25 @@ export function useModerationMutations() {
         payload,
       }: {
         id: string;
-        payload: { status?: TicketStatus; reason: string };
+        payload: {
+          status?: TicketStatus;
+          reason: string;
+          assigneeId?: string | null;
+        };
       }) => moderationService.updateTicket(id, payload),
       onSuccess: invalidateAll,
+    }),
+    claimTicket: useMutation({
+      mutationFn: (id: string) => moderationService.claimTicket(id),
+      onSuccess: (_data, ticketId) => {
+        invalidateAll();
+        void queryClient.invalidateQueries({
+          queryKey: moderationKeys.ticket(ticketId),
+        });
+        void queryClient.invalidateQueries({
+          queryKey: moderationKeys.ticketLotDispute(ticketId),
+        });
+      },
     }),
     resolveTicket: useMutation({
       mutationFn: ({
@@ -264,6 +339,21 @@ export function useModerationMutations() {
         payload: { body: string; isInternal?: boolean };
       }) => moderationService.addTicketMessage(id, payload),
       onSuccess: invalidateAll,
+    }),
+    addLotDisputeMessage: useMutation({
+      mutationFn: ({
+        roomId,
+        body,
+      }: {
+        roomId: string;
+        body: string;
+      }) => moderationService.addLotDisputeMessage(roomId, body),
+      onSuccess: (_data, variables) => {
+        void queryClient.invalidateQueries({
+          queryKey: moderationKeys.lotDisputeRoom(variables.roomId),
+        });
+        void queryClient.invalidateQueries({ queryKey: moderationKeys.all });
+      },
     }),
   };
 }

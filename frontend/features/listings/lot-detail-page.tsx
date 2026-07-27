@@ -22,6 +22,7 @@ import { formatLotPrice } from '@/features/listings/lib/format-lot-price';
 import { useCreateOrder, useLot } from '@/hooks';
 import { resolveApiError } from '@/lib/api-errors';
 import { userProfileHref } from '@/lib/app-nav';
+import { isStaffRole } from '@/lib/staff';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/providers/AuthProvider';
 import { Button } from '@/components/ui/button';
@@ -132,6 +133,7 @@ export function LotDetailPage({
   const sellerName = lot.seller.displayName || lot.seller.username;
   const rating = Number(lot.seller.rating) || 0;
   const isOwnLot = Boolean(user && user.id === lot.sellerId);
+  const staffCannotTrade = isStaffRole(user?.role);
   const description = lot.description?.trim() ?? '';
   const descriptionCollapsible = description.length > DESCRIPTION_COLLAPSE_AT;
   const visibleDescription =
@@ -339,14 +341,22 @@ export function LotDetailPage({
             </div>
 
             {isOwnLot ? (
-              lot.status === 'OPEN' ? (
+              lot.status === 'OPEN' && !staffCannotTrade ? (
                 <Link
                   href={`/listings/${categorySlug}/${subcategorySlug}/lot/${lotId}/edit`}
                   className="btn-primary inline-flex h-12 w-full items-center justify-center text-base"
                 >
                   {t('editLot')}
                 </Link>
+              ) : staffCannotTrade ? (
+                <p className="text-center text-sm text-muted-foreground">
+                  {t('staffCannotTrade')}
+                </p>
               ) : null
+            ) : staffCannotTrade ? (
+              <p className="text-center text-sm text-muted-foreground">
+                {t('staffCannotTrade')}
+              </p>
             ) : (
               <div className="space-y-3">
                 {isService && lot.serviceQuestion ? (

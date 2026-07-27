@@ -5,8 +5,15 @@
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { LotStatus, LotType, OrderStatus, Prisma } from '@prisma/client';
+import {
+  LotStatus,
+  LotType,
+  OrderStatus,
+  Prisma,
+  UserRole,
+} from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { assertStaffCannotTrade } from '../moderation/policies/moderation-policy';
 import { ORDER_AUTO_APPROVAL_MS } from './constants/order.constants';
 import {
   ORDER_DETAIL_SELECT,
@@ -40,8 +47,11 @@ export class OrdersService {
 
   async createOrder(
     buyerId: string,
+    buyerRole: UserRole,
     dto: CreateOrderDto,
   ): Promise<OrderDetail> {
+    assertStaffCannotTrade(buyerRole);
+
     const lot = await this.prisma.lot.findUnique({
       where: { id: dto.lotId },
       select: {

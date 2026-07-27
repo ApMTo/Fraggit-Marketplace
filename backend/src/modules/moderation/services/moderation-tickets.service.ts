@@ -18,7 +18,7 @@ import {
 import { PrismaService } from '../../../database/prisma.service';
 import { RoleHierarchy } from '../../auth/enums/roles.enum';
 import { OrderCompletionService } from '../../orders/services/order-completion.service';
-import { MOD_TICKET_LIST_SELECT } from '../constants/moderation.select';
+import { assertNotOrderDisputeParty } from '../policies/moderation-policy';
 import {
   CreateTicketDto,
   CreateTicketMessageDto,
@@ -26,7 +26,9 @@ import {
   ResolveTicketDto,
   UpdateTicketDto,
 } from '../dto/moderation-tickets.dto';
+import { MOD_TICKET_LIST_SELECT } from '../constants/moderation.select';
 import { ModerationAuditService } from './moderation-audit.service';
+import { ModerationLotDisputeService } from './moderation-lot-dispute.service';
 import { ModerationNotificationsService } from './moderation-notifications.service';
 
 const OPEN_TICKET_STATUSES: TicketStatus[] = [
@@ -47,6 +49,7 @@ export class ModerationTicketsService {
     private readonly audit: ModerationAuditService,
     private readonly orderCompletion: OrderCompletionService,
     private readonly notifications: ModerationNotificationsService,
+    private readonly lotDisputes: ModerationLotDisputeService,
   ) {}
 
   async create(reporterId: string, dto: CreateTicketDto) {
@@ -143,6 +146,17 @@ export class ModerationTicketsService {
       throw new ForbiddenException({ code: 'errors.ticket_forbidden' });
     }
 
+    if (
+      ticket.type === TicketType.ORDER_DISPUTE &&
+      OPEN_TICKET_STATUSES.includes(ticket.status)
+    ) {
+      try {
+        await this.lotDisputes.ensureRoomForTicket(ticketId);
+      } catch {
+        // Room creation is best-effort; mediation GET will retry.
+      }
+    }
+
     if (!isStaff) {
       return {
         ...ticket,
@@ -191,6 +205,49 @@ export class ModerationTicketsService {
 
       return { ticket: updated };
     });
+  }
+
+  async claim(actorId: string, ticketId: string) {
+    const ticket = await this.requireTicket(ticketId);
+
+    if (
+      ticket.status === TicketStatus.RESOLVED ||
+      ticket.status === TicketStatus.CLOSED
+    ) {
+      throw new ConflictException({ code: 'errors.ticket_closed' });
+    }
+
+    if (ticket.type === TicketType.ORDER_DISPUTE && ticket.orderId) {
+      const order = await this.prisma.order.findUnique({
+        where: { id: ticket.orderId },
+        select: { buyerId: true, sellerId: true },
+      });
+      assertNotOrderDisputeParty(actorId, order);
+    }
+
+    const nextStatus =
+      ticket.status === TicketStatus.OPEN
+        ? TicketStatus.IN_PROGRESS
+        : ticket.status;
+
+    const result = await this.update(actorId, ticketId, {
+      assigneeId: actorId,
+      status: nextStatus,
+      reason: 'ticket_claimed',
+    });
+
+    if (ticket.type === TicketType.ORDER_DISPUTE) {
+      const assignee = await this.prisma.user.findUnique({
+        where: { id: actorId },
+        select: { username: true },
+      });
+      await this.lotDisputes.onTicketClaimed(
+        ticketId,
+        assignee?.username ?? 'staff',
+      );
+    }
+
+    return result;
   }
 
   /**
@@ -275,6 +332,8 @@ export class ModerationTicketsService {
         resolution: dto.resolution,
         note: result.ticket.resolutionNote,
       });
+
+      await this.lotDisputes.onTicketClosed(ticketId);
     }
 
     return result;
@@ -460,6 +519,8 @@ export class ModerationTicketsService {
 
       return created;
     });
+
+    await this.lotDisputes.ensureRoomForTicket(ticket.id);
 
     return { ticket };
   }
