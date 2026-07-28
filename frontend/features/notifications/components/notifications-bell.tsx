@@ -10,6 +10,7 @@ import {
   formatNotificationBody,
   formatNotificationTitle,
 } from '@/lib/format-notification';
+import { unlockNotificationSound } from '@/lib/notification-sound';
 import { cn } from '@/lib/utils';
 import { useNotificationsRealtime } from '@/hooks/use-notifications-realtime';
 import {
@@ -60,6 +61,21 @@ export function NotificationsBell({ enabled }: NotificationsBellProps) {
   });
 
   const close = useCallback(() => setOpen(false), []);
+
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    const unlock = () => unlockNotificationSound();
+    window.addEventListener('pointerdown', unlock, { once: true });
+    window.addEventListener('keydown', unlock, { once: true });
+
+    return () => {
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+    };
+  }, [enabled]);
 
   useEffect(() => {
     if (!open) {
