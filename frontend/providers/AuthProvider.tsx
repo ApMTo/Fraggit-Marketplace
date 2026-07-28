@@ -22,14 +22,18 @@ import { authKeys, authService } from '@/services/auth.service';
 import type {
   AuthUser,
   LoginPayload,
+  LoginResponse,
   RegisterPayload,
+  VerifyTwoFactorPayload,
 } from '@/types/auth';
+import { isTwoFactorChallenge } from '@/types/auth';
 
 type AuthContextValue = {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (payload: LoginPayload) => Promise<AuthUser>;
+  login: (payload: LoginPayload) => Promise<LoginResponse>;
+  verifyTwoFactor: (payload: VerifyTwoFactorPayload) => Promise<AuthUser>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -125,6 +129,10 @@ export function AuthProvider({
     mutationFn: authService.login,
   });
 
+  const verifyTwoFactorMutation = useMutation({
+    mutationFn: authService.verifyTwoFactor,
+  });
+
   const registerMutation = useMutation({
     mutationFn: authService.register,
   });
@@ -139,16 +147,32 @@ export function AuthProvider({
     },
   });
 
+  const establishSession = useCallback(async () => {
+    syncCsrfFromCookie();
+    setSessionActive(true);
+    const profileData = await authService.getMe();
+    queryClient.setQueryData(authKeys.me(), profileData);
+    return profileData.user;
+  }, [queryClient]);
+
   const login = useCallback(
     async (payload: LoginPayload) => {
-      await loginMutation.mutateAsync(payload);
-      syncCsrfFromCookie();
-      setSessionActive(true);
-      const profileData = await authService.getMe();
-      queryClient.setQueryData(authKeys.me(), profileData);
-      return profileData.user;
+      const result = await loginMutation.mutateAsync(payload);
+      if (isTwoFactorChallenge(result)) {
+        return result;
+      }
+      await establishSession();
+      return result;
     },
-    [loginMutation, queryClient],
+    [loginMutation, establishSession],
+  );
+
+  const verifyTwoFactor = useCallback(
+    async (payload: VerifyTwoFactorPayload) => {
+      await verifyTwoFactorMutation.mutateAsync(payload);
+      return establishSession();
+    },
+    [verifyTwoFactorMutation, establishSession],
   );
 
   const register = useCallback(
@@ -189,12 +213,22 @@ export function AuthProvider({
       isAuthenticated: Boolean(user),
       isLoading,
       login,
+      verifyTwoFactor,
       register,
       logout,
       refreshUser,
       updateUser,
     }),
-    [user, isLoading, login, register, logout, refreshUser, updateUser],
+    [
+      user,
+      isLoading,
+      login,
+      verifyTwoFactor,
+      register,
+      logout,
+      refreshUser,
+      updateUser,
+    ],
   );
 
   return (

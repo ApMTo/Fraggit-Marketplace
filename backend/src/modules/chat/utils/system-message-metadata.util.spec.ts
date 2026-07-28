@@ -18,7 +18,7 @@ describe('buildOrderCreatedMetadata', () => {
       listingId: 'listing-1',
       listingTitle: 'Rare skin',
       url: 'https://fraggit.test/orders/order-1',
-      title: 'Покупка успешно совершена',
+      messageKey: 'system.orderCreated',
     });
   });
 });

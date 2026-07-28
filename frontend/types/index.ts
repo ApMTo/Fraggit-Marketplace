@@ -60,6 +60,7 @@ export { ATTRIBUTE_TYPES, OPTION_ATTRIBUTE_TYPES } from './category';
 
 export type {
   LotStatus,
+  LotType,
   LotSort,
   LotImage,
   LotListAttribute,
@@ -73,6 +74,7 @@ export type {
   LotAttributeInputValue,
   CreateLotAttributeInput,
   CreateLotPayload,
+  UpdateLotPayload,
 } from './lot';
 
 export {

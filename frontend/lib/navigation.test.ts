@@ -6,14 +6,14 @@ describe('getSafeRedirectPath', () => {
     expect(getSafeRedirectPath('/listings')).toBe('/listings');
   });
 
-  it('returns dashboard for missing path', () => {
-    expect(getSafeRedirectPath(undefined)).toBe('/dashboard');
-    expect(getSafeRedirectPath(null)).toBe('/dashboard');
-    expect(getSafeRedirectPath('')).toBe('/dashboard');
+  it('returns home for missing path', () => {
+    expect(getSafeRedirectPath(undefined)).toBe('/');
+    expect(getSafeRedirectPath(null)).toBe('/');
+    expect(getSafeRedirectPath('')).toBe('/');
   });
 
   it('blocks protocol-relative and external paths', () => {
-    expect(getSafeRedirectPath('//evil.com')).toBe('/dashboard');
-    expect(getSafeRedirectPath('https://evil.com')).toBe('/dashboard');
+    expect(getSafeRedirectPath('//evil.com')).toBe('/');
+    expect(getSafeRedirectPath('https://evil.com')).toBe('/');
   });
 });

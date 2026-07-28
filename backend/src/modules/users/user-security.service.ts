@@ -5,6 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { createHash, randomInt } from 'crypto';
 import type { Request } from 'express';
 import { PrismaService } from '../../database/prisma.service';
@@ -26,6 +27,11 @@ import {
   IDENTITY_CHANGE_COOLDOWN_MS,
 } from './constants/identity-change.constants';
 import {
+  TWO_FACTOR_CODE_TTL_SECONDS,
+  TWO_FACTOR_MAX_ATTEMPTS,
+  TWO_FACTOR_RESEND_COOLDOWN_SECONDS,
+} from '../auth/constants/two-factor.constants';
+import {
   USER_PROFILE_SELECT,
   UserProfile,
 } from './constants/user-profile.select';
@@ -33,6 +39,11 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { ChangeUsernameDto } from './dto/change-username.dto';
 import { ConfirmEmailChangeDto } from './dto/confirm-email-change.dto';
 import { RequestEmailChangeDto } from './dto/request-email-change.dto';
+import {
+  ConfirmTwoFactorEnableDto,
+  DisableTwoFactorDto,
+} from './dto/two-factor.dto';
+import { EmailTemplates } from '../mail/utils/email-templates';
 
 type PendingEmailChange = {
   newEmail: string;
@@ -43,6 +54,7 @@ type PendingEmailChange = {
 @Injectable()
 export class UserSecurityService {
   private readonly logger = new Logger(UserSecurityService.name);
+  private readonly frontendUrl: string;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -51,7 +63,11 @@ export class UserSecurityService {
     private readonly sessionsService: SessionsService,
     private readonly authSession: AuthSessionService,
     private readonly userAuthCache: UserAuthCacheService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.frontendUrl =
+      this.configService.get<string>('frontendUrl') ?? 'http://localhost:3000';
+  }
 
   async requestEmailChange(userId: string, dto: RequestEmailChangeDto) {
     const newEmail = dto.newEmail;
@@ -110,6 +126,7 @@ export class UserSecurityService {
         user.displayName,
         code,
         newEmail,
+        this.frontendUrl,
       ),
       type: 'email_change',
     });
@@ -312,6 +329,181 @@ export class UserSecurityService {
     return { message: { code: 'messages.password_changed' } };
   }
 
+  async requestTwoFactorEnable(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        displayName: true,
+        twoFactorEnabled: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException({ code: 'errors.user_not_found' });
+    }
+
+    if (user.twoFactorEnabled) {
+      throw new ConflictException({
+        code: 'errors.two_factor_already_enabled',
+      });
+    }
+
+    const cooldownTtl = await this.redis.client.ttl(
+      this.twoFactorEnableResendKey(userId),
+    );
+    if (cooldownTtl > 0) {
+      throw new BadRequestException({
+        code: 'errors.two_factor_resend_cooldown',
+        resendAvailableInSeconds: cooldownTtl,
+      });
+    }
+
+    const code = String(randomInt(100_000, 1_000_000));
+    const payload = {
+      codeHash: this.hashCode(code),
+      attempts: 0,
+    };
+
+    await Promise.all([
+      this.redis.set(
+        this.twoFactorEnableKey(userId),
+        JSON.stringify(payload),
+        TWO_FACTOR_CODE_TTL_SECONDS,
+      ),
+      this.redis.set(
+        this.twoFactorEnableResendKey(userId),
+        '1',
+        TWO_FACTOR_RESEND_COOLDOWN_SECONDS,
+      ),
+    ]);
+
+    await this.mailQueue.enqueue({
+      to: user.email,
+      subject: 'Enable two-factor authentication',
+      html: EmailTemplates.renderTwoFactorCodeEmail(
+        user.displayName,
+        code,
+        this.frontendUrl,
+        'enable',
+      ),
+      type: 'two_factor',
+    });
+
+    this.logger.log(`user.two_factor_enable_requested user=${userId}`);
+
+    return {
+      message: { code: 'messages.two_factor_code_sent' },
+      expiresInSeconds: TWO_FACTOR_CODE_TTL_SECONDS,
+      resendAvailableInSeconds: TWO_FACTOR_RESEND_COOLDOWN_SECONDS,
+    };
+  }
+
+  async confirmTwoFactorEnable(userId: string, dto: ConfirmTwoFactorEnableDto) {
+    const pending = await this.loadTwoFactorEnable(userId);
+    if (!pending) {
+      throw new BadRequestException({
+        code: 'errors.invalid_or_expired_code',
+      });
+    }
+
+    if (pending.attempts >= TWO_FACTOR_MAX_ATTEMPTS) {
+      await this.redis.del(this.twoFactorEnableKey(userId));
+      throw new BadRequestException({
+        code: 'errors.too_many_code_attempts',
+      });
+    }
+
+    if (pending.codeHash !== this.hashCode(dto.code)) {
+      pending.attempts += 1;
+      if (pending.attempts >= TWO_FACTOR_MAX_ATTEMPTS) {
+        await this.redis.del(this.twoFactorEnableKey(userId));
+        throw new BadRequestException({
+          code: 'errors.too_many_code_attempts',
+        });
+      }
+
+      await this.redis.set(
+        this.twoFactorEnableKey(userId),
+        JSON.stringify(pending),
+        TWO_FACTOR_CODE_TTL_SECONDS,
+      );
+      throw new BadRequestException({
+        code: 'errors.invalid_or_expired_code',
+      });
+    }
+
+    const profile = await this.prisma.user.update({
+      where: { id: userId },
+      data: { twoFactorEnabled: true },
+      select: USER_PROFILE_SELECT,
+    });
+
+    await Promise.all([
+      this.redis.del(this.twoFactorEnableKey(userId)),
+      this.redis.del(this.twoFactorEnableResendKey(userId)),
+      this.userAuthCache.invalidate(userId),
+    ]);
+
+    this.logger.log(`user.two_factor_enabled user=${userId}`);
+
+    return {
+      message: { code: 'messages.two_factor_enabled' },
+      user: profile,
+    };
+  }
+
+  async disableTwoFactor(userId: string, dto: DisableTwoFactorDto) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        passwordHash: true,
+        twoFactorEnabled: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException({ code: 'errors.user_not_found' });
+    }
+
+    if (!user.twoFactorEnabled) {
+      throw new BadRequestException({
+        code: 'errors.two_factor_not_enabled',
+      });
+    }
+
+    const currentOk = await verifyPassword(
+      user.passwordHash,
+      dto.currentPassword,
+    );
+    if (!currentOk) {
+      throw new BadRequestException({
+        code: 'errors.invalid_current_password',
+      });
+    }
+
+    const profile = await this.prisma.user.update({
+      where: { id: userId },
+      data: { twoFactorEnabled: false },
+      select: USER_PROFILE_SELECT,
+    });
+
+    await Promise.all([
+      this.redis.del(this.twoFactorEnableKey(userId)),
+      this.redis.del(this.twoFactorEnableResendKey(userId)),
+      this.userAuthCache.invalidate(userId),
+    ]);
+
+    this.logger.log(`user.two_factor_disabled user=${userId}`);
+
+    return {
+      message: { code: 'messages.two_factor_disabled' },
+      user: profile,
+    };
+  }
+
   private assertCooldownPassed(
     changedAt: Date | null | undefined,
     errorCode: string,
@@ -375,8 +567,32 @@ export class UserSecurityService {
     return `email-change:email:${email}`;
   }
 
+  private twoFactorEnableKey(userId: string) {
+    return `2fa:enable:${userId}`;
+  }
+
+  private twoFactorEnableResendKey(userId: string) {
+    return `2fa:enable:resend:${userId}`;
+  }
+
   private hashCode(code: string): string {
     return createHash('sha256').update(code).digest('hex');
+  }
+
+  private async loadTwoFactorEnable(
+    userId: string,
+  ): Promise<{ codeHash: string; attempts: number } | null> {
+    const raw = await this.redis.get(this.twoFactorEnableKey(userId));
+    if (!raw) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(raw) as { codeHash: string; attempts: number };
+    } catch {
+      await this.redis.del(this.twoFactorEnableKey(userId));
+      return null;
+    }
   }
 
   private async loadPendingEmailChange(

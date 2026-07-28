@@ -16,6 +16,7 @@ export type UserProfile = {
   ratingCount: number;
   successfulSales: number;
   emailVerified: boolean;
+  twoFactorEnabled: boolean;
   telegramUsername: string | null;
   emailChangedAt: string | null;
   usernameChangedAt: string | null;
@@ -70,12 +71,25 @@ export type ChangePasswordPayload = {
   confirmPassword: string;
 };
 
+export type ConfirmTwoFactorEnablePayload = {
+  code: string;
+};
+
+export type DisableTwoFactorPayload = {
+  currentPassword: string;
+};
+
 export type MessageResponse = {
   message: { code: string };
 };
 
 export type EmailChangeRequestResponse = MessageResponse & {
   expiresInSeconds: number;
+};
+
+export type TwoFactorCodeResponse = MessageResponse & {
+  expiresInSeconds: number;
+  resendAvailableInSeconds: number;
 };
 
 export const IDENTITY_CHANGE_COOLDOWN_DAYS = 14;

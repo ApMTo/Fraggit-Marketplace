@@ -4,6 +4,6 @@ type LoginPageProps = {
   redirectTo?: string;
 };
 
-export function LoginPage({ redirectTo = '/dashboard' }: LoginPageProps) {
+export function LoginPage({ redirectTo = '/' }: LoginPageProps) {
   return <LoginForm redirectTo={redirectTo} />;
 }

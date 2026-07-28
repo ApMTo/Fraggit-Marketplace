@@ -14,13 +14,19 @@ import { useLocale, useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
 import { EmptyState } from '@/components/ui/empty-state';
 import { AppImage } from '@/components/ui/app-image';
+import { FormError } from '@/components/ui/form-error';
+import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { Textarea } from '@/components/ui/textarea';
 import { formatLotPrice } from '@/features/listings/lib/format-lot-price';
 import { useCreateOrder, useLot } from '@/hooks';
 import { resolveApiError } from '@/lib/api-errors';
 import { userProfileHref } from '@/lib/app-nav';
+import { isStaffRole } from '@/lib/staff';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/providers/AuthProvider';
+import { Button } from '@/components/ui/button';
+import { ReportDialog } from '@/features/moderation';
 
 const DESCRIPTION_COLLAPSE_AT = 320;
 
@@ -36,6 +42,7 @@ export function LotDetailPage({
   subcategorySlug,
 }: LotDetailPageProps) {
   const t = useTranslations('listings');
+  const tReport = useTranslations('moderation.report');
   const tErrors = useTranslations('errors');
   const locale = useLocale();
   const router = useRouter();
@@ -46,6 +53,9 @@ export function LotDetailPage({
   const backHref = `/listings/${categorySlug}/${subcategorySlug}`;
   const [activeImageId, setActiveImageId] = useState<string | null>(null);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [buyerAnswer, setBuyerAnswer] = useState('');
+  const [buyError, setBuyError] = useState<string | null>(null);
 
   async function handleBuy() {
     if (!user) {
@@ -53,8 +63,27 @@ export function LotDetailPage({
       return;
     }
 
+    if (!lot) {
+      return;
+    }
+
+    if (lot.type === 'SERVICE') {
+      const trimmed = buyerAnswer.trim();
+      if (!trimmed) {
+        setBuyError(t('buyerAnswerRequired'));
+        return;
+      }
+    }
+
+    setBuyError(null);
+
     try {
-      const order = await createOrder.mutateAsync({ lotId });
+      const order = await createOrder.mutateAsync({
+        lotId,
+        ...(lot.type === 'SERVICE'
+          ? { buyerAnswer: buyerAnswer.trim() }
+          : {}),
+      });
       router.push(`/orders/${order.id}`);
     } catch (error) {
       const resolved = resolveApiError(error);
@@ -64,7 +93,7 @@ export function LotDetailPage({
 
   if (isLoading) {
     return (
-      <div className="mx-auto flex w-full max-w-[1240px] justify-center px-5 py-20">
+      <div className="mx-auto flex w-full max-w-site justify-center px-5 py-20">
         <Spinner size="lg" />
       </div>
     );
@@ -72,7 +101,7 @@ export function LotDetailPage({
 
   if (isError || !lot) {
     return (
-      <div className="mx-auto w-full max-w-[1240px] px-5 py-10">
+      <div className="mx-auto w-full max-w-site px-5 py-10">
         <EmptyState
           icon={Package}
           title={t('lotNotFoundTitle')}
@@ -104,15 +133,17 @@ export function LotDetailPage({
   const sellerName = lot.seller.displayName || lot.seller.username;
   const rating = Number(lot.seller.rating) || 0;
   const isOwnLot = Boolean(user && user.id === lot.sellerId);
+  const staffCannotTrade = isStaffRole(user?.role);
   const description = lot.description?.trim() ?? '';
   const descriptionCollapsible = description.length > DESCRIPTION_COLLAPSE_AT;
   const visibleDescription =
     descriptionCollapsible && !descriptionExpanded
       ? `${description.slice(0, DESCRIPTION_COLLAPSE_AT).trimEnd()}…`
       : description;
+  const isService = lot.type === 'SERVICE';
 
   return (
-    <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-6 px-5 py-10">
+    <div className="mx-auto flex w-full max-w-site flex-col gap-6 px-5 py-10">
       <Link
         href={backHref}
         className="inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-foreground"
@@ -273,6 +304,12 @@ export function LotDetailPage({
               ) : null}
             </div>
 
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex rounded-[var(--radius-sm)] border border-border bg-surface-elevated px-2.5 py-1 text-xs font-medium text-muted">
+                {isService ? t('typeService') : t('typeAccount')}
+              </span>
+            </div>
+
             <h1 className="page-title text-xl leading-snug sm:text-2xl">
               {lot.title}
             </h1>
@@ -303,16 +340,58 @@ export function LotDetailPage({
               </span>
             </div>
 
-            {!isOwnLot ? (
-              <button
-                type="button"
-                className="btn-primary h-12 w-full text-base disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={createOrder.isPending}
-                onClick={() => void handleBuy()}
-              >
-                {createOrder.isPending ? t('buying') : t('buy')}
-              </button>
-            ) : null}
+            {isOwnLot ? (
+              lot.status === 'OPEN' && !staffCannotTrade ? (
+                <Link
+                  href={`/listings/${categorySlug}/${subcategorySlug}/lot/${lotId}/edit`}
+                  className="btn-primary inline-flex h-12 w-full items-center justify-center text-base"
+                >
+                  {t('editLot')}
+                </Link>
+              ) : staffCannotTrade ? (
+                <p className="text-center text-sm text-muted-foreground">
+                  {t('staffCannotTrade')}
+                </p>
+              ) : null
+            ) : staffCannotTrade ? (
+              <p className="text-center text-sm text-muted-foreground">
+                {t('staffCannotTrade')}
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {isService && lot.serviceQuestion ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="buyer-answer">{t('buyerAnswerLabel')}</Label>
+                    <p className="whitespace-pre-wrap text-sm text-muted">
+                      {lot.serviceQuestion}
+                    </p>
+                    <Textarea
+                      id="buyer-answer"
+                      value={buyerAnswer}
+                      onChange={(event) => {
+                        setBuyerAnswer(event.target.value);
+                        if (buyError) {
+                          setBuyError(null);
+                        }
+                      }}
+                      placeholder={t('buyerAnswerPlaceholder')}
+                      rows={4}
+                      hasError={Boolean(buyError)}
+                      disabled={createOrder.isPending}
+                    />
+                    {buyError ? <FormError>{buyError}</FormError> : null}
+                  </div>
+                ) : null}
+                <button
+                  type="button"
+                  className="btn-primary h-12 w-full text-base disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={createOrder.isPending}
+                  onClick={() => void handleBuy()}
+                >
+                  {createOrder.isPending ? t('buying') : t('buy')}
+                </button>
+              </div>
+            )}
 
             <p className="inline-flex items-center justify-center gap-1.5 text-xs text-muted">
               <ShieldCheck
@@ -321,9 +400,36 @@ export function LotDetailPage({
               />
               {t('guarantee')}
             </p>
+
+            {user && !isOwnLot ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  if (!user) {
+                    router.push(
+                      `/login?next=${encodeURIComponent(pathname)}`,
+                    );
+                    return;
+                  }
+                  setReportOpen(true);
+                }}
+              >
+                {tReport('button')}
+              </Button>
+            ) : null}
           </div>
         </aside>
       </div>
+
+      <ReportDialog
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        targetType="LOT"
+        targetId={lot.id}
+      />
     </div>
   );
 }

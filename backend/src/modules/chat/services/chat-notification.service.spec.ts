@@ -113,7 +113,7 @@ describe('ChatNotificationService', () => {
       expect.objectContaining({
         to: 'bob@test.com',
         type: 'chat_notification',
-        subject: 'Новое сообщение от Alice <script>',
+        subject: 'New message from Alice <script>',
         html: expect.stringContaining('Alice &lt;script&gt;'),
       }),
     );
@@ -132,13 +132,17 @@ describe('ChatNotificationService', () => {
       id: 'n-1',
       userId: 'user-2',
       type: 'ORDER_CREATED',
-      title: 'Новый заказ',
-      body: 'Заказ #FRG-100',
+      title: 'items.orderCreated.seller.title',
+      body: 'items.orderCreated.seller.body',
       href: '/orders/order-1',
       readAt: null,
       entityType: 'order',
       entityId: 'order-1',
-      metadata: null,
+      metadata: {
+        orderNumber: 'FRG-100',
+        listingTitle: 'Rare skin',
+        role: 'seller',
+      },
       createdAt: new Date(),
     });
 
@@ -147,9 +151,9 @@ describe('ChatNotificationService', () => {
     ).toHaveBeenCalledWith({
       recipientUserId: 'user-2',
       recipientEmail: 'bob@test.com',
-      subject: 'Новый заказ',
-      title: 'Новый заказ',
-      body: 'Заказ #FRG-100',
+      subject: 'New order',
+      title: 'New order',
+      body: 'A buyer placed order #FRG-100 (Rare skin).',
       href: 'https://fraggit.test/orders/order-1',
     });
   });

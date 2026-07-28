@@ -8,12 +8,13 @@ import { ArrowLeft, ImagePlus, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
+import { DropdownItem, DropdownMenu } from '@/components/ui/dropdown-menu';
 import { FormError } from '@/components/ui/form-error';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
+import { CategoryAutocomplete } from '@/features/listings/components/category-autocomplete';
 import { LotAttributeFields } from '@/features/listings/components/lot-attribute-fields';
 import {
   buildAttributeInputs,
@@ -26,9 +27,11 @@ import {
   useListingFilterAttributes,
   useSubcategories,
 } from '@/hooks';
+import { useAuth } from '@/providers/AuthProvider';
 import { resolveApiError } from '@/lib/api-errors';
-import type { AttributeDefinitionPublic } from '@/types/category';
-import type { LotAttributeInputValue } from '@/types/lot';
+import { isStaffRole } from '@/lib/staff';
+import type { AttributeDefinitionPublic, CategoryPublic } from '@/types/category';
+import type { LotAttributeInputValue, LotType } from '@/types/lot';
 import {
   LOT_PHOTO_ACCEPT,
   LOT_PHOTO_MAX_BYTES,
@@ -42,6 +45,8 @@ type CreateLotFormValues = {
   stock: string;
   categoryId: string;
   subcategoryId: string;
+  type: LotType;
+  serviceQuestion: string;
   attributes: Record<string, LotAttributeInputValue>;
   preview: File | null;
   photos: File[];
@@ -53,6 +58,8 @@ export function CreateLotPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const createLot = useCreateLot();
+  const { user } = useAuth();
+  const staffCannotTrade = isStaffRole(user?.role);
   const previewInputRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
@@ -72,6 +79,8 @@ export function CreateLotPage() {
       stock: '1',
       categoryId: presetCategoryId,
       subcategoryId: presetSubcategoryId,
+      type: 'ACCOUNT',
+      serviceQuestion: '',
       attributes: {},
       preview: null,
       photos: [],
@@ -111,6 +120,14 @@ export function CreateLotPage() {
         errors.subcategoryId = t('validation.subcategoryRequired');
       }
 
+      if (values.type === 'SERVICE') {
+        if (values.serviceQuestion.trim().length < 1) {
+          errors.serviceQuestion = t('validation.serviceQuestionRequired');
+        } else if (values.serviceQuestion.trim().length > 2000) {
+          errors.serviceQuestion = t('validation.serviceQuestionMax');
+        }
+      }
+
       const attributeErrors: Record<string, string> = {};
       for (const definition of attributesRef.current) {
         const value = values.attributes[definition.id];
@@ -135,6 +152,9 @@ export function CreateLotPage() {
           stock: Number(values.stock),
           categoryId: values.categoryId,
           subcategoryId: values.subcategoryId,
+          type: values.type,
+          serviceQuestion:
+            values.type === 'SERVICE' ? values.serviceQuestion.trim() : null,
           attributes: buildAttributeInputs(
             attributesRef.current,
             values.attributes,
@@ -322,6 +342,21 @@ export function CreateLotPage() {
   const attributeTouched =
     (formik.touched.attributes as Record<string, boolean> | undefined) ?? {};
 
+  if (staffCannotTrade) {
+    return (
+      <div className="mx-auto flex w-full max-w-[760px] flex-col gap-6 px-5 py-10">
+        <Link
+          href="/listings"
+          className="inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" aria-hidden="true" />
+          {t('back')}
+        </Link>
+        <p className="text-sm text-muted-foreground">{t('staffBlocked')}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-[760px] flex-col gap-6 px-5 py-10">
       <header className="space-y-4">
@@ -436,6 +471,80 @@ export function CreateLotPage() {
               ) : null}
             </div>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="lot-type">{t('fields.type')}</Label>
+            <DropdownMenu
+              id="lot-type"
+              variant="field"
+              align="start"
+              trigger={
+                <span>
+                  {formik.values.type === 'SERVICE'
+                    ? t('typeService')
+                    : t('typeAccount')}
+                </span>
+              }
+            >
+              <DropdownItem
+                isActive={formik.values.type === 'ACCOUNT'}
+                onSelect={() => {
+                  clearFormError();
+                  void setFieldValue('type', 'ACCOUNT' satisfies LotType);
+                }}
+              >
+                {t('typeAccount')}
+              </DropdownItem>
+              <DropdownItem
+                isActive={formik.values.type === 'SERVICE'}
+                onSelect={() => {
+                  clearFormError();
+                  void setFieldValue('type', 'SERVICE' satisfies LotType);
+                }}
+              >
+                {t('typeService')}
+              </DropdownItem>
+            </DropdownMenu>
+            <p className="text-xs text-subtle">
+              {formik.values.type === 'SERVICE'
+                ? t('typeServiceHint')
+                : t('typeAccountHint')}
+            </p>
+          </div>
+
+          {formik.values.type === 'SERVICE' ? (
+            <div className="space-y-2">
+              <Label htmlFor="lot-service-question">
+                {t('fields.serviceQuestion')}
+              </Label>
+              <Textarea
+                id="lot-service-question"
+                name="serviceQuestion"
+                value={formik.values.serviceQuestion}
+                onChange={(event) => {
+                  clearFormError();
+                  formik.handleChange(event);
+                }}
+                onBlur={formik.handleBlur}
+                hasError={Boolean(
+                  formik.touched.serviceQuestion &&
+                    formik.errors.serviceQuestion,
+                )}
+                rows={4}
+                placeholder={t('serviceQuestionPlaceholder')}
+              />
+              {formik.touched.serviceQuestion &&
+              formik.errors.serviceQuestion ? (
+                <p className="text-xs text-destructive">
+                  {formik.errors.serviceQuestion}
+                </p>
+              ) : (
+                <p className="text-xs text-subtle">
+                  {t('serviceQuestionHint')}
+                </p>
+              )}
+            </div>
+          ) : null}
         </section>
 
         <section className="space-y-4 border-t border-border pt-6">
@@ -448,26 +557,26 @@ export function CreateLotPage() {
             {categoriesLoading ? (
               <Spinner size="sm" />
             ) : (
-              <Select
+              <CategoryAutocomplete
                 id="lot-category"
-                name="categoryId"
                 value={formik.values.categoryId}
-                onChange={(event) => {
-                  clearFormError();
-                  formik.handleChange(event);
-                }}
-                onBlur={formik.handleBlur}
+                selectedCategory={
+                  (categories ?? []).find(
+                    (item) => item.id === formik.values.categoryId,
+                  ) ?? null
+                }
                 hasError={Boolean(
                   formik.touched.categoryId && formik.errors.categoryId,
                 )}
-              >
-                <option value="">{t('selectCategory')}</option>
-                {(categories ?? []).map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </Select>
+                onBlur={() => {
+                  void formik.setFieldTouched('categoryId', true);
+                }}
+                onSelect={(category: CategoryPublic | null) => {
+                  clearFormError();
+                  void setFieldValue('categoryId', category?.id ?? '');
+                  void formik.setFieldTouched('categoryId', true);
+                }}
+              />
             )}
             {formik.touched.categoryId && formik.errors.categoryId ? (
               <p className="text-xs text-destructive">
@@ -481,27 +590,52 @@ export function CreateLotPage() {
             {subcategoriesLoading && formik.values.categoryId ? (
               <Spinner size="sm" />
             ) : (
-              <Select
+              <DropdownMenu
                 id="lot-subcategory"
-                name="subcategoryId"
-                value={formik.values.subcategoryId}
+                variant="field"
+                align="start"
                 disabled={!formik.values.categoryId}
-                onChange={(event) => {
-                  clearFormError();
-                  formik.handleChange(event);
-                }}
-                onBlur={formik.handleBlur}
                 hasError={Boolean(
                   formik.touched.subcategoryId && formik.errors.subcategoryId,
                 )}
+                trigger={
+                  <span
+                    className={
+                      formik.values.subcategoryId
+                        ? undefined
+                        : 'text-muted'
+                    }
+                  >
+                    {subcategories?.find(
+                      (item) => item.id === formik.values.subcategoryId,
+                    )?.name ?? t('selectSubcategory')}
+                  </span>
+                }
               >
-                <option value="">{t('selectSubcategory')}</option>
+                <DropdownItem
+                  isActive={!formik.values.subcategoryId}
+                  onSelect={() => {
+                    clearFormError();
+                    void setFieldValue('subcategoryId', '');
+                    void formik.setFieldTouched('subcategoryId', true);
+                  }}
+                >
+                  {t('selectSubcategory')}
+                </DropdownItem>
                 {(subcategories ?? []).map((subcategory) => (
-                  <option key={subcategory.id} value={subcategory.id}>
+                  <DropdownItem
+                    key={subcategory.id}
+                    isActive={formik.values.subcategoryId === subcategory.id}
+                    onSelect={() => {
+                      clearFormError();
+                      void setFieldValue('subcategoryId', subcategory.id);
+                      void formik.setFieldTouched('subcategoryId', true);
+                    }}
+                  >
                     {subcategory.name}
-                  </option>
+                  </DropdownItem>
                 ))}
-              </Select>
+              </DropdownMenu>
             )}
             {formik.touched.subcategoryId && formik.errors.subcategoryId ? (
               <p className="text-xs text-destructive">

@@ -8,9 +8,11 @@ import { LogOut, Menu, UserRound, X } from 'lucide-react';
 import { AccountNavLinks } from '@/components/layout/account-nav-links';
 import { AppNavLinks } from '@/components/layout/app-nav-links';
 import { HeaderPreferences } from '@/components/layout/header-preferences';
+import { SellNavButton } from '@/components/layout/sell-nav-button';
 import { BrandButton, SecondaryButton } from '@/components/ui/nav-button';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/providers/AuthProvider';
+import { isStaffRole } from '@/lib/staff';
 
 function subscribeToClient() {
   return () => {};
@@ -109,7 +111,12 @@ function MobileMenuContent() {
         </div>
 
         <div className="space-y-4 border-t border-border bg-surface px-5 py-4">
-          <HeaderPreferences />
+          <div className="flex items-center justify-between gap-3">
+            <HeaderPreferences />
+            {isAuthenticated && !isStaffRole(user?.role) ? (
+              <SellNavButton onClick={close} />
+            ) : null}
+          </div>
 
           {isLoading ? (
             <span className="block h-11 animate-pulse rounded-[var(--radius-sm)] bg-surface-elevated" />

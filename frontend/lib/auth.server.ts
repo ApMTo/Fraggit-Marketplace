@@ -5,6 +5,12 @@ import { serverFetch } from '@/lib/api-server';
 import type { AuthProfileResponse, AuthUser, UserRole } from '@/types/auth';
 
 const ADMIN_ROLES = new Set<UserRole>(['ADMIN', 'SUPER_ADMIN', 'OWNER']);
+const MODERATOR_ROLES = new Set<UserRole>([
+  'MODERATOR',
+  'ADMIN',
+  'SUPER_ADMIN',
+  'OWNER',
+]);
 
 export const getSessionUser = cache(async (): Promise<AuthUser | null> => {
   const cookieStore = await cookies();
@@ -49,7 +55,17 @@ export async function requireAdminUser(): Promise<AuthUser> {
   const user = await requireSessionUser();
 
   if (!ADMIN_ROLES.has(user.role)) {
-    redirect('/dashboard');
+    redirect('/');
+  }
+
+  return user;
+}
+
+export async function requireModeratorUser(): Promise<AuthUser> {
+  const user = await requireSessionUser();
+
+  if (!MODERATOR_ROLES.has(user.role)) {
+    redirect('/');
   }
 
   return user;

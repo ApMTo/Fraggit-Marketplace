@@ -4,7 +4,6 @@ export type LandingLinks = {
   startShopping: string;
   becomeSeller: string;
   createAccount: string;
-  dashboard: string;
 };
 
 export type CategoryItem = {

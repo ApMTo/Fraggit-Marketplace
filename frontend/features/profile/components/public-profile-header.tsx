@@ -1,11 +1,13 @@
 'use client';
 
-import { MessageCircle, Star, UserRound } from 'lucide-react';
+import { useState } from 'react';
+import { Flag, MessageCircle, Star, UserRound } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
 import { AppImage } from '@/components/ui/app-image';
 import { Button } from '@/components/ui/button';
+import { ReportDialog } from '@/features/moderation';
 import { useStartConversation } from '@/hooks/use-chat';
 import { resolveApiErrorKey } from '@/lib/api-errors';
 import { useAuth } from '@/providers/AuthProvider';
@@ -17,10 +19,12 @@ type PublicProfileHeaderProps = {
 
 export function PublicProfileHeader({ profile }: PublicProfileHeaderProps) {
   const t = useTranslations('profile');
+  const tReport = useTranslations('moderation.report');
   const tErrors = useTranslations('errors');
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const startConversation = useStartConversation();
+  const [reportOpen, setReportOpen] = useState(false);
 
   const ratingLabel =
     profile.ratingCount > 0
@@ -30,9 +34,13 @@ export function PublicProfileHeader({ profile }: PublicProfileHeaderProps) {
         })
       : t('stats.noRating');
 
+  const isOwnProfile = user?.id === profile.id;
+
   async function handleMessage() {
     if (!isAuthenticated) {
-      router.push(`/login?next=${encodeURIComponent(`/user/${profile.username}`)}`);
+      router.push(
+        `/login?next=${encodeURIComponent(`/user/${profile.username}`)}`,
+      );
       return;
     }
 
@@ -90,18 +98,38 @@ export function PublicProfileHeader({ profile }: PublicProfileHeaderProps) {
           </div>
         </dl>
 
-        <div className="flex justify-center sm:justify-start">
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => void handleMessage()}
-            isLoading={startConversation.isPending}
-          >
-            <MessageCircle className="size-4" />
-            {t('message')}
-          </Button>
+        <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
+          {!isOwnProfile ? (
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => void handleMessage()}
+              isLoading={startConversation.isPending}
+            >
+              <MessageCircle className="size-4" />
+              {t('message')}
+            </Button>
+          ) : null}
+          {isAuthenticated && !isOwnProfile ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => setReportOpen(true)}
+            >
+              <Flag className="size-4" />
+              {tReport('button')}
+            </Button>
+          ) : null}
         </div>
       </div>
+
+      <ReportDialog
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        targetType="USER"
+        targetId={profile.id}
+      />
     </div>
   );
 }

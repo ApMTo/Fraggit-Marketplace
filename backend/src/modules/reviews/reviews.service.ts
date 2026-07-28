@@ -107,7 +107,7 @@ export class ReviewsService {
       throw new NotFoundException('user_not_found');
     }
 
-    const where = { revieweeId: query.sellerId };
+    const where = { revieweeId: query.sellerId, hiddenAt: null };
     const skip = (query.page - 1) * query.limit;
 
     const [items, total] = await Promise.all([
@@ -135,7 +135,7 @@ export class ReviewsService {
       select: REVIEW_DETAIL_SELECT,
     });
 
-    if (!review) {
+    if (!review || review.hiddenAt) {
       throw new NotFoundException('review_not_found');
     }
 

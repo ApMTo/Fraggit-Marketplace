@@ -2,8 +2,10 @@ import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
+import { assertDevOnly } from '../src/database/assert-dev-only';
 
 async function main() {
+  assertDevOnly('prisma/_check-sellers');
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
   const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
 
@@ -24,4 +26,4 @@ async function main() {
   }
 }
 
-main();
+void main();

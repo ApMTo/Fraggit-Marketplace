@@ -99,6 +99,19 @@ export class UpdateLotDto {
   @Transform(defaultStock)
   stock?: number;
 
+  @ApiPropertyOptional({
+    example: 'Your Player ID and server:',
+    maxLength: 2000,
+    description:
+      'Required when the lot type is SERVICE. Ignored for ACCOUNT lots.',
+  })
+  @IsOptional()
+  @IsString({ message: V.mustBeString })
+  @MinLength(1, { message: 'validation.service_question_required' })
+  @MaxLength(2000, { message: 'validation.service_question_max_length' })
+  @Transform(trimOptionalNullableText)
+  serviceQuestion?: string | null;
+
   @ApiProperty({
     type: [LotAttributeInputDto],
     description:

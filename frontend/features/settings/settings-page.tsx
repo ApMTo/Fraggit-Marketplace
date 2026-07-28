@@ -8,6 +8,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { ChangeEmailForm } from '@/features/settings/components/change-email-form';
 import { ChangePasswordForm } from '@/features/settings/components/change-password-form';
 import { ChangeUsernameForm } from '@/features/settings/components/change-username-form';
+import { TwoFactorForm } from '@/features/settings/components/two-factor-form';
 import { useUserProfile } from '@/hooks/use-users';
 import { userProfileHref } from '@/lib/app-nav';
 import { cn } from '@/lib/utils';
@@ -61,6 +62,9 @@ function SecuritySection() {
         </div>
         <div className="surface-card space-y-4 p-6 sm:p-8">
           <ChangePasswordForm />
+        </div>
+        <div className="surface-card space-y-4 p-6 sm:p-8">
+          <TwoFactorForm profile={profile} />
         </div>
       </div>
     </div>

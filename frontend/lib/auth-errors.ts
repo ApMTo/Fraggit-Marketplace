@@ -26,6 +26,13 @@ const KNOWN_ERROR_CODES = new Set([
   'user_not_found',
   'insufficient_role',
   'password_mismatch',
+  'invalid_or_expired_code',
+  'too_many_code_attempts',
+  'invalid_or_expired_challenge',
+  'two_factor_resend_cooldown',
+  'two_factor_already_enabled',
+  'two_factor_not_enabled',
+  'invalid_current_password',
 ]);
 
 export function resolveAuthErrorKey(error: unknown): string {

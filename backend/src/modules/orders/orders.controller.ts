@@ -49,7 +49,7 @@ export class OrdersController {
   })
   @ApiResponse({ status: 201, description: 'Order created' })
   create(@CurrentUser() user: AuthUser, @Body() dto: CreateOrderDto) {
-    return this.ordersService.createOrder(user.id, dto);
+    return this.ordersService.createOrder(user.id, user.role, dto);
   }
 
   @Get()
@@ -76,7 +76,7 @@ export class OrdersController {
   @ApiCookieAuth('access_token')
   @ApiHeader(CSRF_HEADER)
   @ApiOperation({
-    summary: 'Submit delivery credentials (seller only)',
+    summary: 'Submit delivery credentials (seller only, ACCOUNT lots)',
     description:
       'Moves order from PENDING to AWAITING_BUYER_CONFIRMATION and starts a 3-day auto-approval timer.',
   })
@@ -88,6 +88,22 @@ export class OrdersController {
     @Body() dto: SubmitCredentialsDto,
   ) {
     return this.ordersService.submitCredentials(user.id, id, dto);
+  }
+
+  @Patch(':id/complete-service')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @ApiCookieAuth('access_token')
+  @ApiHeader(CSRF_HEADER)
+  @ApiOperation({
+    summary: 'Mark service as completed (seller only, SERVICE lots)',
+    description:
+      'Moves order from PENDING to AWAITING_BUYER_CONFIRMATION and starts a 3-day auto-approval timer.',
+  })
+  @ApiParam({ name: 'id', description: 'Order id' })
+  @ApiResponse({ status: 200, description: 'Service marked as completed' })
+  completeService(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.ordersService.completeService(user.id, id);
   }
 
   @Patch(':id/confirm')

@@ -16,6 +16,33 @@ export function emptyAttributeValue(
   }
 }
 
+export function parseStoredAttributeValue(
+  type: AttributeDefinitionPublic['type'],
+  stored: string,
+): LotAttributeInputValue {
+  switch (type) {
+    case 'BOOLEAN':
+      return stored === 'true';
+    case 'MULTISELECT': {
+      try {
+        const parsed: unknown = JSON.parse(stored);
+        if (
+          Array.isArray(parsed) &&
+          parsed.every((item): item is string => typeof item === 'string')
+        ) {
+          return parsed;
+        }
+      } catch {
+      }
+      return stored.trim() ? [stored.trim()] : [];
+    }
+    case 'NUMBER':
+      return stored;
+    default:
+      return stored;
+  }
+}
+
 export function hasAttributeValue(value: LotAttributeInputValue): boolean {
   if (typeof value === 'string') {
     return value.trim().length > 0;

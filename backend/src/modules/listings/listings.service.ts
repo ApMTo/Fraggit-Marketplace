@@ -5,8 +5,9 @@
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { AttributeType, LotStatus } from '@prisma/client';
+import { AttributeType, LotStatus, LotType, UserRole } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { assertStaffCannotTrade } from '../moderation/policies/moderation-policy';
 import { AttributeDefinitionsService } from '../attribute-definitions/attribute-definitions.service';
 import { FilesService } from '../files/files.service';
 import { SubcategoriesService } from '../subcategories/subcategories.service';
@@ -48,10 +49,13 @@ export class ListingsService {
 
   async createLot(
     sellerId: string,
+    sellerRole: UserRole,
     dto: CreateLotDto,
     photos: Express.Multer.File[] = [],
     preview?: Express.Multer.File,
   ): Promise<LotDetail> {
+    assertStaffCannotTrade(sellerRole);
+
     await this.subcategoriesService.assertBelongsToCategory(
       dto.subcategoryId,
       dto.categoryId,
@@ -82,6 +86,14 @@ export class ListingsService {
     }
 
     const previewUrl = uploadedPreview?.url ?? category.previewUrl ?? null;
+    const serviceQuestion =
+      dto.type === LotType.SERVICE
+        ? (dto.serviceQuestion?.trim() ?? null)
+        : null;
+
+    if (dto.type === LotType.SERVICE && !serviceQuestion) {
+      throw new BadRequestException('service_question_required');
+    }
 
     return this.prisma.$transaction(async (tx) => {
       return tx.lot.create({
@@ -89,6 +101,8 @@ export class ListingsService {
           title: dto.title,
           description: dto.description ?? null,
           previewUrl,
+          type: dto.type,
+          serviceQuestion,
           price: dto.price,
           stock: dto.stock ?? 1,
           sellerId,
@@ -115,7 +129,11 @@ export class ListingsService {
       select: LOT_DETAIL_SELECT,
     });
 
-    if (!lot) {
+    if (
+      !lot ||
+      lot.status === LotStatus.REMOVED ||
+      lot.status === LotStatus.UNDER_REVIEW
+    ) {
       throw new NotFoundException('lot_not_found');
     }
 
@@ -211,16 +229,20 @@ export class ListingsService {
 
   async updateLot(
     sellerId: string,
+    sellerRole: UserRole,
     id: string,
     dto: UpdateLotDto,
     photos: Express.Multer.File[] = [],
     preview?: Express.Multer.File,
   ): Promise<LotDetail> {
+    assertStaffCannotTrade(sellerRole);
+
     const lot = await this.prisma.lot.findUnique({
       where: { id },
       select: {
         sellerId: true,
         status: true,
+        type: true,
         subcategoryId: true,
         images: { select: { id: true } },
       },
@@ -243,6 +265,15 @@ export class ListingsService {
     const totalImages = dto.keepImageIds.length + photos.length;
     if (totalImages > 5) {
       throw new BadRequestException('lot_images_max_count');
+    }
+
+    let serviceQuestionUpdate: string | null | undefined = undefined;
+    if (lot.type === LotType.SERVICE) {
+      const trimmed = dto.serviceQuestion?.trim() ?? '';
+      if (!trimmed) {
+        throw new BadRequestException('service_question_required');
+      }
+      serviceQuestionUpdate = trimmed;
     }
 
     const definitions =
@@ -295,6 +326,9 @@ export class ListingsService {
           description: dto.description ?? null,
           price: dto.price,
           stock: dto.stock ?? 1,
+          ...(serviceQuestionUpdate !== undefined
+            ? { serviceQuestion: serviceQuestionUpdate }
+            : {}),
           ...(uploadedPreview ? { previewUrl: uploadedPreview.url } : {}),
           attributes: {
             create: attributeValues,

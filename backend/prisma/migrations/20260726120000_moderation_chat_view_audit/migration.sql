@@ -1,0 +1,3 @@
+-- AlterEnum
+ALTER TYPE "ModerationTargetType" ADD VALUE IF NOT EXISTS 'CONVERSATION';
+ALTER TYPE "ModerationActionType" ADD VALUE IF NOT EXISTS 'CHAT_VIEW';

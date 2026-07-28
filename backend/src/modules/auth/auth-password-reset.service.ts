@@ -45,27 +45,38 @@ export class AuthPasswordResetService {
       this.configService.get<string>('frontendUrl') ?? 'http://localhost:3000';
   }
 
+  /**
+   * Always returns the same success payload, whether or not an eligible
+   * account exists — prevents email enumeration.
+   */
   async requestReset(dto: ForgotPasswordDto) {
     const email = dto.email.toLowerCase().trim();
 
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-      select: {
-        id: true,
-        email: true,
-        displayName: true,
-        status: true,
-        emailVerified: true,
-      },
-    });
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          email: true,
+          displayName: true,
+          status: true,
+          emailVerified: true,
+        },
+      });
 
-    if (
-      user &&
-      user.emailVerified &&
-      user.status !== UserStatus.BANNED &&
-      user.status !== UserStatus.SUSPENDED
-    ) {
-      await this.issueResetToken(user);
+      if (
+        user &&
+        user.emailVerified &&
+        user.status !== UserStatus.BANNED &&
+        user.status !== UserStatus.SUSPENDED
+      ) {
+        await this.issueResetToken(user);
+      }
+    } catch (error) {
+      this.logger.error(
+        `auth.password_reset_request_failed email=${email}`,
+        error instanceof Error ? error.stack : undefined,
+      );
     }
 
     return { message: 'password_reset_email_sent' };

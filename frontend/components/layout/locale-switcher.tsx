@@ -2,10 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
-import { Globe } from 'lucide-react';
 import { setLocalePreference } from '@/app/actions/preferences';
 import { locales, type Locale } from '@/i18n/config';
-import { localeLabels } from '@/lib/theme';
+import { localeLabels, localeShortLabels } from '@/lib/theme';
 import { DropdownItem, DropdownMenu } from '@/components/ui/dropdown-menu';
 
 export function LocaleSwitcher() {
@@ -24,11 +23,12 @@ export function LocaleSwitcher() {
 
   return (
     <DropdownMenu
+      size="sm"
+      align="end"
       trigger={
-        <>
-          <Globe className="size-4 text-brand-cyan" />
-          <span className="hidden sm:inline">{localeLabels[locale]}</span>
-        </>
+        <span className="font-medium tracking-wide" aria-label={t('language')}>
+          {localeShortLabels[locale]}
+        </span>
       }
     >
       {locales.map((item) => (
@@ -37,10 +37,12 @@ export function LocaleSwitcher() {
           isActive={item === locale}
           onSelect={() => void handleSelect(item)}
         >
-          {localeLabels[item]}
+          <span className="w-7 font-medium tracking-wide">
+            {localeShortLabels[item]}
+          </span>
+          <span className="text-muted">{localeLabels[item]}</span>
         </DropdownItem>
       ))}
-      <span className="sr-only">{t('language')}</span>
     </DropdownMenu>
   );
 }

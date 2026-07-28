@@ -1,8 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { LotType } from '@prisma/client';
 import { plainToInstance, Transform, Type } from 'class-transformer';
 import {
   ArrayMinSize,
   IsArray,
+  IsEnum,
   IsNotEmpty,
   IsInt,
   IsNumber,
@@ -11,6 +13,7 @@ import {
   MaxLength,
   Min,
   MinLength,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 import { V } from '../../../common/constants/validation.messages';
@@ -89,6 +92,27 @@ export class CreateLotDto {
   @IsString({ message: V.mustBeString })
   @IsNotEmpty({ message: 'validation.subcategory_id_required' })
   subcategoryId!: string;
+
+  @ApiProperty({
+    enum: LotType,
+    example: LotType.ACCOUNT,
+    description:
+      'ACCOUNT delivers credentials; SERVICE asks the buyer questions.',
+  })
+  @IsEnum(LotType, { message: 'validation.invalid_lot_type' })
+  type!: LotType;
+
+  @ApiPropertyOptional({
+    example: 'Your Player ID and server:',
+    maxLength: 2000,
+    description: 'Required when type is SERVICE. Ignored for ACCOUNT.',
+  })
+  @ValidateIf((dto: CreateLotDto) => dto.type === LotType.SERVICE)
+  @IsString({ message: V.mustBeString })
+  @MinLength(1, { message: 'validation.service_question_required' })
+  @MaxLength(2000, { message: 'validation.service_question_max_length' })
+  @Transform(trimString)
+  serviceQuestion?: string;
 
   @ApiProperty({
     type: [LotAttributeInputDto],

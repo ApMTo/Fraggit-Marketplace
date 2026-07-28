@@ -38,6 +38,9 @@ export class UserProfileDto {
   @ApiProperty()
   emailVerified!: boolean;
 
+  @ApiProperty()
+  twoFactorEnabled!: boolean;
+
   @ApiPropertyOptional({ nullable: true })
   telegramUsername!: string | null;
 

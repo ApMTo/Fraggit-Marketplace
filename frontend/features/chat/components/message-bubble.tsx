@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { AppImage } from '@/components/ui/app-image';
 import { ImageLightbox } from '@/features/chat/components/image-lightbox';
 import { formatMessageTime } from '@/lib/chat-time';
+import { formatSystemChatMessage } from '@/lib/format-system-chat-message';
 import { cn } from '@/lib/utils';
 import type { ChatMessage } from '@/types/chat';
 
@@ -24,14 +26,17 @@ export function MessageBubble({
   enlargeLabel,
   closeLightboxLabel,
 }: MessageBubbleProps) {
+  const t = useTranslations('chat');
   const time = formatMessageTime(message.createdAt, locale);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   if (message.type === 'SYSTEM') {
+    const text = formatSystemChatMessage(message, t, systemFallback);
+
     return (
       <div className="flex justify-center px-3 py-2">
         <p className="max-w-[85%] rounded-[var(--radius-sm)] bg-surface-elevated px-3 py-1.5 text-center text-xs text-subtle">
-          {message.content?.trim() || systemFallback}
+          {text}
         </p>
       </div>
     );

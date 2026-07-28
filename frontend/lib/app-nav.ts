@@ -2,10 +2,11 @@ import type { UserRole } from '@/types/auth';
 
 export type AppNavItemId =
   | 'listings'
-  | 'dashboard'
   | 'orders'
   | 'chat'
+  | 'reports'
   | 'profile'
+  | 'moderation'
   | 'admin';
 
 export type AppNavGroup = 'header' | 'account';
@@ -21,12 +22,6 @@ type AppNavItem = {
 const APP_NAV_ITEMS: AppNavItem[] = [
   { id: 'listings', href: '/listings', group: 'header', showWhen: 'always' },
   {
-    id: 'dashboard',
-    href: '/dashboard',
-    group: 'account',
-    showWhen: 'authenticated',
-  },
-  {
     id: 'orders',
     href: '/orders',
     group: 'account',
@@ -34,17 +29,30 @@ const APP_NAV_ITEMS: AppNavItem[] = [
   },
   { id: 'chat', href: '/chat', group: 'account', showWhen: 'authenticated' },
   {
+    id: 'reports',
+    href: '/reports',
+    group: 'account',
+    showWhen: 'authenticated',
+  },
+  {
     id: 'profile',
     href: '/profile',
     group: 'account',
     showWhen: 'authenticated',
   },
   {
+    id: 'moderation',
+    href: '/moderation',
+    group: 'account',
+    showWhen: 'authenticated',
+    roles: ['MODERATOR', 'ADMIN', 'SUPER_ADMIN', 'OWNER'],
+  },
+  {
     id: 'admin',
     href: '/admin',
     group: 'account',
     showWhen: 'authenticated',
-    roles: ['ADMIN', 'MODERATOR', 'OWNER', 'SUPER_ADMIN'],
+    roles: ['ADMIN', 'SUPER_ADMIN', 'OWNER'],
   },
 ];
 

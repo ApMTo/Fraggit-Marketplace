@@ -42,6 +42,11 @@ import { MessageService } from './services/message.service';
     ChatNotificationProcessor,
     ChatOrderService,
   ],
-  exports: [ChatService, ChatOrderService],
+  exports: [
+    ChatService,
+    ChatOrderService,
+    ChatGateway,
+    ChatNotificationService,
+  ],
 })
 export class ChatModule {}

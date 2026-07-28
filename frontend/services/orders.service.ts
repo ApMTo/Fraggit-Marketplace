@@ -71,6 +71,13 @@ export const ordersService = {
     return data;
   },
 
+  async completeService(id: string): Promise<OrderDetail> {
+    const { data } = await api.patch<OrderDetail>(
+      `/orders/${encodeURIComponent(id)}/complete-service`,
+    );
+    return data;
+  },
+
   async confirm(id: string): Promise<OrderDetail> {
     const { data } = await api.patch<OrderDetail>(
       `/orders/${encodeURIComponent(id)}/confirm`,
