@@ -12,6 +12,7 @@ import type {
   ModTicket,
   ModUser,
   ModUserDetail,
+  ModUserReportConversationSummary,
   ModerationReasonPayload,
   ModerationTargetType,
   Paginated,
@@ -42,6 +43,10 @@ export const moderationKeys = {
    */
   reportConversation: (id: string) =>
     ['moderation-report-conversation', id] as const,
+  userReportConversations: (reportId: string) =>
+    ['moderation-user-report-conversations', reportId] as const,
+  userReportConversation: (reportId: string, conversationId: string) =>
+    ['moderation-user-report-conversation', reportId, conversationId] as const,
   lotDisputeRoom: (roomId: string) =>
     [...moderationKeys.all, 'lot-dispute-room', roomId] as const,
   orderDisputeRoom: (orderId: string) =>
@@ -212,6 +217,33 @@ export const moderationService = {
     return data;
   },
 
+  async listUserReportConversations(reportId: string) {
+    const { data } = await api.get<{
+      items: ModUserReportConversationSummary[];
+    }>(`/moderation/reports/${reportId}/user-conversations`);
+    return data;
+  },
+
+  async getUserReportConversation(
+    reportId: string,
+    conversationId: string,
+    params?: { context?: number },
+  ): Promise<ModReportedConversation> {
+    const { data } = await api.get<ModReportedConversation>(
+      `/moderation/reports/${reportId}/user-conversations/${conversationId}`,
+      { params },
+    );
+    return data;
+  },
+
+  async requestReportVerdict(id: string, summary: string) {
+    const { data } = await api.post<{ report: ModReport }>(
+      `/moderation/reports/${id}/request-verdict`,
+      { summary },
+    );
+    return data;
+  },
+
   async getLotDisputeRoom(
     roomId: string,
     params?: { limit?: number },
@@ -317,6 +349,14 @@ export const moderationService = {
   async claimTicket(id: string) {
     const { data } = await api.post<{ ticket: ModTicket }>(
       `/moderation/tickets/${id}/claim`,
+    );
+    return data;
+  },
+
+  async requestTicketVerdict(id: string, payload: { summary: string }) {
+    const { data } = await api.post<{ ticket: ModTicket }>(
+      `/moderation/tickets/${id}/request-verdict`,
+      payload,
     );
     return data;
   },

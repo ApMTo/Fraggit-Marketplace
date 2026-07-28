@@ -1,3 +1,4 @@
+import { ForbiddenException } from '@nestjs/common';
 import { UserRole, UserStatus } from '@prisma/client';
 import { ModerationUsersService } from './moderation-users.service';
 
@@ -24,7 +25,9 @@ describe('ModerationUsersService ban side-effects', () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
-    const auditAppend = jest.fn().mockResolvedValue({});
+    const auditAppend = jest.fn().mockResolvedValue({
+      id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+    });
     const revokeAllSessions = jest.fn().mockResolvedValue(2);
     const invalidate = jest.fn().mockResolvedValue(undefined);
 
@@ -74,7 +77,7 @@ describe('ModerationUsersService ban side-effects', () => {
 
     const result = await service.updateStatus(
       actorId,
-      UserRole.MODERATOR,
+      UserRole.ADMIN,
       targetId,
       { status: UserStatus.BANNED, reason: 'scam seller' },
     );
@@ -92,12 +95,23 @@ describe('ModerationUsersService ban side-effects', () => {
   it('does not revoke sessions when restoring to ACTIVE', async () => {
     const { service, revokeAllSessions, lotUpdateMany } = createService();
 
-    await service.updateStatus(actorId, UserRole.MODERATOR, targetId, {
+    await service.updateStatus(actorId, UserRole.ADMIN, targetId, {
       status: UserStatus.ACTIVE,
       reason: 'appeal accepted',
     });
 
     expect(lotUpdateMany).not.toHaveBeenCalled();
     expect(revokeAllSessions).not.toHaveBeenCalled();
+  });
+
+  it('blocks moderator from changing user status', async () => {
+    const { service } = createService();
+
+    await expect(
+      service.updateStatus(actorId, UserRole.MODERATOR, targetId, {
+        status: UserStatus.BANNED,
+        reason: 'scam seller',
+      }),
+    ).rejects.toThrow(ForbiddenException);
   });
 });

@@ -6,26 +6,17 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Spinner } from '@/components/ui/spinner';
 import { useReportConversation } from '@/hooks/use-moderation';
+import {
+  moderationMessageBody,
+  moderationMessageSenderLabel,
+} from '@/features/moderation/lib/format-moderation-conversation-message';
 import { cn } from '@/lib/utils';
-import type { ModConversationMessage } from '@/types/moderation';
 
 type Props = { reportId: string; privateParties?: boolean };
 
-function messageBody(
-  message: ModConversationMessage,
-  t: (key: string) => string,
-): string {
-  if (message.type === 'TEXT') {
-    return message.content?.trim() || '';
-  }
-  if (message.type === 'IMAGE') {
-    return t('imageMessage');
-  }
-  return message.content?.trim() || t('systemMessage');
-}
-
 export function ReportedConversation({ reportId, privateParties }: Props) {
   const t = useTranslations('moderation.reports.conversation');
+  const tChat = useTranslations('chat');
   const [revealed, setRevealed] = useState(false);
   const { data, isLoading, isError } = useReportConversation(
     revealed ? reportId : null,
@@ -80,21 +71,27 @@ export function ReportedConversation({ reportId, privateParties }: Props) {
               const isReported =
                 data.reportedMessageId != null &&
                 message.id === data.reportedMessageId;
+              const isSystem = message.type === 'SYSTEM';
               return (
                 <li
                   key={message.id}
                   className={cn(
                     'rounded-md border px-3 py-2 text-sm',
-                    isReported
-                      ? 'border-[var(--warning)]/40 bg-[var(--warning)]/10'
-                      : 'border-transparent bg-muted/40',
+                    isSystem && 'border-transparent bg-muted/25 text-center',
+                    !isSystem &&
+                      (isReported
+                        ? 'border-[var(--warning)]/40 bg-[var(--warning)]/10'
+                        : 'border-transparent bg-muted/40'),
                   )}
                 >
-                  <div className="flex flex-wrap items-baseline gap-2 text-xs text-muted-foreground">
+                  <div
+                    className={cn(
+                      'flex flex-wrap items-baseline gap-2 text-xs text-muted-foreground',
+                      isSystem && 'justify-center',
+                    )}
+                  >
                     <span className="font-medium text-foreground">
-                      {message.sender
-                        ? `@${message.sender.username}`
-                        : t('deletedSender')}
+                      {moderationMessageSenderLabel(message, t)}
                     </span>
                     <span>{new Date(message.createdAt).toLocaleString()}</span>
                     {isReported ? (
@@ -103,8 +100,13 @@ export function ReportedConversation({ reportId, privateParties }: Props) {
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-1 whitespace-pre-wrap break-words">
-                    {messageBody(message, t)}
+                  <p
+                    className={cn(
+                      'mt-1 whitespace-pre-wrap break-words',
+                      isSystem && 'text-subtle',
+                    )}
+                  >
+                    {moderationMessageBody(message, tChat, t)}
                   </p>
                   {message.attachments.length > 0 ? (
                     <ul className="mt-1.5 flex flex-wrap gap-2">

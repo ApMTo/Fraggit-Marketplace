@@ -95,7 +95,21 @@ export type ResetPasswordTokenResponse = {
 export type ApiErrorBody = {
   status: 'error';
   error: {
-    message: string | { code: string; resendAvailableInSeconds?: number } | string[];
+    message:
+      | string
+      | {
+          code: string;
+          resendAvailableInSeconds?: number;
+          restriction?: AccountRestriction;
+        }
+      | string[];
     code: number;
   };
+};
+
+export type AccountRestriction = {
+  status: 'BANNED' | 'SUSPENDED';
+  publicMessage: string | null;
+  caseId: string | null;
+  suspendedUntil: string | null;
 };

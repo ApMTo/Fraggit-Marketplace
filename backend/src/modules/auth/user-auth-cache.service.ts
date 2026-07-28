@@ -19,7 +19,7 @@ type UserAuthCacheEntry =
   | { status: 'missing' };
 
 const CACHE_PREFIX = 'auth:user:';
-const CACHE_TTL_SECONDS = 60;
+const CACHE_TTL_SECONDS = 30;
 
 @Injectable()
 export class UserAuthCacheService {

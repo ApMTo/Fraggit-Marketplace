@@ -23,7 +23,8 @@ function isOpenStatus(status: TicketStatus): boolean {
   return (
     status === 'OPEN' ||
     status === 'IN_PROGRESS' ||
-    status === 'WAITING_USER'
+    status === 'WAITING_USER' ||
+    status === 'AWAITING_VERDICT'
   );
 }
 
@@ -47,7 +48,8 @@ export function TicketDisputeWorkflow({
     isStaff &&
     !isDisputeParty &&
     isOpenStatus(ticket.status) &&
-    !isAssignee;
+    !isAssignee &&
+    ticket.status !== 'AWAITING_VERDICT';
 
   if (ticket.type !== 'ORDER_DISPUTE' || !order) {
     return null;

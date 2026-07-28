@@ -12,17 +12,23 @@ import {
   Prisma,
   TicketResolution,
   TicketStatus,
+  TicketPriority,
   TicketType,
   UserRole,
+  UserStatus,
 } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { RoleHierarchy } from '../../auth/enums/roles.enum';
 import { OrderCompletionService } from '../../orders/services/order-completion.service';
-import { assertNotOrderDisputeParty } from '../policies/moderation-policy';
+import {
+  assertNotOrderDisputeParty,
+  assertTicketAssigneeIsStaff,
+} from '../policies/moderation-policy';
 import {
   CreateTicketDto,
   CreateTicketMessageDto,
   FindTicketsQueryDto,
+  RequestTicketVerdictDto,
   ResolveTicketDto,
   UpdateTicketDto,
 } from '../dto/moderation-tickets.dto';
@@ -35,6 +41,7 @@ const OPEN_TICKET_STATUSES: TicketStatus[] = [
   TicketStatus.OPEN,
   TicketStatus.IN_PROGRESS,
   TicketStatus.WAITING_USER,
+  TicketStatus.AWAITING_VERDICT,
 ];
 
 const DISPUTABLE_ORDER_STATUSES: OrderStatus[] = [
@@ -170,6 +177,19 @@ export class ModerationTicketsService {
   async update(actorId: string, ticketId: string, dto: UpdateTicketDto) {
     const ticket = await this.requireTicket(ticketId);
 
+    if (dto.assigneeId !== undefined && dto.assigneeId !== null) {
+      const assignee = await this.prisma.user.findUnique({
+        where: { id: dto.assigneeId },
+        select: { role: true },
+      });
+
+      if (!assignee) {
+        throw new NotFoundException({ code: 'errors.user_not_found' });
+      }
+
+      assertTicketAssigneeIsStaff(assignee.role);
+    }
+
     return this.prisma.$transaction(async (tx) => {
       const updated = await tx.ticket.update({
         where: { id: ticketId },
@@ -248,6 +268,104 @@ export class ModerationTicketsService {
     }
 
     return result;
+  }
+
+  /**
+   * Assignee moderator hands the ticket to admins for final resolve (summary + notify).
+   */
+  async requestAdminVerdict(
+    actorId: string,
+    actorRole: UserRole,
+    ticketId: string,
+    dto: RequestTicketVerdictDto,
+  ) {
+    if (RoleHierarchy[actorRole] >= RoleHierarchy[UserRole.ADMIN]) {
+      throw new BadRequestException({
+        code: 'errors.ticket_verdict_not_needed',
+      });
+    }
+
+    const ticket = await this.requireTicket(ticketId);
+
+    if (
+      ticket.status === TicketStatus.RESOLVED ||
+      ticket.status === TicketStatus.CLOSED
+    ) {
+      throw new ConflictException({ code: 'errors.ticket_closed' });
+    }
+
+    if (ticket.status === TicketStatus.AWAITING_VERDICT) {
+      throw new ConflictException({
+        code: 'errors.ticket_already_awaiting_verdict',
+      });
+    }
+
+    if (ticket.assigneeId !== actorId) {
+      throw new ForbiddenException({
+        code: 'errors.ticket_verdict_assignee_only',
+      });
+    }
+
+    const summary = dto.summary.trim();
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      await tx.ticketMessage.create({
+        data: {
+          ticketId,
+          authorId: actorId,
+          body: summary,
+          isInternal: true,
+        },
+      });
+
+      const updated = await tx.ticket.update({
+        where: { id: ticketId },
+        data: {
+          status: TicketStatus.AWAITING_VERDICT,
+          priority: TicketPriority.HIGH,
+        },
+        select: MOD_TICKET_LIST_SELECT,
+      });
+
+      await this.audit.append(
+        {
+          actorId,
+          actionType: ModerationActionType.TICKET_UPDATE,
+          targetType: ModerationTargetType.TICKET,
+          targetId: ticketId,
+          reason: 'ticket_verdict_requested',
+          before: { status: ticket.status },
+          after: {
+            status: updated.status,
+            priority: updated.priority,
+          },
+          metadata: { summaryPreview: summary.slice(0, 200) },
+        },
+        tx,
+      );
+
+      return updated;
+    });
+
+    const admins = await this.prisma.user.findMany({
+      where: {
+        role: {
+          in: [UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.OWNER],
+        },
+        status: UserStatus.ACTIVE,
+      },
+      select: { id: true },
+    });
+
+    await this.notifications.notifyTicketVerdictRequested({
+      recipientIds: admins.map((a) => a.id),
+      ticketId,
+      subject: result.subject,
+      summary,
+      moderatorId: actorId,
+    });
+
+    return { ticket: result };
   }
 
   /**

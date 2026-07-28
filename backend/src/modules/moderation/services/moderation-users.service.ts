@@ -22,8 +22,12 @@ import {
 } from '../dto/moderation-users.dto';
 import {
   assertCanAssignRole,
+  assertCanChangeUserStatus,
   assertCanModerateUser,
+  assertCanRevokeUserSessions,
+  isStaffRole,
 } from '../policies/moderation-policy';
+import { formatStatusCaseId } from '../../auth/utils/account-restriction.util';
 import { ModerationAuditService } from './moderation-audit.service';
 
 const MUTABLE_STATUSES = new Set<UserStatus>([
@@ -174,21 +178,13 @@ export class ModerationUsersService {
       throw new NotFoundException({ code: 'errors.user_not_found' });
     }
 
+    assertCanChangeUserStatus(actorRole);
     assertCanModerateUser(actorRole, target.role);
 
     const suspendedUntil =
       dto.status === UserStatus.SUSPENDED ? (dto.suspendedUntil ?? null) : null;
 
     const result = await this.prisma.$transaction(async (tx) => {
-      const updated = await tx.user.update({
-        where: { id: userId },
-        data: {
-          status: dto.status,
-          suspendedUntil,
-        },
-        select: MOD_USER_LIST_SELECT,
-      });
-
       let lotsRemoved = 0;
       if (
         dto.status === UserStatus.BANNED ||
@@ -201,7 +197,7 @@ export class ModerationUsersService {
         lotsRemoved = lotResult.count;
       }
 
-      await this.audit.append(
+      const auditAction = await this.audit.append(
         {
           actorId,
           actionType: ModerationActionType.USER_STATUS_CHANGE,
@@ -213,13 +209,31 @@ export class ModerationUsersService {
             suspendedUntil: target.suspendedUntil,
           },
           after: {
-            status: updated.status,
-            suspendedUntil: updated.suspendedUntil,
+            status: dto.status,
+            suspendedUntil,
           },
           metadata: { lotsRemoved },
         },
         tx,
       );
+
+      const isRestricted =
+        dto.status === UserStatus.BANNED || dto.status === UserStatus.SUSPENDED;
+      const publicMessage = isRestricted
+        ? dto.userMessage?.trim() || dto.reason.trim()
+        : null;
+      const caseId = isRestricted ? formatStatusCaseId(auditAction.id) : null;
+
+      const updated = await tx.user.update({
+        where: { id: userId },
+        data: {
+          status: dto.status,
+          suspendedUntil,
+          statusPublicMessage: isRestricted ? publicMessage : null,
+          statusCaseId: isRestricted ? caseId : null,
+        },
+        select: MOD_USER_LIST_SELECT,
+      });
 
       return { user: updated, lotsRemoved };
     });
@@ -254,6 +268,7 @@ export class ModerationUsersService {
       throw new NotFoundException({ code: 'errors.user_not_found' });
     }
 
+    assertCanRevokeUserSessions(actorRole);
     assertCanModerateUser(actorRole, target.role);
 
     const revokedSessions = await this.sessions.revokeAllSessions(userId);
@@ -364,6 +379,10 @@ export class ModerationUsersService {
 
       return updated;
     });
+
+    if (isStaffRole(target.role) && !isStaffRole(dto.role)) {
+      await this.sessions.revokeAllSessions(userId);
+    }
 
     await this.userAuthCache.invalidate(userId);
     return { user };

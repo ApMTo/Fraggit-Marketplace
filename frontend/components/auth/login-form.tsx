@@ -12,7 +12,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { FormError } from '@/components/ui/form-error';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { AccountRestrictionPanel } from '@/components/auth/account-restriction-panel';
 import { resolveAuthErrorKey } from '@/lib/auth-errors';
+import { getAccountRestrictionFromError } from '@/lib/account-restriction';
 import { validateEmail, validateLoginPassword } from '@/lib/validation/auth';
 import { useAuth } from '@/providers/AuthProvider';
 import { authService } from '@/services/auth.service';
@@ -95,7 +97,12 @@ export function LoginForm({ redirectTo = '/' }: LoginFormProps) {
         router.replace(redirectTo);
         router.refresh();
       } catch (error) {
-        setStatus({ formError: tErrors(resolveAuthErrorKey(error)) });
+        const restriction = getAccountRestrictionFromError(error);
+        if (restriction) {
+          setStatus({ restriction });
+        } else {
+          setStatus({ formError: tErrors(resolveAuthErrorKey(error)) });
+        }
       } finally {
         setSubmitting(false);
       }
@@ -129,7 +136,12 @@ export function LoginForm({ redirectTo = '/' }: LoginFormProps) {
         router.replace(redirectTo);
         router.refresh();
       } catch (error) {
-        setStatus({ formError: tErrors(resolveAuthErrorKey(error)) });
+        const restriction = getAccountRestrictionFromError(error);
+        if (restriction) {
+          setStatus({ restriction });
+        } else {
+          setStatus({ formError: tErrors(resolveAuthErrorKey(error)) });
+        }
       } finally {
         setSubmitting(false);
       }
@@ -162,13 +174,16 @@ export function LoginForm({ redirectTo = '/' }: LoginFormProps) {
   }
 
   const clearLoginError = () => {
-    if (loginFormik.status?.formError) {
+    if (loginFormik.status?.formError || loginFormik.status?.restriction) {
       loginFormik.setStatus(undefined);
     }
   };
 
   const clearTwoFactorError = () => {
-    if (twoFactorFormik.status?.formError) {
+    if (
+      twoFactorFormik.status?.formError ||
+      twoFactorFormik.status?.restriction
+    ) {
       twoFactorFormik.setStatus(undefined);
     }
   };
@@ -201,6 +216,12 @@ export function LoginForm({ redirectTo = '/' }: LoginFormProps) {
             >
               {twoFactorFormik.status?.formError ? (
                 <FormError>{twoFactorFormik.status.formError}</FormError>
+              ) : null}
+
+              {twoFactorFormik.status?.restriction ? (
+                <AccountRestrictionPanel
+                  restriction={twoFactorFormik.status.restriction}
+                />
               ) : null}
 
               <div className="space-y-2">
@@ -286,6 +307,12 @@ export function LoginForm({ redirectTo = '/' }: LoginFormProps) {
           >
             {loginFormik.status?.formError ? (
               <FormError>{loginFormik.status.formError}</FormError>
+            ) : null}
+
+            {loginFormik.status?.restriction ? (
+              <AccountRestrictionPanel
+                restriction={loginFormik.status.restriction}
+              />
             ) : null}
 
             <div className="space-y-2">

@@ -1,8 +1,12 @@
-import { ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import {
   assertCanAssignRole,
+  assertCanChangeUserStatus,
   assertCanModerateUser,
+  assertStaffCanViewDisputeRoom,
+  assertCanViewTicketPrivateChat,
+  assertTicketAssigneeIsStaff,
   isStaffRole,
 } from './moderation-policy';
 
@@ -27,6 +31,18 @@ describe('moderation-policy', () => {
       expect(() =>
         assertCanModerateUser(UserRole.ADMIN, UserRole.MODERATOR),
       ).not.toThrow();
+    });
+  });
+
+  describe('assertCanChangeUserStatus', () => {
+    it('allows admin', () => {
+      expect(() => assertCanChangeUserStatus(UserRole.ADMIN)).not.toThrow();
+    });
+
+    it('blocks moderator', () => {
+      expect(() => assertCanChangeUserStatus(UserRole.MODERATOR)).toThrow(
+        ForbiddenException,
+      );
     });
   });
 
@@ -67,6 +83,68 @@ describe('moderation-policy', () => {
       expect(isStaffRole(UserRole.USER)).toBe(false);
       expect(isStaffRole(UserRole.MODERATOR)).toBe(true);
       expect(isStaffRole(UserRole.OWNER)).toBe(true);
+    });
+  });
+
+  describe('assertTicketAssigneeIsStaff', () => {
+    it('allows staff assignees', () => {
+      expect(() =>
+        assertTicketAssigneeIsStaff(UserRole.MODERATOR),
+      ).not.toThrow();
+    });
+
+    it('rejects regular users', () => {
+      expect(() => assertTicketAssigneeIsStaff(UserRole.USER)).toThrow(
+        BadRequestException,
+      );
+    });
+  });
+
+  describe('assertStaffCanViewDisputeRoom', () => {
+    const room = { ticket: { assigneeId: 'mod-1' } };
+
+    it('allows admin without assignment', () => {
+      expect(() =>
+        assertStaffCanViewDisputeRoom(UserRole.ADMIN, 'other', room),
+      ).not.toThrow();
+    });
+
+    it('allows assigned moderator', () => {
+      expect(() =>
+        assertStaffCanViewDisputeRoom(UserRole.MODERATOR, 'mod-1', room),
+      ).not.toThrow();
+    });
+
+    it('blocks unassigned moderator', () => {
+      expect(() =>
+        assertStaffCanViewDisputeRoom(UserRole.MODERATOR, 'mod-2', room),
+      ).toThrow(ForbiddenException);
+    });
+  });
+
+  describe('assertCanViewTicketPrivateChat', () => {
+    it('allows admin without assignment', () => {
+      expect(() =>
+        assertCanViewTicketPrivateChat(UserRole.ADMIN, 'a1', {
+          assigneeId: 'mod-1',
+        }),
+      ).not.toThrow();
+    });
+
+    it('allows assigned moderator', () => {
+      expect(() =>
+        assertCanViewTicketPrivateChat(UserRole.MODERATOR, 'mod-1', {
+          assigneeId: 'mod-1',
+        }),
+      ).not.toThrow();
+    });
+
+    it('blocks unassigned moderator', () => {
+      expect(() =>
+        assertCanViewTicketPrivateChat(UserRole.MODERATOR, 'mod-2', {
+          assigneeId: 'mod-1',
+        }),
+      ).toThrow(ForbiddenException);
     });
   });
 });

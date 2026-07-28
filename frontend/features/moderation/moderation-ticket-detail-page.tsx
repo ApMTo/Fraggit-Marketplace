@@ -10,6 +10,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { ReasonActionDialog } from '@/features/moderation/components/reason-action-dialog';
 import { TicketDisputeWorkflow } from '@/features/moderation/components/ticket-dispute-workflow';
 import { TicketLotMediation } from '@/features/moderation/components/ticket-lot-mediation';
+import { TicketRequestVerdictBlock } from '@/features/moderation/components/ticket-request-verdict-block';
 import { TicketPrivateConversation } from '@/features/moderation/components/ticket-private-conversation';
 import { ModerationTicketsPage } from '@/features/moderation/moderation-tickets-page';
 import { useAuth } from '@/hooks';
@@ -29,6 +30,8 @@ function statusTone(status: TicketStatus): string {
     case 'IN_PROGRESS':
     case 'WAITING_USER':
       return 'border-[var(--blue-a24)] bg-[var(--blue-a12)] text-[var(--link)]';
+    case 'AWAITING_VERDICT':
+      return 'border-[var(--warning)]/40 bg-[var(--warning)]/15 text-[var(--warning)]';
     case 'RESOLVED':
       return 'border-[var(--success)]/30 bg-[var(--success)]/10 text-[var(--success)]';
     case 'CLOSED':
@@ -216,7 +219,16 @@ export function ModerationTicketDetailPage({ title, ticketId }: Props) {
             ) : null}
           </section>
 
-          {ticket.type === 'ORDER_DISPUTE' ? (
+          {isStaff && user ? (
+            <TicketRequestVerdictBlock
+              ticket={ticket}
+              ticketId={ticketId}
+              currentUserId={user.id}
+              currentUserRole={user.role}
+            />
+          ) : null}
+
+          {ticket.type === 'ORDER_DISPUTE' && isStaff && (isAssignee || canResolve) ? (
             <TicketPrivateConversation ticketId={ticketId} />
           ) : null}
         </div>

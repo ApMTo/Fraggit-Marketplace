@@ -55,10 +55,18 @@ describe('CsrfGuard', () => {
     ).resolves.toBe(true);
   });
 
-  it('allows requests without session cookie', async () => {
+  it('allows requests without session cookie when no access token', async () => {
     await expect(
       guard.canActivate(createContext({ cookies: {} })),
     ).resolves.toBe(true);
+  });
+
+  it('rejects mutations with access token but no session cookie', async () => {
+    await expect(
+      guard.canActivate(
+        createContext({ cookies: { access_token: 'jwt-here' } }),
+      ),
+    ).rejects.toThrow(UnauthorizedException);
   });
 
   it('throws when csrf header is missing', async () => {

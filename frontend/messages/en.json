@@ -96,6 +96,14 @@
       "lotDisputeMessage": {
         "title": "Mediation chat",
         "body": "New message about {listingTitle}.{preview}"
+      },
+      "ticketVerdictRequested": {
+        "title": "Verdict needed",
+        "body": "Moderator handed off “{subject}” for your decision.{note}"
+      },
+      "reportVerdictRequested": {
+        "title": "User report verdict",
+        "body": "Summary on @{targetUsername} (reporter @{reporterUsername}).{note}"
       }
     }
   },
@@ -953,6 +961,14 @@
       "errorTitle": "Link invalid or expired",
       "errorDescription": "Request a new password reset link and try again."
     },
+    "restriction": {
+      "bannedTitle": "Account blocked",
+      "suspendedTitle": "Account suspended",
+      "noMessage": "No additional details were provided.",
+      "caseId": "Case reference: {id}",
+      "until": "Suspension ends: {date}",
+      "appealHint": "If you believe this is a mistake, contact support and include your case reference."
+    },
     "twoFactor": {
       "title": "Check your email",
       "subtitle": "Enter the 6-digit code we sent to finish signing in",
@@ -1135,6 +1151,11 @@
     "lot_dispute_forbidden": "You do not have access to this mediation chat.",
     "lot_dispute_closed": "This mediation chat is closed.",
     "ticket_claim_required": "Take this ticket before replying in the dispute chat.",
+    "ticket_verdict_not_needed": "Admins can resolve tickets directly.",
+    "ticket_already_awaiting_verdict": "This ticket is already waiting for an admin verdict.",
+    "ticket_verdict_assignee_only": "Only the assigned moderator can request an admin verdict.",
+    "ticket_conversation_forbidden": "Take this ticket before viewing the private buyer–seller chat.",
+    "invalid_ticket_assignee": "Only staff members can be assigned to tickets.",
     "invalid_ticket_resolution": "Choose a valid ticket resolution.",
     "review_forbidden": "You cannot review this order.",
     "review_order_not_approved": "You can only review completed orders.",
@@ -1259,7 +1280,9 @@
       "cancel": "Cancel",
       "confirm": "Confirm",
       "reason": "Comment",
-      "reasonPlaceholder": "For verdicts this note is sent to the user in a notification"
+      "reasonPlaceholder": "For verdicts this note is sent to the user in a notification",
+      "userMessageLabel": "Message for the user",
+      "userMessagePlaceholder": "Shown on sign-in (reason and case ID are added automatically)"
     },
     "report": {
       "title": "Report",
@@ -1301,6 +1324,7 @@
       "reasonTitle": "Confirm action",
       "actionSuccess": "Action completed",
       "actionError": "Action failed",
+      "adminOnlySanctionsHint": "Account sanctions (ban, suspend, restore, force logout) are applied by admins. Investigate via reports and tickets, then use “Send to admin for verdict” on the ticket.",
       "columns": {
         "user": "User",
         "role": "Role",
@@ -1387,13 +1411,33 @@
         "participants": "Participants",
         "reportedBadge": "Reported message",
         "deletedSender": "Deleted user",
+        "systemAuthor": "System",
         "imageMessage": "Image",
         "systemMessage": "System message",
         "openAttachment": "Open attachment",
         "error": "Could not load the conversation",
         "noOrder": "No purchase on this lot yet — there is no buyer–seller chat.",
         "noConversation": "Buyer and seller have not started a private chat yet.",
-        "noMessages": "The private chat has no messages yet."
+        "noMessages": "The private chat has no messages yet.",
+        "userTitle": "User's private chats",
+        "userAuditNotice": "Listing threads is not audited. Opening a thread is logged in the audit log.",
+        "userRevealList": "Show user's chats",
+        "userNoThreads": "This user has no private conversations yet."
+      },
+      "workflow": {
+        "handoffTitle": "Hand off to admin",
+        "handoffHint": "After reviewing chats, send admins your summary and recommended action (ban is applied by admin only).",
+        "assignee": "Assignee: @{username}",
+        "awaitingVerdictAdmin": "Waiting for your decision — resolve or dismiss the report, then sanction the user if needed.",
+        "awaitingVerdictMod": "Sent to admins for final decision.",
+        "requestVerdict": "Send to admin for verdict",
+        "requestVerdictTitle": "Summary for admin",
+        "requestVerdictSuccess": "Admins were notified",
+        "requestVerdictError": "Could not send to admin",
+        "requestVerdictAlready": "Already waiting for admin verdict",
+        "modSummary": "Moderator summary",
+        "modCloseHint": "You cannot close user reports — use “Send to admin for verdict” after your review.",
+        "takeInReviewFirst": "First click “In review” in Actions — the report will be assigned to you."
       },
       "lotDispute": {
         "title": "Mediation chat",
@@ -1417,6 +1461,7 @@
       "statusLabels": {
         "OPEN": "Open",
         "IN_REVIEW": "In review",
+        "AWAITING_VERDICT": "Awaiting admin verdict",
         "RESOLVED": "Resolved",
         "DISMISSED": "Dismissed"
       },
@@ -1456,6 +1501,7 @@
       },
       "actions": {
         "review": "In review",
+        "assignToMe": "Assign to me",
         "resolve": "Resolve",
         "dismiss": "Dismiss",
         "lotUnderReview": "Lot under review",
@@ -1491,6 +1537,7 @@
         "OPEN": "Open",
         "IN_PROGRESS": "In progress",
         "WAITING_USER": "Waiting for user",
+        "AWAITING_VERDICT": "Awaiting admin verdict",
         "RESOLVED": "Resolved",
         "CLOSED": "Closed"
       },
@@ -1526,7 +1573,16 @@
         "claimError": "Could not take ticket",
         "youAreAssignee": "You are handling this ticket",
         "claimBeforeReply": "Take the ticket to reply in the dispute chat",
-        "partyCannotClaim": "You are a party in this dispute and cannot take the ticket as moderation."
+        "partyCannotClaim": "You are a party in this dispute and cannot take the ticket as moderation.",
+        "handoffTitle": "Hand off to admin",
+        "handoffHint": "When investigation is done, send a summary — admins get a notification and the ticket is marked for verdict.",
+        "requestVerdict": "Send to admin for verdict",
+        "requestVerdictTitle": "Summary for admin",
+        "requestVerdictSuccess": "Admins were notified",
+        "requestVerdictError": "Could not send to admin",
+        "requestVerdictAlready": "Already waiting for admin verdict",
+        "awaitingVerdictAdmin": "Moderator requested your verdict — review mediation and resolve below.",
+        "awaitingVerdictMod": "Waiting for an admin verdict. You can still read the case."
       },
       "listAssignee": "Assignee: {name}",
       "listUnassigned": "Unassigned",

@@ -10,6 +10,7 @@ import {
 } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { Pool } from 'pg';
+import { assertDevOnly } from '../src/database/assert-dev-only';
 
 const LOT_PHOTO_URL =
   'https://sm.ign.com/ign_za/review/p/pubg-battl/pubg-battlegrounds-free-to-play-review-2022_2n1n.jpg';
@@ -26,20 +27,34 @@ const SEED_SELLER = {
   password: 'SeedSeller123!',
 };
 
+function sellerExcludeEmail(): string | undefined {
+  const fromEnv = process.env.SEED_EXCLUDE_SELLER_EMAIL?.trim();
+  if (fromEnv) {
+    return fromEnv;
+  }
+  const flagIndex = process.argv.indexOf('--exclude-seller-email');
+  if (flagIndex >= 0) {
+    return process.argv[flagIndex + 1]?.trim() || undefined;
+  }
+  return undefined;
+}
+
 async function resolveSeller(prisma: PrismaClient) {
+  const excludeEmail = sellerExcludeEmail();
+
   const existing = await prisma.user.findFirst({
     where: {
-      OR: [
-        { email: SEED_SELLER.email },
-        { username: SEED_SELLER.username },
-        { status: UserStatus.ACTIVE },
-      ],
+      OR: [{ email: SEED_SELLER.email }, { username: SEED_SELLER.username }],
     },
-    orderBy: { createdAt: 'asc' },
-    select: { id: true, username: true },
+    select: { id: true, username: true, email: true },
   });
 
   if (existing) {
+    if (excludeEmail && existing.email === excludeEmail) {
+      throw new Error(
+        `Seed seller account matches SEED_EXCLUDE_SELLER_EMAIL (${excludeEmail}). Use another exclude email or a different seed seller.`,
+      );
+    }
     return existing;
   }
 
@@ -60,8 +75,32 @@ async function resolveSeller(prisma: PrismaClient) {
       ratingCount: 24,
       successfulSales: 18,
     },
-    select: { id: true, username: true },
+    select: { id: true, username: true, email: true },
   });
+}
+
+/** Active users except the excluded email; falls back to dedicated seed seller. */
+async function resolveLotSellers(prisma: PrismaClient) {
+  const excludeEmail = sellerExcludeEmail();
+
+  const others = await prisma.user.findMany({
+    where: {
+      status: UserStatus.ACTIVE,
+      ...(excludeEmail ? { email: { not: excludeEmail } } : {}),
+      NOT: {
+        OR: [{ email: SEED_SELLER.email }, { username: SEED_SELLER.username }],
+      },
+    },
+    select: { id: true, username: true },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  if (others.length > 0) {
+    return others;
+  }
+
+  const seed = await resolveSeller(prisma);
+  return [{ id: seed.id, username: seed.username }];
 }
 
 async function ensureSubcategory(
@@ -129,8 +168,8 @@ async function ensureAttribute(
 }
 
 async function ensurePubgMock(prisma: PrismaClient) {
-  const seller = await resolveSeller(prisma);
-  console.log(`Seller: ${seller.username}`);
+  const sellers = await resolveLotSellers(prisma);
+  console.log(`Lot sellers: ${sellers.map((s) => s.username).join(', ')}`);
 
   let category: Category | null = await prisma.category.findUnique({
     where: { slug: 'pubg' },
@@ -324,7 +363,9 @@ async function ensurePubgMock(prisma: PrismaClient) {
     },
   ];
 
-  for (const lot of lots) {
+  for (let i = 0; i < lots.length; i++) {
+    const lot = lots[i];
+    const seller = sellers[i % sellers.length];
     await prisma.lot.create({
       data: {
         title: lot.title,
@@ -348,6 +389,8 @@ async function ensurePubgMock(prisma: PrismaClient) {
 }
 
 async function main() {
+  assertDevOnly('prisma/seed');
+
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
   const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
 

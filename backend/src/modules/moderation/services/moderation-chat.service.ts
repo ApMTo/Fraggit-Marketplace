@@ -8,8 +8,14 @@ import {
   ModerationTargetType,
   Prisma,
   ReportTargetType,
+  UserRole,
 } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import {
+  assertCanHandleReportTarget,
+  assertCanViewTicketPrivateChat,
+  assertNotOrderDisputeParty,
+} from '../policies/moderation-policy';
 import {
   CHAT_USER_SELECT,
   MESSAGE_SELECT,
@@ -118,15 +124,28 @@ export class ModerationChatService {
 
   async findTicketPartiesConversation(
     actorId: string,
+    actorRole: UserRole,
     ticketId: string,
     context: number,
   ) {
     const ticket = await this.prisma.ticket.findUnique({
       where: { id: ticketId },
-      select: { id: true, orderId: true },
+      select: {
+        id: true,
+        orderId: true,
+        assigneeId: true,
+        order: { select: { buyerId: true, sellerId: true } },
+      },
     });
 
-    if (!ticket?.orderId) {
+    if (!ticket) {
+      throw new NotFoundException({ code: 'errors.ticket_not_found' });
+    }
+
+    assertNotOrderDisputeParty(actorId, ticket.order);
+    assertCanViewTicketPrivateChat(actorRole, actorId, ticket);
+
+    if (!ticket.orderId) {
       throw new NotFoundException({ code: 'errors.ticket_not_found' });
     }
 
@@ -245,5 +264,127 @@ export class ModerationChatService {
     });
 
     return isBefore ? rows.reverse() : rows;
+  }
+
+  async listUserReportConversations(
+    actorId: string,
+    actorRole: UserRole,
+    reportId: string,
+  ) {
+    const report = await this.requireUserReport(actorId, actorRole, reportId);
+
+    const conversations = await this.prisma.conversation.findMany({
+      where: {
+        participants: { some: { userId: report.targetId } },
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 40,
+      select: {
+        id: true,
+        updatedAt: true,
+        participants: {
+          orderBy: { joinedAt: 'asc' },
+          select: { user: { select: CHAT_USER_SELECT } },
+        },
+        messages: {
+          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+          take: 1,
+          select: {
+            content: true,
+            type: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+
+    return {
+      items: conversations.map((conversation) => ({
+        conversationId: conversation.id,
+        updatedAt: conversation.updatedAt,
+        participants: conversation.participants.map((p) => p.user),
+        lastMessage: conversation.messages[0] ?? null,
+      })),
+    };
+  }
+
+  async findUserReportConversation(
+    actorId: string,
+    actorRole: UserRole,
+    reportId: string,
+    conversationId: string,
+    context: number,
+  ) {
+    const report = await this.requireUserReport(actorId, actorRole, reportId);
+
+    const membership = await this.prisma.conversationParticipant.findFirst({
+      where: {
+        conversationId,
+        userId: report.targetId,
+      },
+      select: { conversationId: true },
+    });
+
+    if (!membership) {
+      throw new NotFoundException({ code: 'errors.conversation_not_found' });
+    }
+
+    const take = Math.max(1, context);
+    const messages = await this.prisma.message.findMany({
+      where: { conversationId },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take,
+      select: MESSAGE_SELECT,
+    });
+
+    const participants = await this.prisma.conversationParticipant.findMany({
+      where: { conversationId },
+      orderBy: { joinedAt: 'asc' },
+      select: { userId: true, user: { select: CHAT_USER_SELECT } },
+    });
+
+    await this.audit.append({
+      actorId,
+      actionType: ModerationActionType.CHAT_VIEW,
+      targetType: ModerationTargetType.CONVERSATION,
+      targetId: conversationId,
+      reason: 'chat_view_user_report',
+      metadata: { reportId: report.id, targetUserId: report.targetId },
+    });
+
+    return {
+      conversationId,
+      reportedMessageId: null,
+      participants: participants.map((p) => p.user),
+      messages: messages.reverse(),
+      emptyReason: null,
+    };
+  }
+
+  private async requireUserReport(
+    actorId: string,
+    actorRole: UserRole,
+    reportId: string,
+  ) {
+    void actorId;
+
+    const report = await this.prisma.report.findUnique({
+      where: { id: reportId },
+      select: { id: true, targetType: true, targetId: true },
+    });
+
+    if (!report) {
+      throw new NotFoundException({ code: 'errors.report_not_found' });
+    }
+
+    if (report.targetType !== ReportTargetType.USER) {
+      throw new BadRequestException({
+        code: 'errors.report_target_not_user',
+      });
+    }
+
+    assertCanHandleReportTarget(actorRole, report.targetType);
+
+    return report;
   }
 }

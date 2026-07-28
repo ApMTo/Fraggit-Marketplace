@@ -1,4 +1,4 @@
-import { ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { ReportTargetType, UserRole } from '@prisma/client';
 import { RoleHierarchy } from '../../auth/enums/roles.enum';
 
@@ -68,6 +68,29 @@ export function isAdminRole(role: UserRole): boolean {
   return RoleHierarchy[role] >= RoleHierarchy[UserRole.ADMIN];
 }
 
+/** Ban, suspend, restore account — ADMIN+ only (mods investigate via tickets/reports). */
+export function assertCanChangeUserStatus(actorRole: UserRole): void {
+  if (!isAdminRole(actorRole)) {
+    throw new ForbiddenException({ code: 'errors.insufficient_role' });
+  }
+}
+
+/** Force sign-out — ADMIN+ only. */
+export function assertCanRevokeUserSessions(actorRole: UserRole): void {
+  if (!isAdminRole(actorRole)) {
+    throw new ForbiddenException({ code: 'errors.insufficient_role' });
+  }
+}
+
+export function assertCanCloseReport(
+  actorRole: UserRole,
+  targetType: ReportTargetType,
+): void {
+  if (targetType === ReportTargetType.USER && !isAdminRole(actorRole)) {
+    throw new ForbiddenException({ code: 'errors.insufficient_role' });
+  }
+}
+
 /**
  * Lot reports require lot moderation powers, and message reports require
  * reading private conversations. Both are ADMIN+ only.
@@ -92,4 +115,57 @@ export function assertCanHandleReportTarget(
   if (!allowedReportTargets(actorRole).includes(targetType)) {
     throw new ForbiddenException({ code: 'errors.insufficient_role' });
   }
+}
+
+export function assertTicketAssigneeIsStaff(assigneeRole: UserRole): void {
+  if (!isStaffRole(assigneeRole)) {
+    throw new BadRequestException({ code: 'errors.invalid_ticket_assignee' });
+  }
+}
+
+/**
+ * MODERATOR may read a dispute room only when assigned to the linked ticket.
+ * ADMIN+ may read any dispute room.
+ */
+export function assertStaffCanViewDisputeRoom(
+  viewerRole: UserRole,
+  viewerId: string,
+  room: { ticket: { assigneeId: string | null } | null },
+): void {
+  if (!isStaffRole(viewerRole)) {
+    throw new ForbiddenException({ code: 'errors.lot_dispute_forbidden' });
+  }
+
+  if (isAdminRole(viewerRole)) {
+    return;
+  }
+
+  if (room.ticket?.assigneeId === viewerId) {
+    return;
+  }
+
+  throw new ForbiddenException({ code: 'errors.lot_dispute_forbidden' });
+}
+
+/** Buyer–seller DM for a ticket: assignee moderator or ADMIN+. */
+export function assertCanViewTicketPrivateChat(
+  viewerRole: UserRole,
+  viewerId: string,
+  ticket: { assigneeId: string | null },
+): void {
+  if (!isStaffRole(viewerRole)) {
+    throw new ForbiddenException({ code: 'errors.ticket_forbidden' });
+  }
+
+  if (isAdminRole(viewerRole)) {
+    return;
+  }
+
+  if (ticket.assigneeId === viewerId) {
+    return;
+  }
+
+  throw new ForbiddenException({
+    code: 'errors.ticket_conversation_forbidden',
+  });
 }

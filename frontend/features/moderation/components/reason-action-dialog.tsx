@@ -12,8 +12,10 @@ type ReasonActionDialogProps = {
   title: string;
   confirmLabel?: string;
   loading?: boolean;
+  /** When true, second field is shown — text the restricted user will see on login. */
+  collectUserMessage?: boolean;
   onClose: () => void;
-  onConfirm: (reason: string) => void | Promise<void>;
+  onConfirm: (reason: string, userMessage?: string) => void | Promise<void>;
 };
 
 export function ReasonActionDialog({
@@ -21,14 +23,17 @@ export function ReasonActionDialog({
   title,
   confirmLabel,
   loading,
+  collectUserMessage = false,
   onClose,
   onConfirm,
 }: ReasonActionDialogProps) {
   const t = useTranslations('moderation.actions');
   const [reason, setReason] = useState('');
+  const [userMessage, setUserMessage] = useState('');
 
   const handleClose = () => {
     setReason('');
+    setUserMessage('');
     onClose();
   };
 
@@ -44,10 +49,18 @@ export function ReasonActionDialog({
           </Button>
           <Button
             type="button"
-            disabled={reason.trim().length < 3 || loading}
+            disabled={
+              reason.trim().length < 3 ||
+              loading ||
+              (collectUserMessage && userMessage.trim().length < 3)
+            }
             onClick={async () => {
-              await onConfirm(reason.trim());
+              await onConfirm(
+                reason.trim(),
+                collectUserMessage ? userMessage.trim() : undefined,
+              );
               setReason('');
+              setUserMessage('');
             }}
           >
             {confirmLabel ?? t('confirm')}
@@ -64,6 +77,21 @@ export function ReasonActionDialog({
           placeholder={t('reasonPlaceholder')}
           minLength={3}
         />
+        {collectUserMessage ? (
+          <>
+            <Label htmlFor="mod-user-message" className="pt-2">
+              {t('userMessageLabel')}
+            </Label>
+            <textarea
+              id="mod-user-message"
+              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[88px] w-full rounded-md border px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+              value={userMessage}
+              onChange={(e) => setUserMessage(e.target.value)}
+              placeholder={t('userMessagePlaceholder')}
+              minLength={3}
+            />
+          </>
+        ) : null}
       </div>
     </Dialog>
   );

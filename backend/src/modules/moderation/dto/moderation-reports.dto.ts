@@ -93,3 +93,10 @@ export class UpdateReportDto {
   @MaxLength(1000)
   reason!: string;
 }
+
+export class RequestReportVerdictDto {
+  @IsString()
+  @MinLength(3)
+  @MaxLength(2000)
+  summary!: string;
+}

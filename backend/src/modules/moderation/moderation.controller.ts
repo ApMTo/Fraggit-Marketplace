@@ -31,6 +31,7 @@ import {
   CreateReportDto,
   FindReportsQueryDto,
   ReportConversationQueryDto,
+  RequestReportVerdictDto,
   UpdateReportDto,
 } from './dto/moderation-reports.dto';
 import {
@@ -42,6 +43,7 @@ import {
   CreateTicketMessageDto,
   FindAuditQueryDto,
   FindTicketsQueryDto,
+  RequestTicketVerdictDto,
   ResolveTicketDto,
   UpdateTicketDto,
 } from './dto/moderation-tickets.dto';
@@ -110,7 +112,7 @@ export class ModerationController {
 
   @Patch('users/:id/status')
   @HttpCode(HttpStatus.OK)
-  @Roles(UserRole.MODERATOR)
+  @Roles(UserRole.ADMIN)
   @ApiHeader(CSRF_HEADER)
   updateUserStatus(
     @CurrentUser() actor: AuthUser,
@@ -122,7 +124,7 @@ export class ModerationController {
 
   @Post('users/:id/sessions/revoke')
   @HttpCode(HttpStatus.OK)
-  @Roles(UserRole.MODERATOR)
+  @Roles(UserRole.ADMIN)
   @ApiHeader(CSRF_HEADER)
   revokeSessions(
     @CurrentUser() actor: AuthUser,
@@ -271,6 +273,60 @@ export class ModerationController {
     return this.chat.findReportedConversation(actor.id, id, query.context);
   }
 
+  @Get('reports/:id/user-conversations')
+  @Roles(UserRole.MODERATOR)
+  @ApiOperation({
+    summary:
+      'List DM threads for reported user (USER reports). Reading a thread is audited separately.',
+  })
+  listUserReportConversations(
+    @CurrentUser() actor: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.chat.listUserReportConversations(actor.id, actor.role, id);
+  }
+
+  @Get('reports/:id/user-conversations/:conversationId')
+  @Roles(UserRole.MODERATOR)
+  @ApiOperation({
+    summary: 'Read a DM thread for a USER report (audited CHAT_VIEW)',
+  })
+  findUserReportConversation(
+    @CurrentUser() actor: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('conversationId', ParseUUIDPipe) conversationId: string,
+    @Query() query: ReportConversationQueryDto,
+  ) {
+    return this.chat.findUserReportConversation(
+      actor.id,
+      actor.role,
+      id,
+      conversationId,
+      query.context,
+    );
+  }
+
+  @Post('reports/:id/request-verdict')
+  @HttpCode(HttpStatus.OK)
+  @Roles(UserRole.MODERATOR)
+  @ApiHeader(CSRF_HEADER)
+  @ApiOperation({
+    summary:
+      'Assignee moderator sends USER report to admins (AWAITING_VERDICT)',
+  })
+  requestReportVerdict(
+    @CurrentUser() actor: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: RequestReportVerdictDto,
+  ) {
+    return this.reports.requestAdminVerdict(
+      actor.id,
+      actor.role,
+      id,
+      dto.summary,
+    );
+  }
+
   @Patch('reports/:id')
   @HttpCode(HttpStatus.OK)
   @Roles(UserRole.MODERATOR)
@@ -369,17 +425,22 @@ export class ModerationController {
   }
 
   @Get('tickets/:id/conversation')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.MODERATOR)
   @ApiOperation({
     summary:
-      'Read buyer–seller private chat for an order dispute ticket. Audited as CHAT_VIEW',
+      'Read buyer–seller private chat for an order dispute ticket (assignee mod or ADMIN+). Audited as CHAT_VIEW',
   })
   findTicketPartiesConversation(
     @CurrentUser() actor: AuthUser,
     @Param('id', ParseUUIDPipe) id: string,
     @Query() query: ReportConversationQueryDto,
   ) {
-    return this.chat.findTicketPartiesConversation(actor.id, id, query.context);
+    return this.chat.findTicketPartiesConversation(
+      actor.id,
+      actor.role,
+      id,
+      query.context,
+    );
   }
 
   @Patch('tickets/:id')
@@ -392,6 +453,22 @@ export class ModerationController {
     @Body() dto: UpdateTicketDto,
   ) {
     return this.tickets.update(actor.id, id, dto);
+  }
+
+  @Post('tickets/:id/request-verdict')
+  @HttpCode(HttpStatus.OK)
+  @Roles(UserRole.MODERATOR)
+  @ApiHeader(CSRF_HEADER)
+  @ApiOperation({
+    summary:
+      'Assignee moderator requests admin verdict (status AWAITING_VERDICT, notifies admins)',
+  })
+  requestTicketVerdict(
+    @CurrentUser() actor: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: RequestTicketVerdictDto,
+  ) {
+    return this.tickets.requestAdminVerdict(actor.id, actor.role, id, dto);
   }
 
   @Post('tickets/:id/resolve')

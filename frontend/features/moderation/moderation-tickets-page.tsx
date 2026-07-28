@@ -20,6 +20,8 @@ function statusTone(status: TicketStatus): string {
     case 'IN_PROGRESS':
     case 'WAITING_USER':
       return 'border-[var(--blue-a24)] bg-[var(--blue-a12)] text-[var(--link)]';
+    case 'AWAITING_VERDICT':
+      return 'border-[var(--warning)]/40 bg-[var(--warning)]/15 text-[var(--warning)]';
     case 'RESOLVED':
       return 'border-[var(--success)]/30 bg-[var(--success)]/10 text-[var(--success)]';
     case 'CLOSED':

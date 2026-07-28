@@ -96,6 +96,82 @@ export class ModerationNotificationsService {
     );
   }
 
+  async notifyTicketVerdictRequested(params: {
+    recipientIds: string[];
+    ticketId: string;
+    subject: string;
+    summary: string;
+    moderatorId: string;
+  }): Promise<void> {
+    const keys = NOTIFICATION_KEYS.ticketVerdictRequested;
+    const note = params.summary.trim();
+    const href = `/moderation/tickets/${params.ticketId}`;
+    const uniqueRecipients = [...new Set(params.recipientIds)].filter(
+      (id) => id !== params.moderatorId,
+    );
+
+    if (uniqueRecipients.length === 0) {
+      return;
+    }
+
+    await this.deliver(
+      uniqueRecipients.map((userId): CreateNotificationInput => ({
+        userId,
+        type: NotificationType.TICKET_VERDICT_REQUESTED,
+        title: keys.title,
+        body: keys.body,
+        href,
+        entityType: 'ticket',
+        entityId: params.ticketId,
+        metadata: {
+          ticketId: params.ticketId,
+          subject: params.subject,
+          note,
+          moderatorId: params.moderatorId,
+        },
+      })),
+    );
+  }
+
+  async notifyReportVerdictRequested(params: {
+    recipientIds: string[];
+    reportId: string;
+    targetUsername: string;
+    reporterUsername: string;
+    summary: string;
+    moderatorId: string;
+  }): Promise<void> {
+    const keys = NOTIFICATION_KEYS.reportVerdictRequested;
+    const note = params.summary.trim();
+    const href = `/moderation/reports/users?report=${params.reportId}`;
+    const uniqueRecipients = [...new Set(params.recipientIds)].filter(
+      (id) => id !== params.moderatorId,
+    );
+
+    if (uniqueRecipients.length === 0) {
+      return;
+    }
+
+    await this.deliver(
+      uniqueRecipients.map((userId): CreateNotificationInput => ({
+        userId,
+        type: NotificationType.REPORT_VERDICT_REQUESTED,
+        title: keys.title,
+        body: keys.body,
+        href,
+        entityType: 'report',
+        entityId: params.reportId,
+        metadata: {
+          reportId: params.reportId,
+          targetUsername: params.targetUsername,
+          reporterUsername: params.reporterUsername,
+          note,
+          moderatorId: params.moderatorId,
+        },
+      })),
+    );
+  }
+
   async notifyLotDisputeMessage(params: {
     recipientIds: string[];
     roomId: string;

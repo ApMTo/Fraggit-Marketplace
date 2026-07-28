@@ -38,6 +38,11 @@ model User {
   /// Soft timed suspend; staff clears manually (no auto-expiry cron in MVP).
   suspendedUntil DateTime?
 
+  /// Shown to the user when status is BANNED or SUSPENDED (after successful login attempt).
+  statusPublicMessage String? @db.Text
+  /// Reference for support / appeals (e.g. CASE-A1B2C3D4).
+  statusCaseId        String?
+
   rating          Float @default(0)
   ratingCount     Int   @default(0)
   successfulSales Int   @default(0)
@@ -451,6 +456,7 @@ enum ReportReason {
 enum ReportStatus {
   OPEN
   IN_REVIEW
+  AWAITING_VERDICT
   RESOLVED
   DISMISSED
 }
@@ -604,6 +610,7 @@ enum TicketStatus {
   OPEN
   IN_PROGRESS
   WAITING_USER
+  AWAITING_VERDICT
   RESOLVED
   CLOSED
 }
@@ -683,6 +690,8 @@ enum NotificationType {
   TICKET_REPLY
   REPORT_STATUS
   TICKET_RESOLVED
+  TICKET_VERDICT_REQUESTED
+  REPORT_VERDICT_REQUESTED
   LOT_DISPUTE_MESSAGE
 }
 

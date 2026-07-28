@@ -121,6 +121,13 @@ export class CreateTicketMessageDto {
   isInternal?: boolean;
 }
 
+export class RequestTicketVerdictDto {
+  @IsString()
+  @MinLength(10)
+  @MaxLength(4000)
+  summary!: string;
+}
+
 export class FindAuditQueryDto {
   @ApiPropertyOptional()
   @IsOptional()

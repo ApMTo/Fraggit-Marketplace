@@ -5,7 +5,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { UserStatus } from '@prisma/client';
 import { createHash, randomInt } from 'crypto';
 import type { Request } from 'express';
 import { v4 as uuidv4 } from 'uuid';
@@ -19,6 +18,7 @@ import {
   TWO_FACTOR_RESEND_COOLDOWN_SECONDS,
 } from './constants/two-factor.constants';
 import { AuthSessionService } from './auth-session.service';
+import { throwIfAccountRestricted } from './utils/account-restriction.util';
 import { ResendTwoFactorDto } from './dto/resend-two-factor.dto';
 import { VerifyTwoFactorDto } from './dto/verify-two-factor.dto';
 
@@ -147,17 +147,22 @@ export class AuthTwoFactorService {
         displayName: true,
         status: true,
         twoFactorEnabled: true,
+        statusPublicMessage: true,
+        statusCaseId: true,
+        suspendedUntil: true,
       },
     });
 
-    if (
-      !user ||
-      !user.twoFactorEnabled ||
-      user.status === UserStatus.BANNED ||
-      user.status === UserStatus.SUSPENDED
-    ) {
+    if (!user || !user.twoFactorEnabled) {
       await this.clearChallenge(dto.challengeId, pending.userId);
       throw new UnauthorizedException({ code: 'invalid_credentials' });
+    }
+
+    try {
+      throwIfAccountRestricted(user);
+    } catch (error) {
+      await this.clearChallenge(dto.challengeId, pending.userId);
+      throw error;
     }
 
     await this.clearChallenge(dto.challengeId, pending.userId);

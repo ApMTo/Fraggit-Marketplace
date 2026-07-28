@@ -87,12 +87,42 @@ export function useMyReports(params: {
   });
 }
 
-/** ADMIN+ only. Each successful load is written to the moderation audit log. */
+/** Each successful load is written to the moderation audit log. */
 export function useReportConversation(reportId: string | null) {
   return useQuery({
     queryKey: moderationKeys.reportConversation(reportId ?? ''),
     queryFn: () => moderationService.getReportConversation(reportId!),
     enabled: Boolean(reportId),
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+}
+
+export function useUserReportConversations(reportId: string | null) {
+  return useQuery({
+    queryKey: moderationKeys.userReportConversations(reportId ?? ''),
+    queryFn: () => moderationService.listUserReportConversations(reportId!),
+    enabled: Boolean(reportId),
+    staleTime: 60_000,
+  });
+}
+
+export function useUserReportConversation(
+  reportId: string | null,
+  conversationId: string | null,
+) {
+  return useQuery({
+    queryKey: moderationKeys.userReportConversation(
+      reportId ?? '',
+      conversationId ?? '',
+    ),
+    queryFn: () =>
+      moderationService.getUserReportConversation(
+        reportId!,
+        conversationId!,
+      ),
+    enabled: Boolean(reportId && conversationId),
     staleTime: Infinity,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -281,6 +311,7 @@ export function useModerationMutations() {
         id: string;
         payload: {
           status?: ReportStatus;
+          assignedToId?: string | null;
           resolutionNote?: string;
           reason: string;
         };
@@ -312,6 +343,26 @@ export function useModerationMutations() {
           queryKey: moderationKeys.ticketLotDispute(ticketId),
         });
       },
+    }),
+    requestTicketVerdict: useMutation({
+      mutationFn: ({
+        id,
+        summary,
+      }: {
+        id: string;
+        summary: string;
+      }) => moderationService.requestTicketVerdict(id, { summary }),
+      onSuccess: (_data, { id }) => {
+        invalidateAll();
+        void queryClient.invalidateQueries({
+          queryKey: moderationKeys.ticket(id),
+        });
+      },
+    }),
+    requestReportVerdict: useMutation({
+      mutationFn: ({ id, summary }: { id: string; summary: string }) =>
+        moderationService.requestReportVerdict(id, summary),
+      onSuccess: invalidateAll,
     }),
     resolveTicket: useMutation({
       mutationFn: ({

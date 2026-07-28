@@ -12,6 +12,7 @@ import {
   registerFailedLoginAttempt,
 } from './utils/login-attempts.util';
 import { verifyPassword } from './utils/password-policy.util';
+import { throwIfAccountRestricted } from './utils/account-restriction.util';
 
 @Injectable()
 export class AuthLoginService {
@@ -41,6 +42,9 @@ export class AuthLoginService {
         status: true,
         emailVerified: true,
         twoFactorEnabled: true,
+        statusPublicMessage: true,
+        statusCaseId: true,
+        suspendedUntil: true,
       },
     });
 
@@ -49,25 +53,19 @@ export class AuthLoginService {
       throw new UnauthorizedException({ code: 'invalid_credentials' });
     }
 
-    if (user.status === UserStatus.SUSPENDED) {
-      throw new UnauthorizedException({ code: 'account_deactivated' });
+    const isValid = await verifyPassword(user.passwordHash, dto.password);
+    if (!isValid) {
+      await registerFailedLoginAttempt(this.redis, email);
+      throw new UnauthorizedException({ code: 'invalid_credentials' });
     }
 
-    if (user.status === UserStatus.BANNED) {
-      throw new UnauthorizedException({ code: 'account_blocked' });
-    }
+    throwIfAccountRestricted(user);
 
     if (
       !user.emailVerified ||
       user.status === UserStatus.PENDING_VERIFICATION
     ) {
       throw new UnauthorizedException({ code: 'email_not_verified' });
-    }
-
-    const isValid = await verifyPassword(user.passwordHash, dto.password);
-    if (!isValid) {
-      await registerFailedLoginAttempt(this.redis, email);
-      throw new UnauthorizedException({ code: 'invalid_credentials' });
     }
 
     await clearFailedLoginAttempts(this.redis, email);

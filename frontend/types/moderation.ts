@@ -10,13 +10,19 @@ export type LotStatus =
 
 export type ReportTargetType = 'USER' | 'LOT' | 'REVIEW' | 'MESSAGE';
 export type ReportReason = 'SPAM' | 'SCAM' | 'ABUSE' | 'STOLEN' | 'OTHER';
-export type ReportStatus = 'OPEN' | 'IN_REVIEW' | 'RESOLVED' | 'DISMISSED';
+export type ReportStatus =
+  | 'OPEN'
+  | 'IN_REVIEW'
+  | 'AWAITING_VERDICT'
+  | 'RESOLVED'
+  | 'DISMISSED';
 
 export type TicketType = 'ORDER_DISPUTE' | 'SUPPORT';
 export type TicketStatus =
   | 'OPEN'
   | 'IN_PROGRESS'
   | 'WAITING_USER'
+  | 'AWAITING_VERDICT'
   | 'RESOLVED'
   | 'CLOSED';
 export type TicketPriority = 'LOW' | 'NORMAL' | 'HIGH';
@@ -133,6 +139,22 @@ export type ModReportedConversation = {
   emptyReason?: 'no_order' | 'no_conversation' | null;
 };
 
+export type ModUserReportConversationSummary = {
+  conversationId: string;
+  updatedAt: string;
+  participants: Array<{
+    id: string;
+    username: string;
+    displayName: string;
+    avatarUrl: string | null;
+  }>;
+  lastMessage: {
+    content: string | null;
+    type: string;
+    createdAt: string;
+  } | null;
+};
+
 export type LotDisputeRoomStatus = 'OPEN' | 'CLOSED';
 
 export type LotDisputeMessageKind = 'TEXT' | 'SYSTEM';
@@ -199,6 +221,20 @@ export type LotDisputeRoomDetail = {
   }>;
 };
 
+export type ModTicketMessage = {
+  id: string;
+  authorId: string;
+  body: string;
+  isInternal: boolean;
+  createdAt: string;
+  author: {
+    id: string;
+    username: string;
+    displayName: string;
+    role: UserRole;
+  };
+};
+
 export type ModTicket = {
   id: string;
   type: TicketType;
@@ -228,6 +264,7 @@ export type ModTicket = {
     seller?: { id: string; username: string; displayName: string };
     lot: { id: string; title: string } | null;
   } | null;
+  messages?: ModTicketMessage[];
 };
 
 export type Paginated<T> = {
@@ -288,6 +325,7 @@ export type CreateTicketPayload = {
 export type UpdateUserStatusPayload = {
   status: UserStatus;
   reason: string;
+  userMessage?: string;
   suspendedUntil?: string;
 };
 

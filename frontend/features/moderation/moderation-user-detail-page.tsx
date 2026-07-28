@@ -36,13 +36,17 @@ export function ModerationUserDetailPage({ title, userId }: Props) {
   const canAdmin = actor && STAFF_ADMIN.includes(actor.role);
   const canSuper = actor && STAFF_SUPER.includes(actor.role);
 
-  const runAction = async (reason: string) => {
+  const runAction = async (reason: string, userMessage?: string) => {
     if (!action) return;
     try {
       if (action.type === 'status') {
         await mutations.updateUserStatus.mutateAsync({
           id: userId,
-          payload: { status: action.status, reason },
+          payload: {
+            status: action.status,
+            reason,
+            userMessage,
+          },
         });
       } else if (action.type === 'revoke') {
         await mutations.revokeSessions.mutateAsync({
@@ -110,40 +114,52 @@ export function ModerationUserDetailPage({ title, userId }: Props) {
             </dl>
 
             <div className="mt-5 flex flex-wrap gap-2">
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() =>
-                  setAction({ type: 'status', status: 'SUSPENDED' })
-                }
-              >
-                {t('actions.suspend')}
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => setAction({ type: 'status', status: 'BANNED' })}
-              >
-                {t('actions.ban')}
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => setAction({ type: 'status', status: 'ACTIVE' })}
-              >
-                {t('actions.restore')}
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => setAction({ type: 'revoke' })}
-              >
-                {t('actions.revokeSessions')}
-              </Button>
+              {canAdmin ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() =>
+                      setAction({ type: 'status', status: 'SUSPENDED' })
+                    }
+                  >
+                    {t('actions.suspend')}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() =>
+                      setAction({ type: 'status', status: 'BANNED' })
+                    }
+                  >
+                    {t('actions.ban')}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() =>
+                      setAction({ type: 'status', status: 'ACTIVE' })
+                    }
+                  >
+                    {t('actions.restore')}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setAction({ type: 'revoke' })}
+                  >
+                    {t('actions.revokeSessions')}
+                  </Button>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {t('adminOnlySanctionsHint')}
+                </p>
+              )}
               {canAdmin ? (
                 <Button
                   type="button"
@@ -196,6 +212,10 @@ export function ModerationUserDetailPage({ title, userId }: Props) {
       <ReasonActionDialog
         open={Boolean(action)}
         title={t('reasonTitle')}
+        collectUserMessage={
+          action?.type === 'status' &&
+          (action.status === 'BANNED' || action.status === 'SUSPENDED')
+        }
         onClose={() => setAction(null)}
         onConfirm={runAction}
       />

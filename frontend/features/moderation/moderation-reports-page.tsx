@@ -11,9 +11,13 @@ import { Spinner } from '@/components/ui/spinner';
 import { ModerationShell } from '@/features/moderation/components/moderation-shell';
 import { ReasonActionDialog } from '@/features/moderation/components/reason-action-dialog';
 import { ReportedConversation } from '@/features/moderation/components/reported-conversation';
+import { ReportRequestVerdictBlock } from '@/features/moderation/components/report-request-verdict-block';
+import { UserReportConversations } from '@/features/moderation/components/user-report-conversations';
+import { useAuth } from '@/hooks';
 import { useModerationMutations, useModReports } from '@/hooks/use-moderation';
 import { userProfileHref } from '@/lib/app-nav';
 import { cn } from '@/lib/utils';
+import type { UserRole } from '@/types/auth';
 import type {
   LotStatus,
   ModReport,
@@ -29,6 +33,7 @@ type Props = {
 type ReportAction = {
   id: string;
   status: Extract<ReportStatus, 'RESOLVED' | 'DISMISSED' | 'IN_REVIEW'>;
+  assignedToId?: string | null;
 };
 
 type LotAction = {
@@ -36,6 +41,8 @@ type LotAction = {
   lotId: string;
   reportId: string;
 };
+
+const ADMIN_ROLES: UserRole[] = ['ADMIN', 'SUPER_ADMIN', 'OWNER'];
 
 function lotActionTitle(
   kind: LotAction['kind'],
@@ -61,6 +68,8 @@ function statusTone(status: ReportStatus): string {
       return 'border-[var(--warning)]/30 bg-[var(--warning)]/10 text-[var(--warning)]';
     case 'IN_REVIEW':
       return 'border-[var(--blue-a24)] bg-[var(--blue-a12)] text-[var(--link)]';
+    case 'AWAITING_VERDICT':
+      return 'border-[var(--warning)]/35 bg-[var(--warning)]/12 text-[var(--warning)]';
     case 'RESOLVED':
       return 'border-[var(--success)]/30 bg-[var(--success)]/10 text-[var(--success)]';
     case 'DISMISSED':
@@ -112,7 +121,10 @@ export function ModerationReportsPage({ title, targetType }: Props) {
 
   const allReports = data?.items ?? [];
   const activeReports = allReports.filter(
-    (report) => report.status === 'OPEN' || report.status === 'IN_REVIEW',
+    (report) =>
+      report.status === 'OPEN' ||
+      report.status === 'IN_REVIEW' ||
+      report.status === 'AWAITING_VERDICT',
   );
   const closedReports = allReports.filter(
     (report) => report.status === 'RESOLVED' || report.status === 'DISMISSED',
@@ -250,6 +262,9 @@ export function ModerationReportsPage({ title, targetType }: Props) {
               payload: {
                 status: action.status,
                 reason,
+                ...(action.assignedToId !== undefined
+                  ? { assignedToId: action.assignedToId }
+                  : {}),
                 ...(action.status === 'RESOLVED' ||
                 action.status === 'DISMISSED'
                   ? { resolutionNote: reason }
@@ -343,10 +358,22 @@ function ReportDetail({
   const t = useTranslations('moderation.reports');
   const tReport = useTranslations('moderation.report');
   const tLotStatus = useTranslations('moderation.lots.status');
+  const { user } = useAuth();
   const lotTarget = isLotTarget(report.target) ? report.target : null;
   const userTarget = isUserTarget(report.target) ? report.target : null;
+  const isAdmin = Boolean(user && ADMIN_ROLES.includes(user.role));
+  const isUserReport = report.targetType === 'USER';
+  const canCloseUserReport = !isUserReport || isAdmin;
+  const canSelfAssign =
+    Boolean(user) &&
+    !isAdmin &&
+    isUserReport &&
+    report.status === 'IN_REVIEW' &&
+    !report.assignedToId;
   const canAct =
-    report.status === 'OPEN' || report.status === 'IN_REVIEW';
+    report.status === 'OPEN' ||
+    report.status === 'IN_REVIEW' ||
+    (isAdmin && report.status === 'AWAITING_VERDICT');
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -441,7 +468,21 @@ function ReportDetail({
           />
         ) : null}
 
-        {report.resolutionNote ? (
+        {report.targetType === 'USER' ? (
+          <>
+            <UserReportConversations reportId={report.id} />
+            {user ? (
+              <ReportRequestVerdictBlock
+                report={report}
+                currentUserId={user.id}
+                currentUserRole={user.role}
+              />
+            ) : null}
+          </>
+        ) : null}
+
+        {report.resolutionNote &&
+        report.targetType !== 'USER' ? (
           <section className="space-y-1">
             <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {t('resolutionNote')}
@@ -464,13 +505,33 @@ function ReportDetail({
                   size="sm"
                   variant="secondary"
                   onClick={() =>
-                    onAction({ id: report.id, status: 'IN_REVIEW' })
+                    onAction({
+                      id: report.id,
+                      status: 'IN_REVIEW',
+                      ...(isUserReport && user ? { assignedToId: user.id } : {}),
+                    })
                   }
                 >
                   {t('actions.review')}
                 </Button>
               ) : null}
-              {canAct ? (
+              {canSelfAssign && user ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() =>
+                    onAction({
+                      id: report.id,
+                      status: 'IN_REVIEW',
+                      assignedToId: user.id,
+                    })
+                  }
+                >
+                  {t('actions.assignToMe')}
+                </Button>
+              ) : null}
+              {canAct && canCloseUserReport ? (
                 <>
                   <Button
                     type="button"
@@ -493,6 +554,11 @@ function ReportDetail({
                     {t('actions.dismiss')}
                   </Button>
                 </>
+              ) : null}
+              {canAct && isUserReport && !isAdmin ? (
+                <p className="text-sm text-muted-foreground">
+                  {t('workflow.modCloseHint')}
+                </p>
               ) : null}
               {lotTarget &&
               (lotTarget.status === 'OPEN' ||

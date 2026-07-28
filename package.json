@@ -29,14 +29,5 @@
   "devDependencies": {
     "husky": "^9.1.7",
     "lint-staged": "^16.1.2"
-  },
-  "lint-staged": {
-    "backend/**/*.{ts,js,mjs}": [
-      "pnpm --dir backend exec eslint --fix",
-      "pnpm --dir backend exec prettier --write"
-    ],
-    "frontend/**/*.{ts,tsx,js,jsx,mjs}": [
-      "pnpm --dir frontend exec eslint --fix"
-    ]
   }
 }

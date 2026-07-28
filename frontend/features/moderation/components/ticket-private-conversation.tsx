@@ -6,26 +6,17 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Spinner } from '@/components/ui/spinner';
 import { useTicketConversation } from '@/hooks/use-moderation';
+import {
+  moderationMessageBody,
+  moderationMessageSenderLabel,
+} from '@/features/moderation/lib/format-moderation-conversation-message';
 import { cn } from '@/lib/utils';
-import type { ModConversationMessage } from '@/types/moderation';
 
 type Props = { ticketId: string };
 
-function messageBody(
-  message: ModConversationMessage,
-  t: (key: string) => string,
-): string {
-  if (message.type === 'TEXT') {
-    return message.content?.trim() || '';
-  }
-  if (message.type === 'IMAGE') {
-    return t('imageMessage');
-  }
-  return message.content?.trim() || t('systemMessage');
-}
-
 export function TicketPrivateConversation({ ticketId }: Props) {
   const t = useTranslations('moderation.reports.conversation');
+  const tChat = useTranslations('chat');
   const [revealed, setRevealed] = useState(false);
   const { data, isLoading, isError } = useTicketConversation(
     revealed ? ticketId : null,
@@ -75,27 +66,40 @@ export function TicketPrivateConversation({ ticketId }: Props) {
             {data.participants.map((user) => `@${user.username}`).join(', ')}
           </p>
           <ol className="space-y-1.5">
-            {data.messages.map((message) => (
-              <li
-                key={message.id}
-                className={cn(
-                  'rounded-md border px-3 py-2 text-sm',
-                  'border-transparent bg-muted/40',
-                )}
-              >
-                <div className="flex flex-wrap items-baseline gap-2 text-xs text-muted-foreground">
-                  <span className="font-medium text-foreground">
-                    {message.sender
-                      ? `@${message.sender.username}`
-                      : t('deletedSender')}
-                  </span>
-                  <span>{new Date(message.createdAt).toLocaleString()}</span>
-                </div>
-                <p className="mt-1 whitespace-pre-wrap break-words">
-                  {messageBody(message, t)}
-                </p>
-              </li>
-            ))}
+            {data.messages.map((message) => {
+              const isSystem = message.type === 'SYSTEM';
+              return (
+                <li
+                  key={message.id}
+                  className={cn(
+                    'rounded-md border px-3 py-2 text-sm',
+                    isSystem
+                      ? 'border-transparent bg-muted/25 text-center'
+                      : 'border-transparent bg-muted/40',
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'flex flex-wrap items-baseline gap-2 text-xs text-muted-foreground',
+                      isSystem && 'justify-center',
+                    )}
+                  >
+                    <span className="font-medium text-foreground">
+                      {moderationMessageSenderLabel(message, t)}
+                    </span>
+                    <span>{new Date(message.createdAt).toLocaleString()}</span>
+                  </div>
+                  <p
+                    className={cn(
+                      'mt-1 whitespace-pre-wrap break-words',
+                      isSystem && 'text-subtle',
+                    )}
+                  >
+                    {moderationMessageBody(message, tChat, t)}
+                  </p>
+                </li>
+              );
+            })}
           </ol>
         </>
       )}

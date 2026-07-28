@@ -16,7 +16,10 @@ import { RoleHierarchy } from '../../auth/enums/roles.enum';
 import { CHAT_USER_SELECT } from '../../chat/constants/chat.select';
 import { LOT_DISPUTE_SYSTEM_EVENT } from '../constants/lot-dispute.constants';
 import { ModerationNotificationsService } from './moderation-notifications.service';
-import { assertNotOrderDisputeParty } from '../policies/moderation-policy';
+import {
+  assertNotOrderDisputeParty,
+  assertStaffCanViewDisputeRoom,
+} from '../policies/moderation-policy';
 
 const OPEN_TICKET_STATUSES: TicketStatus[] = [
   TicketStatus.OPEN,
@@ -413,10 +416,6 @@ export class ModerationLotDisputeService {
     viewerId: string,
     viewerRole: UserRole,
   ) {
-    if (RoleHierarchy[viewerRole] >= RoleHierarchy[UserRole.MODERATOR]) {
-      return;
-    }
-
     const room = await this.prisma.lotDisputeRoom.findUnique({
       where: { id: roomId },
       select: {
@@ -426,6 +425,7 @@ export class ModerationLotDisputeService {
         ticket: {
           select: {
             reporterId: true,
+            assigneeId: true,
             order: { select: { buyerId: true, sellerId: true } },
           },
         },
@@ -444,7 +444,7 @@ export class ModerationLotDisputeService {
       }
     }
 
-    throw new ForbiddenException({ code: 'errors.lot_dispute_forbidden' });
+    assertStaffCanViewDisputeRoom(viewerRole, viewerId, room);
   }
 
   private recipientIdsForRoom(room: {

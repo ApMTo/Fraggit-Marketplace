@@ -59,6 +59,13 @@ export class UpdateUserStatusDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsString()
+  @MinLength(3)
+  @MaxLength(2000)
+  userMessage?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @Type(() => Date)
   suspendedUntil?: Date;
 }

@@ -60,6 +60,14 @@ export const NOTIFICATION_KEYS = {
       body: 'items.ticketResolved.noAction.body',
     },
   },
+  ticketVerdictRequested: {
+    title: 'items.ticketVerdictRequested.title',
+    body: 'items.ticketVerdictRequested.body',
+  },
+  reportVerdictRequested: {
+    title: 'items.reportVerdictRequested.title',
+    body: 'items.reportVerdictRequested.body',
+  },
   lotDisputeMessage: {
     title: 'items.lotDisputeMessage.title',
     body: 'items.lotDisputeMessage.body',
@@ -101,6 +109,13 @@ const EMAIL_EN: Record<string, string> = {
   [NOTIFICATION_KEYS.ticketResolved.noAction.title]: 'Case closed',
   [NOTIFICATION_KEYS.ticketResolved.noAction.body]:
     'Moderation closed the case without changing the outcome{orderPart}.{note}',
+  [NOTIFICATION_KEYS.ticketVerdictRequested.title]: 'Verdict needed',
+  [NOTIFICATION_KEYS.ticketVerdictRequested.body]:
+    'A moderator handed off ticket “{subject}” for your decision.{note}',
+  [NOTIFICATION_KEYS.reportVerdictRequested.title]:
+    'User report verdict needed',
+  [NOTIFICATION_KEYS.reportVerdictRequested.body]:
+    'Moderator summary on @{targetUsername} (reporter @{reporterUsername}).{note}',
   [NOTIFICATION_KEYS.lotDisputeMessage.title]: 'Lot dispute update',
   [NOTIFICATION_KEYS.lotDisputeMessage.body]:
     'New message in the mediation chat for {listingTitle}.{preview}',

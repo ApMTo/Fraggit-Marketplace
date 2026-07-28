@@ -119,16 +119,29 @@ describe('AuthLoginService', () => {
     expect(loginAttempts.registerFailedLoginAttempt).toHaveBeenCalled();
   });
 
-  it('throws for suspended account', async () => {
+  it('throws for suspended account after valid password', async () => {
     prisma.user.findUnique.mockResolvedValue({
       id: 'user-1',
+      passwordHash: 'hash',
       status: UserStatus.SUSPENDED,
       emailVerified: true,
+      statusPublicMessage: 'Policy violation',
+      statusCaseId: 'CASE-ABCDEF12',
+      suspendedUntil: null,
     });
+    jest.spyOn(passwordPolicy, 'verifyPassword').mockResolvedValue(true);
 
     await expect(
       service.login({ email: 'user@test.com', password: 'pass' }, req as never),
-    ).rejects.toMatchObject({ response: { code: 'account_deactivated' } });
+    ).rejects.toMatchObject({
+      response: {
+        code: 'errors.account_deactivated',
+        restriction: expect.objectContaining({
+          status: UserStatus.SUSPENDED,
+          publicMessage: 'Policy violation',
+        }),
+      },
+    });
   });
 
   it('throws for unverified email', async () => {

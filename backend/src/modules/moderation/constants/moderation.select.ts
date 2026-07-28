@@ -9,6 +9,8 @@ export const MOD_USER_LIST_SELECT = {
   role: true,
   status: true,
   suspendedUntil: true,
+  statusPublicMessage: true,
+  statusCaseId: true,
   rating: true,
   ratingCount: true,
   successfulSales: true,
