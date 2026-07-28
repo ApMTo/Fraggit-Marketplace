@@ -8,7 +8,6 @@ import type {
   ModReport,
   ModReportedConversation,
   LotDisputeRoomDetail,
-  LotDisputeRoomSummary,
   ModTicket,
   ModUser,
   ModUserDetail,
@@ -255,17 +254,11 @@ export const moderationService = {
     return data;
   },
 
-  async getOrderDisputeRoom(orderId: string): Promise<LotDisputeRoomDetail | {
-    room: null;
-    messages: [];
-    participants: [];
-  }> {
+  async getOrderDisputeRoom(
+    orderId: string,
+  ): Promise<LotDisputeRoomDetail | (Omit<LotDisputeRoomDetail, 'room'> & { room: null })> {
     const { data } = await api.get<
-      LotDisputeRoomDetail | {
-        room: null;
-        messages: [];
-        participants: [];
-      }
+      LotDisputeRoomDetail | (Omit<LotDisputeRoomDetail, 'room'> & { room: null })
     >(`/moderation/lot-disputes/order/${orderId}`);
     return data;
   },

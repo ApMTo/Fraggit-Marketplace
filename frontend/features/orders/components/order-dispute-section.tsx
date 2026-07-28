@@ -17,6 +17,7 @@ export function OrderDisputeSection({ orderId, active }: Props) {
     orderId,
     active,
   );
+  const room = data?.room ?? null;
 
   if (!active) {
     return null;
@@ -32,7 +33,7 @@ export function OrderDisputeSection({ orderId, active }: Props) {
         <p className="mt-1 text-sm text-muted-foreground">{t('orderSubtitle')}</p>
       </div>
 
-      {isLoading && !data?.room ? (
+      {isLoading && !room ? (
         <div className="flex justify-center py-8">
           <Spinner />
         </div>
@@ -43,8 +44,11 @@ export function OrderDisputeSection({ orderId, active }: Props) {
             {t('retry')}
           </Button>
         </div>
-      ) : data?.room ? (
-        <LotMediationThread roomId={data.room.id} initialData={data} />
+      ) : room ? (
+        <LotMediationThread
+          roomId={room.id}
+          initialData={data?.room ? data : null}
+        />
       ) : (
         <p className="text-sm text-muted-foreground">{t('noDisputeRoom')}</p>
       )}

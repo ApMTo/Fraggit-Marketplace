@@ -40,7 +40,7 @@ export function moderationMessageBody(
     return formatSystemChatMessage(
       {
         content: message.content,
-        metadata: message.metadata as Record<string, unknown> | null | undefined,
+        metadata: (message.metadata as Record<string, unknown> | null | undefined) ?? null,
       },
       tChat,
       tConv('systemMessage'),
