@@ -15,10 +15,18 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   }
 
   onModuleInit(): void {
+    const password =
+      this.configService.get<string>('redis.password') || undefined;
+    const username =
+      this.configService.get<string>('redis.username') || undefined;
+    const useTls = this.configService.get<boolean>('redis.tls') === true;
+
     this.client = new Redis({
       host: this.configService.get<string>('redis.host', 'localhost'),
       port: this.configService.get<number>('redis.port', 6379),
-      password: this.configService.get<string>('redis.password') || undefined,
+      password,
+      username,
+      ...(useTls ? { tls: {} } : {}),
       maxRetriesPerRequest: null,
       lazyConnect: true,
       retryStrategy: (times) => Math.min(times * 200, 2000),

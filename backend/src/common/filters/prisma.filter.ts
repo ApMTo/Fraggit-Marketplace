@@ -55,7 +55,10 @@ export class PrismaFilter implements ExceptionFilter {
           `Prisma ${exception.code} on ${request.method ?? 'UNKNOWN'} ${request.url ?? '/'}: ${exception.message}`,
           JSON.stringify(exception.meta),
         );
-        httpException = new InternalServerErrorException('database_error');
+        httpException = new InternalServerErrorException({
+          message: 'database_error',
+          prismaCode: exception.code,
+        });
     }
 
     const status = httpException.getStatus();
