@@ -35,6 +35,10 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { ChangeUsernameDto } from './dto/change-username.dto';
 import { ConfirmEmailChangeDto } from './dto/confirm-email-change.dto';
 import { RequestEmailChangeDto } from './dto/request-email-change.dto';
+import {
+  ConfirmTwoFactorEnableDto,
+  DisableTwoFactorDto,
+} from './dto/two-factor.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import {
   UserProfileResponseDto,
@@ -187,6 +191,52 @@ export class UsersController {
     @Req() req: Request,
   ) {
     return this.userSecurityService.changePassword(user.id, dto, req);
+  }
+
+  @Post('me/2fa/enable/request')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @ApiCookieAuth('access_token')
+  @ApiHeader(CSRF_HEADER)
+  @ApiOperation({
+    summary: 'Request two-factor enable code',
+    description:
+      'Sends a 6-digit code to the current email. Resend is limited to once every 30 seconds.',
+  })
+  @ApiResponse({ status: 200 })
+  async requestTwoFactorEnable(@CurrentUser() user: AuthUser) {
+    return this.userSecurityService.requestTwoFactorEnable(user.id);
+  }
+
+  @Post('me/2fa/enable/confirm')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @ApiCookieAuth('access_token')
+  @ApiHeader(CSRF_HEADER)
+  @ApiOperation({ summary: 'Confirm and enable two-factor authentication' })
+  @ApiResponse({ status: 200, type: UserProfileResponseDto })
+  async confirmTwoFactorEnable(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: ConfirmTwoFactorEnableDto,
+  ) {
+    return this.userSecurityService.confirmTwoFactorEnable(user.id, dto);
+  }
+
+  @Post('me/2fa/disable')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @ApiCookieAuth('access_token')
+  @ApiHeader(CSRF_HEADER)
+  @ApiOperation({
+    summary: 'Disable two-factor authentication',
+    description: 'Requires the current password.',
+  })
+  @ApiResponse({ status: 200, type: UserProfileResponseDto })
+  async disableTwoFactor(
+    @CurrentUser() user: AuthUser,
+    @Body() dto: DisableTwoFactorDto,
+  ) {
+    return this.userSecurityService.disableTwoFactor(user.id, dto);
   }
 
   @Get(':username')

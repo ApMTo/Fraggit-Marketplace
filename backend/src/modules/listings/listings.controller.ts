@@ -135,6 +135,7 @@ export class ListingsController {
   ) {
     return this.listingsService.createLot(
       user.id,
+      user.role,
       dto,
       files?.photos ?? [],
       files?.preview?.[0],
@@ -252,6 +253,7 @@ export class ListingsController {
   ) {
     return this.listingsService.updateLot(
       user.id,
+      user.role,
       id,
       dto,
       files?.photos ?? [],

@@ -19,6 +19,7 @@ export const REVIEW_DETAIL_SELECT = {
   revieweeId: true,
   rating: true,
   text: true,
+  hiddenAt: true,
   createdAt: true,
   updatedAt: true,
   reviewer: { select: REVIEW_USER_SELECT },

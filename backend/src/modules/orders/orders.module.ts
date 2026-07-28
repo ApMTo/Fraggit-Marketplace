@@ -21,6 +21,6 @@ import { OrdersService } from './orders.service';
     OrderAutoApprovalProcessor,
     OrderAutoApprovalScheduler,
   ],
-  exports: [OrdersService, OrderPaymentService],
+  exports: [OrdersService, OrderPaymentService, OrderCompletionService],
 })
 export class OrdersModule {}

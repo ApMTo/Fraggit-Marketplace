@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NotificationType } from '@prisma/client';
+import { NOTIFICATION_KEYS } from '../../notifications/constants/notification-i18n';
 import { NotificationItem } from '../../notifications/constants/notification.select';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { ChatMessage } from '../constants/chat.select';
@@ -8,6 +9,7 @@ import {
   buildOrderApprovedMetadata,
   buildOrderCreatedMetadata,
   buildOrderCredentialsMetadata,
+  buildOrderServiceCompletedMetadata,
   OrderSystemMetadata,
 } from '../utils/system-message-metadata.util';
 import { ChatGateway } from '../chat.gateway';
@@ -41,41 +43,39 @@ export class ChatOrderService {
       ...params,
       frontendUrl,
     });
-    const body = `Заказ #${params.orderNumber} создан.`;
 
     const message = await this.appendSystemMessage(params, {
-      content: body,
-      metadata: { ...metadata, body },
+      content: metadata.messageKey,
+      metadata,
     });
+
+    const keys = NOTIFICATION_KEYS.orderCreated;
+    const sharedMeta = {
+      orderId: params.orderId,
+      orderNumber: params.orderNumber,
+      listingTitle: params.listingTitle,
+    };
 
     const notifications = await this.notificationsService.createMany([
       {
         userId: params.sellerId,
         type: NotificationType.ORDER_CREATED,
-        title: 'Новый заказ',
-        body: `Покупатель оформил заказ #${params.orderNumber} (${params.listingTitle}).`,
+        title: keys.seller.title,
+        body: keys.seller.body,
         href: `/orders/${params.orderId}`,
         entityType: 'order',
         entityId: params.orderId,
-        metadata: {
-          orderId: params.orderId,
-          orderNumber: params.orderNumber,
-          role: 'seller',
-        },
+        metadata: { ...sharedMeta, role: 'seller' },
       },
       {
         userId: params.buyerId,
         type: NotificationType.ORDER_CREATED,
-        title: 'Заказ оформлен',
-        body: `Заказ #${params.orderNumber} успешно создан.`,
+        title: keys.buyer.title,
+        body: keys.buyer.body,
         href: `/orders/${params.orderId}`,
         entityType: 'order',
         entityId: params.orderId,
-        metadata: {
-          orderId: params.orderId,
-          orderNumber: params.orderNumber,
-          role: 'buyer',
-        },
+        metadata: { ...sharedMeta, role: 'buyer' },
       },
     ]);
 
@@ -92,26 +92,67 @@ export class ChatOrderService {
       ...params,
       frontendUrl,
     });
-    const body = `Продавец передал данные по заказу #${params.orderNumber}.`;
 
     const message = await this.appendSystemMessage(params, {
-      content: body,
-      metadata: { ...metadata, body },
+      content: metadata.messageKey,
+      metadata,
     });
 
+    const keys = NOTIFICATION_KEYS.orderCredentials.buyer;
     const notifications = await this.notificationsService.createMany([
       {
         userId: params.buyerId,
         type: NotificationType.ORDER_CREDENTIALS,
-        title: 'Данные по заказу',
-        body: `Продавец передал данные для заказа #${params.orderNumber}.`,
+        title: keys.title,
+        body: keys.body,
         href: `/orders/${params.orderId}`,
         entityType: 'order',
         entityId: params.orderId,
         metadata: {
           orderId: params.orderId,
           orderNumber: params.orderNumber,
+          listingTitle: params.listingTitle,
           role: 'buyer',
+          variant: 'credentials',
+        },
+      },
+    ]);
+
+    await this.deliverNotifications(notifications);
+
+    return message;
+  }
+
+  async onOrderServiceCompleted(
+    params: OrderChatEventParams,
+  ): Promise<ChatMessage> {
+    const frontendUrl = this.getFrontendUrl();
+    const metadata = buildOrderServiceCompletedMetadata({
+      ...params,
+      frontendUrl,
+    });
+
+    const message = await this.appendSystemMessage(params, {
+      content: metadata.messageKey,
+      metadata,
+    });
+
+    const keys = NOTIFICATION_KEYS.orderServiceCompleted.buyer;
+    const notifications = await this.notificationsService.createMany([
+      {
+        userId: params.buyerId,
+        type: NotificationType.ORDER_CREDENTIALS,
+        title: keys.title,
+        body: keys.body,
+        href: `/orders/${params.orderId}`,
+        entityType: 'order',
+        entityId: params.orderId,
+        metadata: {
+          orderId: params.orderId,
+          orderNumber: params.orderNumber,
+          listingTitle: params.listingTitle,
+          role: 'buyer',
+          variant: 'service_completed',
         },
       },
     ]);
@@ -127,41 +168,39 @@ export class ChatOrderService {
       ...params,
       frontendUrl,
     });
-    const body = `Заказ #${params.orderNumber} завершён.`;
 
     const message = await this.appendSystemMessage(params, {
-      content: body,
-      metadata: { ...metadata, body },
+      content: metadata.messageKey,
+      metadata,
     });
+
+    const keys = NOTIFICATION_KEYS.orderApproved;
+    const sharedMeta = {
+      orderId: params.orderId,
+      orderNumber: params.orderNumber,
+      listingTitle: params.listingTitle,
+    };
 
     const notifications = await this.notificationsService.createMany([
       {
         userId: params.sellerId,
         type: NotificationType.ORDER_APPROVED,
-        title: 'Заказ завершён',
-        body: `Заказ #${params.orderNumber} подтверждён покупателем.`,
+        title: keys.seller.title,
+        body: keys.seller.body,
         href: `/orders/${params.orderId}`,
         entityType: 'order',
         entityId: params.orderId,
-        metadata: {
-          orderId: params.orderId,
-          orderNumber: params.orderNumber,
-          role: 'seller',
-        },
+        metadata: { ...sharedMeta, role: 'seller' },
       },
       {
         userId: params.buyerId,
         type: NotificationType.ORDER_APPROVED,
-        title: 'Заказ завершён',
-        body: `Заказ #${params.orderNumber} успешно завершён.`,
+        title: keys.buyer.title,
+        body: keys.buyer.body,
         href: `/orders/${params.orderId}`,
         entityType: 'order',
         entityId: params.orderId,
-        metadata: {
-          orderId: params.orderId,
-          orderNumber: params.orderNumber,
-          role: 'buyer',
-        },
+        metadata: { ...sharedMeta, role: 'buyer' },
       },
     ]);
 
@@ -174,7 +213,7 @@ export class ChatOrderService {
     params: OrderChatEventParams,
     payload: {
       content: string;
-      metadata: OrderSystemMetadata & { body: string };
+      metadata: OrderSystemMetadata;
     },
   ): Promise<ChatMessage> {
     const { id: conversationId } =

@@ -117,13 +117,13 @@ describe('ChatOrderService', () => {
     ).toHaveBeenCalledWith('buyer-1', 'seller-1');
     expect(messageService.sendSystemMessage).toHaveBeenCalledWith({
       conversationId: 'conv-1',
-      content: 'Заказ #FRG-100 создан.',
+      content: 'system.orderCreated',
       metadata: expect.objectContaining({
         event: CHAT_SYSTEM_EVENT.ORDER_CREATED,
         orderId: 'order-1',
         orderNumber: 'FRG-100',
         url: 'https://fraggit.test/orders/order-1',
-        body: 'Заказ #FRG-100 создан.',
+        messageKey: 'system.orderCreated',
       }),
     });
     expect(chatGateway.emitMessageToParticipants).toHaveBeenCalledWith(

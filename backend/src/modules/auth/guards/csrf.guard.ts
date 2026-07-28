@@ -35,7 +35,12 @@ export class CsrfGuard implements CanActivate {
     }
 
     const sessionId = request.cookies?.sessionId as string | undefined;
+    const accessToken = request.cookies?.access_token as string | undefined;
+
     if (!sessionId) {
+      if (accessToken) {
+        throw new UnauthorizedException({ code: 'errors.invalid_csrf_token' });
+      }
       return true;
     }
 

@@ -1,12 +1,34 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { resolveNotificationEmailText } from '../../notifications/constants/notification-i18n';
 import { NotificationItem } from '../../notifications/constants/notification.select';
 import { MailQueueService } from '../../mail/mail-queue.service';
+import { EmailTemplates } from '../../mail/utils/email-templates';
 import { buildMessagePreviewText } from '../constants/chat.select';
 import { ChatMessage } from '../constants/chat.select';
 import { ChatNotificationQueueService } from './chat-notification-queue.service';
 import { ChatPresenceService } from './chat-presence.service';
 import { MessageService } from './message.service';
+
+function notificationParams(
+  metadata: NotificationItem['metadata'],
+): Record<string, string> {
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
+    return {};
+  }
+
+  const record = metadata as Record<string, unknown>;
+  const params: Record<string, string> = {};
+
+  for (const key of ['orderNumber', 'listingTitle', 'note'] as const) {
+    const value = record[key];
+    if (typeof value === 'string' || typeof value === 'number') {
+      params[key] = String(value);
+    }
+  }
+
+  return params;
+}
 
 @Injectable()
 export class ChatNotificationService {
@@ -69,12 +91,18 @@ export class ChatNotificationService {
       ? `${frontendUrl}${notification.href.startsWith('/') ? '' : '/'}${notification.href}`
       : frontendUrl;
 
+    const params = notificationParams(notification.metadata);
+    const title = resolveNotificationEmailText(notification.title, params);
+    const body = notification.body
+      ? resolveNotificationEmailText(notification.body, params)
+      : '';
+
     await this.chatNotificationQueue.enqueueOfflineOrderNotification({
       recipientUserId: notification.userId,
       recipientEmail,
-      subject: notification.title,
-      title: notification.title,
-      body: notification.body ?? '',
+      subject: title,
+      title,
+      body,
       href,
     });
   }
@@ -90,15 +118,14 @@ export class ChatNotificationService {
       'http://localhost:3000',
     );
 
-    const chatUrl = `${frontendUrl}/chat/${data.conversationId}`;
-    const preview = data.messagePreview || 'Новое сообщение';
-
-    const subject = `Новое сообщение от ${data.senderDisplayName}`;
-    const html = `
-      <p><strong>${escapeHtml(data.senderDisplayName)}</strong> отправил(а) вам сообщение:</p>
-      <p>${escapeHtml(preview)}</p>
-      <p><a href="${escapeHtml(chatUrl)}">Открыть чат</a></p>
-    `;
+    const preview = data.messagePreview || 'New message';
+    const subject = `New message from ${data.senderDisplayName}`;
+    const html = EmailTemplates.renderChatNotificationEmail({
+      frontendUrl,
+      senderDisplayName: data.senderDisplayName,
+      conversationId: data.conversationId,
+      messagePreview: preview,
+    });
 
     await this.mailQueue.enqueue({
       to: data.recipientEmail,
@@ -115,11 +142,17 @@ export class ChatNotificationService {
     body: string;
     href: string;
   }): Promise<void> {
-    const html = `
-      <p><strong>${escapeHtml(data.title)}</strong></p>
-      <p>${escapeHtml(data.body)}</p>
-      <p><a href="${escapeHtml(data.href)}">Открыть</a></p>
-    `;
+    const frontendUrl = this.configService.get<string>(
+      'frontendUrl',
+      'http://localhost:3000',
+    );
+
+    const html = EmailTemplates.renderOrderNotificationEmail({
+      frontendUrl,
+      title: data.title,
+      body: data.body,
+      href: data.href,
+    });
 
     await this.mailQueue.enqueue({
       to: data.recipientEmail,
@@ -128,13 +161,4 @@ export class ChatNotificationService {
       type: 'order_notification',
     });
   }
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }

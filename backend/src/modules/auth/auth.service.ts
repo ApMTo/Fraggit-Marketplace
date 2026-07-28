@@ -4,10 +4,13 @@ import { AuthLoginService } from './auth-login.service';
 import { AuthRegistrationService } from './auth-registration.service';
 import { AuthSessionService } from './auth-session.service';
 import { AuthPasswordResetService } from './auth-password-reset.service';
+import { AuthTwoFactorService } from './auth-two-factor.service';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ResendTwoFactorDto } from './dto/resend-two-factor.dto';
+import { VerifyTwoFactorDto } from './dto/verify-two-factor.dto';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +19,7 @@ export class AuthService {
     private readonly authLoginService: AuthLoginService,
     private readonly authSessionService: AuthSessionService,
     private readonly passwordResetService: AuthPasswordResetService,
+    private readonly authTwoFactorService: AuthTwoFactorService,
   ) {}
 
   register(data: RegisterUserDto) {
@@ -28,6 +32,14 @@ export class AuthService {
 
   login(data: LoginUserDto, req: Request) {
     return this.authLoginService.login(data, req);
+  }
+
+  verifyTwoFactor(dto: VerifyTwoFactorDto, req: Request) {
+    return this.authTwoFactorService.verifyLoginChallenge(dto, req);
+  }
+
+  resendTwoFactor(dto: ResendTwoFactorDto) {
+    return this.authTwoFactorService.resendLoginChallenge(dto);
   }
 
   refresh(sessionId: string, deviceId: string, req: Request) {

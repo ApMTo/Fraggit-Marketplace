@@ -25,6 +25,23 @@ export class AuthSessionResponseDto {
   csrfToken!: string;
 }
 
+export class TwoFactorChallengeResponseDto {
+  @ApiProperty({ example: true })
+  requiresTwoFactor!: true;
+
+  @ApiProperty({ example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' })
+  challengeId!: string;
+
+  @ApiProperty({ example: 900 })
+  expiresInSeconds!: number;
+
+  @ApiProperty({ example: 30 })
+  resendAvailableInSeconds!: number;
+
+  @ApiProperty({ example: { code: 'messages.two_factor_code_sent' } })
+  message!: { code: string };
+}
+
 export class AuthUserDto {
   @ApiProperty()
   id!: string;
