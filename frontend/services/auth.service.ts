@@ -4,11 +4,19 @@ import type {
   AuthMessageResponse,
   AuthProfileResponse,
   AuthSessionResponse,
+  ForgotPasswordPayload,
   LoginPayload,
+  LoginResponse,
   LogoutResponse,
   RegisterPayload,
+  ResendTwoFactorPayload,
+  ResetPasswordPayload,
+  ResetPasswordTokenResponse,
+  TwoFactorResendResponse,
+  VerifyTwoFactorPayload,
   VerifyUserResponse,
 } from '@/types/auth';
+import { isTwoFactorChallenge } from '@/types/auth';
 
 export const authKeys = {
   all: ['auth'] as const,
@@ -29,12 +37,32 @@ export const authService = {
     return data;
   },
 
-  async login(payload: LoginPayload): Promise<AuthSessionResponse> {
+  async login(payload: LoginPayload): Promise<LoginResponse> {
+    const { data } = await api.post<LoginResponse>('/auth/login', payload);
+    if (!isTwoFactorChallenge(data)) {
+      return applySessionResponse(data);
+    }
+    return data;
+  },
+
+  async verifyTwoFactor(
+    payload: VerifyTwoFactorPayload,
+  ): Promise<AuthSessionResponse> {
     const { data } = await api.post<AuthSessionResponse>(
-      '/auth/login',
+      '/auth/2fa/verify',
       payload,
     );
     return applySessionResponse(data);
+  },
+
+  async resendTwoFactor(
+    payload: ResendTwoFactorPayload,
+  ): Promise<TwoFactorResendResponse> {
+    const { data } = await api.post<TwoFactorResendResponse>(
+      '/auth/2fa/resend',
+      payload,
+    );
+    return data;
   },
 
   async verify(token: string): Promise<VerifyUserResponse> {
@@ -58,6 +86,35 @@ export const authService = {
   async logout(): Promise<LogoutResponse> {
     const { data } = await api.post<LogoutResponse>('/auth/logout');
     clearCsrfToken();
+    return data;
+  },
+
+  async forgotPassword(
+    payload: ForgotPasswordPayload,
+  ): Promise<AuthMessageResponse> {
+    const { data } = await api.post<AuthMessageResponse>(
+      '/auth/forgot-password',
+      payload,
+    );
+    return data;
+  },
+
+  async validateResetToken(
+    token: string,
+  ): Promise<ResetPasswordTokenResponse> {
+    const { data } = await api.get<ResetPasswordTokenResponse>(
+      `/auth/reset-password/${encodeURIComponent(token)}`,
+    );
+    return data;
+  },
+
+  async resetPassword(
+    payload: ResetPasswordPayload,
+  ): Promise<AuthMessageResponse> {
+    const { data } = await api.post<AuthMessageResponse>(
+      '/auth/reset-password',
+      payload,
+    );
     return data;
   },
 };

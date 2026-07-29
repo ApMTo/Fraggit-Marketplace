@@ -3,9 +3,12 @@ import type {
   ChangePasswordPayload,
   ChangeUsernamePayload,
   ConfirmEmailChangePayload,
+  ConfirmTwoFactorEnablePayload,
+  DisableTwoFactorPayload,
   EmailChangeRequestResponse,
   MessageResponse,
   RequestEmailChangePayload,
+  TwoFactorCodeResponse,
   UpdateProfilePayload,
   UserProfileResponse,
   UserPublicProfileResponse,
@@ -91,6 +94,33 @@ export const usersService = {
   ): Promise<MessageResponse> {
     const { data } = await api.post<MessageResponse>(
       '/users/me/password',
+      payload,
+    );
+    return data;
+  },
+
+  async requestTwoFactorEnable(): Promise<TwoFactorCodeResponse> {
+    const { data } = await api.post<TwoFactorCodeResponse>(
+      '/users/me/2fa/enable/request',
+    );
+    return data;
+  },
+
+  async confirmTwoFactorEnable(
+    payload: ConfirmTwoFactorEnablePayload,
+  ): Promise<UserProfileResponse> {
+    const { data } = await api.post<UserProfileResponse>(
+      '/users/me/2fa/enable/confirm',
+      payload,
+    );
+    return data;
+  },
+
+  async disableTwoFactor(
+    payload: DisableTwoFactorPayload,
+  ): Promise<UserProfileResponse> {
+    const { data } = await api.post<UserProfileResponse>(
+      '/users/me/2fa/disable',
       payload,
     );
     return data;

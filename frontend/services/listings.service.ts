@@ -5,6 +5,7 @@ import type {
   FindSellerLotsParams,
   LotDetail,
   LotListResult,
+  UpdateLotPayload,
 } from '@/types/lot';
 
 export const listingKeys = {
@@ -87,10 +88,46 @@ function buildCreateLotFormData(payload: CreateLotPayload): FormData {
   formData.append('price', String(payload.price));
   formData.append('categoryId', payload.categoryId);
   formData.append('subcategoryId', payload.subcategoryId);
+  formData.append('type', payload.type);
   formData.append('attributes', JSON.stringify(payload.attributes));
 
   if (payload.description != null && payload.description !== '') {
     formData.append('description', payload.description);
+  }
+
+  if (payload.type === 'SERVICE' && payload.serviceQuestion) {
+    formData.append('serviceQuestion', payload.serviceQuestion);
+  }
+
+  if (payload.stock != null) {
+    formData.append('stock', String(payload.stock));
+  }
+
+  if (payload.preview) {
+    formData.append('preview', payload.preview);
+  }
+
+  for (const photo of payload.photos ?? []) {
+    formData.append('photos', photo);
+  }
+
+  return formData;
+}
+
+function buildUpdateLotFormData(payload: UpdateLotPayload): FormData {
+  const formData = new FormData();
+
+  formData.append('title', payload.title);
+  formData.append('price', String(payload.price));
+  formData.append('attributes', JSON.stringify(payload.attributes));
+  formData.append('keepImageIds', JSON.stringify(payload.keepImageIds));
+
+  if (payload.description != null && payload.description !== '') {
+    formData.append('description', payload.description);
+  }
+
+  if (payload.serviceQuestion != null && payload.serviceQuestion !== '') {
+    formData.append('serviceQuestion', payload.serviceQuestion);
   }
 
   if (payload.stock != null) {
@@ -136,6 +173,12 @@ export const listingsService = {
   async create(payload: CreateLotPayload): Promise<LotDetail> {
     const formData = buildCreateLotFormData(payload);
     const { data } = await api.post<LotDetail>('/listings', formData);
+    return data;
+  },
+
+  async update(id: string, payload: UpdateLotPayload): Promise<LotDetail> {
+    const formData = buildUpdateLotFormData(payload);
+    const { data } = await api.patch<LotDetail>(`/listings/${id}`, formData);
     return data;
   },
 };

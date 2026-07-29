@@ -180,6 +180,9 @@
 }
 
 @theme inline {
+  /* Main app shell: fills large monitors up to 1520px */
+  --max-width-site: 1520px;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-surface: var(--surface);

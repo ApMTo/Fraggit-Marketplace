@@ -65,7 +65,7 @@ export function ChatNavIcon({ enabled }: ChatNavIconProps) {
     <Link
       href="/chat"
       aria-label={t('chat')}
-      className="relative inline-flex size-9 cursor-pointer items-center justify-center rounded-[var(--radius-md)] text-foreground transition-[background-color,color] duration-300 hover:bg-surface-elevated"
+      className="relative inline-flex size-9 cursor-pointer items-center justify-center rounded-[var(--radius-sm)] text-muted transition-[background-color,color] duration-300 hover:bg-surface-elevated hover:text-foreground"
     >
       <MessageSquare className="size-4" />
       {showBadge ? (

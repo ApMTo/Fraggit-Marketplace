@@ -10,6 +10,8 @@ import type {
   ChangePasswordPayload,
   ChangeUsernamePayload,
   ConfirmEmailChangePayload,
+  ConfirmTwoFactorEnablePayload,
+  DisableTwoFactorPayload,
   RequestEmailChangePayload,
   UpdateProfilePayload,
   UserProfile,
@@ -159,6 +161,38 @@ export function useChangePassword() {
       usersService.changePassword(payload),
     onSuccess: () => {
       resyncCsrfAfterSessionReissue();
+    },
+  });
+}
+
+export function useRequestTwoFactorEnable() {
+  return useMutation({
+    mutationFn: () => usersService.requestTwoFactorEnable(),
+  });
+}
+
+export function useConfirmTwoFactorEnable() {
+  const queryClient = useQueryClient();
+  const { user, updateUser } = useAuth();
+
+  return useMutation({
+    mutationFn: (payload: ConfirmTwoFactorEnablePayload) =>
+      usersService.confirmTwoFactorEnable(payload),
+    onSuccess: (data) => {
+      syncProfileCaches(queryClient, data, user?.username, updateUser);
+    },
+  });
+}
+
+export function useDisableTwoFactor() {
+  const queryClient = useQueryClient();
+  const { user, updateUser } = useAuth();
+
+  return useMutation({
+    mutationFn: (payload: DisableTwoFactorPayload) =>
+      usersService.disableTwoFactor(payload),
+    onSuccess: (data) => {
+      syncProfileCaches(queryClient, data, user?.username, updateUser);
     },
   });
 }

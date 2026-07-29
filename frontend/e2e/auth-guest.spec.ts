@@ -19,10 +19,10 @@ test.describe('Guest auth pages', () => {
     await expect(page.getByRole('button', { name: 'Create account' })).toBeVisible();
   });
 
-  test('redirects unauthenticated users from dashboard to login', async ({ page }) => {
-    await page.goto('/dashboard');
+  test('redirects unauthenticated users from orders to login', async ({ page }) => {
+    await page.goto('/orders');
 
-    await expect(page).toHaveURL(/\/login\?next=%2Fdashboard/);
+    await expect(page).toHaveURL(/\/login\?next=%2Forders/);
   });
 
   test('shows validation errors for empty login submit', async ({ page }) => {

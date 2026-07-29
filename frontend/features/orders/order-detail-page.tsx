@@ -20,7 +20,10 @@ import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { formatLotPrice } from '@/features/listings/lib/format-lot-price';
 import { OrderReviewSection } from '@/features/orders/components/order-review-section';
+import { OrderDisputeSection } from '@/features/orders/components/order-dispute-section';
+import { DisputeDialog } from '@/features/orders/components/dispute-dialog';
 import {
+  useCompleteOrderService,
   useConfirmOrder,
   useOrder,
   useSubmitOrderCredentials,
@@ -40,6 +43,8 @@ function statusTone(status: OrderStatus): string {
       return 'border-[var(--warning)]/30 bg-[var(--warning)]/10 text-[var(--warning)]';
     case 'AWAITING_BUYER_CONFIRMATION':
       return 'border-[var(--blue-a24)] bg-[var(--blue-a12)] text-[var(--link)]';
+    case 'DISPUTED':
+      return 'border-destructive/30 bg-destructive/10 text-destructive';
     case 'APPROVED':
       return 'border-[var(--success)]/30 bg-[var(--success)]/10 text-[var(--success)]';
     default:
@@ -54,11 +59,13 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
   const { user } = useAuth();
   const { data: order, isLoading, isError } = useOrder(orderId);
   const submitCredentials = useSubmitOrderCredentials(orderId);
+  const completeService = useCompleteOrderService(orderId);
   const confirmOrder = useConfirmOrder(orderId);
 
   const [credentialsDraft, setCredentialsDraft] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [disputeOpen, setDisputeOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -90,16 +97,28 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
 
   const isBuyer = user.id === order.buyerId;
   const isSeller = user.id === order.sellerId;
+  const isService = order.lot.type === 'SERVICE';
   const coverUrl = order.lot.previewUrl ?? order.lot.images[0]?.url ?? null;
   const counterparty = isBuyer ? order.seller : order.buyer;
   const counterpartyName =
     counterparty.displayName || counterparty.username;
   const canSubmitCredentials =
-    isSeller && order.status === 'PENDING';
+    isSeller && !isService && order.status === 'PENDING';
+  const canCompleteService =
+    isSeller && isService && order.status === 'PENDING';
   const canConfirm =
     isBuyer && order.status === 'AWAITING_BUYER_CONFIRMATION';
+  const canDispute =
+    (isBuyer || isSeller) &&
+    (order.status === 'PENDING' ||
+      order.status === 'AWAITING_BUYER_CONFIRMATION');
   const showCredentials =
-    Boolean(order.credentials) || canSubmitCredentials;
+    !isService && (Boolean(order.credentials) || canSubmitCredentials);
+  const showServiceDetails =
+    isService &&
+    (Boolean(order.buyerAnswer) ||
+      Boolean(order.serviceQuestion) ||
+      canCompleteService);
 
   async function handleSubmitCredentials() {
     const trimmed = credentialsDraft.trim();
@@ -114,6 +133,18 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
       await submitCredentials.mutateAsync({ credentials: trimmed });
       setCredentialsDraft('');
       toast.success(t('credentialsSubmitted'));
+    } catch (error) {
+      const resolved = resolveApiError(error);
+      setFormError(tErrors(resolved.key, resolved.values));
+    }
+  }
+
+  async function handleCompleteService() {
+    setFormError(null);
+
+    try {
+      await completeService.mutateAsync();
+      toast.success(t('serviceCompleted'));
     } catch (error) {
       const resolved = resolveApiError(error);
       setFormError(tErrors(resolved.key, resolved.values));
@@ -150,13 +181,23 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
           <h1 className="page-title text-2xl sm:text-3xl">
             {order.lot.title}
           </h1>
+          <p className="text-xs text-muted">
+            {isService ? t('lotTypeService') : t('lotTypeAccount')}
+          </p>
         </div>
         <span
           className={`inline-flex w-fit shrink-0 items-center rounded-[var(--radius-sm)] border px-3 py-1.5 text-xs font-semibold ${statusTone(order.status)}`}
         >
-          {t(`status.${order.status}`)}
+          {isService && order.status === 'PENDING'
+            ? t('status.PENDING_SERVICE')
+            : t(`status.${order.status}`)}
         </span>
       </header>
+
+      <OrderDisputeSection
+        orderId={order.id}
+        active={order.status === 'DISPUTED'}
+      />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,340px)]">
         <div className="flex min-w-0 flex-col gap-6">
@@ -183,6 +224,59 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
               <p className="text-sm text-muted">{t('lotSummary')}</p>
             </div>
           </section>
+
+          {showServiceDetails ? (
+            <section className="space-y-4 rounded-[var(--radius-lg)] border border-border bg-surface p-5">
+              <div className="space-y-1">
+                <h2 className="font-display text-lg font-semibold text-foreground">
+                  {t('serviceTitle')}
+                </h2>
+                <p className="text-sm text-muted">
+                  {isSeller
+                    ? t('serviceSellerHint')
+                    : t('serviceBuyerHint')}
+                </p>
+              </div>
+
+              {order.serviceQuestion ? (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-subtle">
+                    {t('serviceQuestionLabel')}
+                  </p>
+                  <p className="whitespace-pre-wrap rounded-[var(--radius-sm)] border border-border bg-surface-elevated px-4 py-3 text-sm text-foreground">
+                    {order.serviceQuestion}
+                  </p>
+                </div>
+              ) : null}
+
+              {order.buyerAnswer ? (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-subtle">
+                    {t('buyerAnswerLabel')}
+                  </p>
+                  <pre className="overflow-x-auto whitespace-pre-wrap rounded-[var(--radius-sm)] border border-border bg-surface-elevated px-4 py-3 font-mono text-sm text-foreground">
+                    {order.buyerAnswer}
+                  </pre>
+                </div>
+              ) : null}
+
+              {canCompleteService ? (
+                <div className="space-y-3">
+                  {formError ? <FormError>{formError}</FormError> : null}
+                  <Button
+                    type="button"
+                    className="w-full sm:w-auto"
+                    isLoading={completeService.isPending}
+                    onClick={() => void handleCompleteService()}
+                  >
+                    {t('completeService')}
+                  </Button>
+                </div>
+              ) : order.status === 'PENDING' ? (
+                <p className="text-sm text-muted">{t('serviceWaiting')}</p>
+              ) : null}
+            </section>
+          ) : null}
 
           {showCredentials ? (
             <section className="space-y-3 rounded-[var(--radius-lg)] border border-border bg-surface p-5">
@@ -236,7 +330,7 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
                 <p className="text-sm text-muted">{t('credentialsWaiting')}</p>
               )}
             </section>
-          ) : isBuyer && order.status === 'PENDING' ? (
+          ) : !isService && isBuyer && order.status === 'PENDING' ? (
             <section className="space-y-2 rounded-[var(--radius-lg)] border border-border bg-surface p-5">
               <h2 className="font-display text-lg font-semibold text-foreground">
                 {t('credentialsTitle')}
@@ -257,7 +351,13 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
                 {isBuyer ? t('roleBuyer') : t('roleSeller')}
               </p>
               <p className="text-sm text-muted">
-                {isBuyer ? t('buyerStatusHint') : t('sellerStatusHint')}
+                {isService
+                  ? isBuyer
+                    ? t('buyerStatusHintService')
+                    : t('sellerStatusHintService')
+                  : isBuyer
+                    ? t('buyerStatusHint')
+                    : t('sellerStatusHint')}
               </p>
             </div>
 
@@ -290,7 +390,7 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
               </div>
             </Link>
 
-            {isBuyer && order.status !== 'APPROVED' ? (
+            {isBuyer && order.status !== 'APPROVED' && order.status !== 'DISPUTED' ? (
               <div className="space-y-2">
                 <Button
                   type="button"
@@ -302,10 +402,33 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
                 </Button>
                 {!canConfirm && order.status === 'PENDING' ? (
                   <p className="text-center text-xs text-muted">
-                    {t('confirmBlockedUntilData')}
+                    {isService
+                      ? t('confirmBlockedUntilService')
+                      : t('confirmBlockedUntilData')}
                   </p>
                 ) : null}
               </div>
+            ) : null}
+
+            {order.status === 'DISPUTED' ? (
+              <div className="space-y-2 rounded-[var(--radius-md)] border border-destructive/30 bg-destructive/5 p-3 text-center">
+                <p className="text-sm font-semibold text-destructive">
+                  {t('disputeActiveTitle')}
+                </p>
+                <p className="text-xs text-muted">{t('disputeActive')}</p>
+                <p className="text-xs text-muted">{t('disputeActiveHint')}</p>
+              </div>
+            ) : null}
+
+            {canDispute ? (
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full"
+                onClick={() => setDisputeOpen(true)}
+              >
+                {t('openDispute')}
+              </Button>
             ) : null}
 
             {order.status === 'APPROVED' ? (
@@ -336,11 +459,22 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
         onClose={() => setConfirmOpen(false)}
         onConfirm={() => void handleConfirmOrder()}
         title={t('confirmDialog.title')}
-        description={t('confirmDialog.description')}
+        description={
+          isService
+            ? t('confirmDialog.descriptionService')
+            : t('confirmDialog.description')
+        }
         confirmLabel={t('confirmDialog.confirm')}
         cancelLabel={t('confirmDialog.cancel')}
         isLoading={confirmOrder.isPending}
         variant="primary"
+      />
+
+      <DisputeDialog
+        open={disputeOpen}
+        onClose={() => setDisputeOpen(false)}
+        orderId={order.id}
+        orderNumber={order.orderNumber}
       />
     </div>
   );

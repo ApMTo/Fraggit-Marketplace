@@ -44,10 +44,72 @@ export type LoginPayload = {
   password: string;
 };
 
+export type TwoFactorChallengeResponse = {
+  requiresTwoFactor: true;
+  challengeId: string;
+  expiresInSeconds: number;
+  resendAvailableInSeconds: number;
+  message: { code: string };
+};
+
+export type LoginResponse = AuthSessionResponse | TwoFactorChallengeResponse;
+
+export type VerifyTwoFactorPayload = {
+  challengeId: string;
+  code: string;
+};
+
+export type ResendTwoFactorPayload = {
+  challengeId: string;
+};
+
+export type TwoFactorResendResponse = {
+  message: { code: string };
+  expiresInSeconds: number;
+  resendAvailableInSeconds: number;
+};
+
+export function isTwoFactorChallenge(
+  response: LoginResponse,
+): response is TwoFactorChallengeResponse {
+  return (
+    'requiresTwoFactor' in response && response.requiresTwoFactor === true
+  );
+}
+
+export type ForgotPasswordPayload = {
+  email: string;
+};
+
+export type ResetPasswordPayload = {
+  token: string;
+  password: string;
+  confirmPassword: string;
+};
+
+export type ResetPasswordTokenResponse = {
+  valid: boolean;
+  expiresInSeconds: number;
+};
+
 export type ApiErrorBody = {
   status: 'error';
   error: {
-    message: string | { code: string } | string[];
+    message:
+      | string
+      | {
+          code: string;
+          resendAvailableInSeconds?: number;
+          restriction?: AccountRestriction;
+        }
+      | string[];
     code: number;
   };
+};
+
+export type AccountRestriction = {
+  status: 'BANNED' | 'SUSPENDED';
+  publicMessage: string | null;
+  caseId: string | null;
+  suspendedUntil: string | null;
 };

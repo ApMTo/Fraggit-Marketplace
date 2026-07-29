@@ -7,14 +7,15 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Spinner } from '@/components/ui/spinner';
 import { CategoryBrowseCard } from '@/features/listings/components/category-browse-card';
 import { useAuth, useCategories } from '@/hooks';
+import { isStaffRole } from '@/lib/staff';
 
 export function ListingsHubPage() {
   const t = useTranslations('listings');
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { data: categories, isLoading, isError } = useCategories();
 
   return (
-    <div className="relative mx-auto flex w-full max-w-[1240px] flex-col gap-10 px-5 py-8 sm:gap-12 sm:py-10">
+    <div className="relative mx-auto flex w-full max-w-site flex-col gap-10 px-5 py-8 sm:gap-12 sm:py-10">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 -top-8 h-56 bg-[radial-gradient(ellipse_at_top,var(--blue-a12),transparent_70%)]"
@@ -30,7 +31,7 @@ export function ListingsHubPage() {
           </p>
         </div>
 
-        {isAuthenticated ? (
+        {isAuthenticated && !isStaffRole(user?.role) ? (
           <Link
             href="/listings/new"
             className="btn-primary inline-flex h-11 shrink-0 items-center gap-2 px-5 text-sm"

@@ -57,6 +57,18 @@ export function useSubmitOrderCredentials(orderId: string) {
   });
 }
 
+export function useCompleteOrderService(orderId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => ordersService.completeService(orderId),
+    onSuccess: (order) => {
+      queryClient.setQueryData(orderKeys.detail(order.id), order);
+      queryClient.invalidateQueries({ queryKey: orderKeys.lists() });
+    },
+  });
+}
+
 export function useConfirmOrder(orderId: string) {
   const queryClient = useQueryClient();
 

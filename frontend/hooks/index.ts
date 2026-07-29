@@ -18,12 +18,19 @@ export {
   useAttributeDefinition,
   useAttributeMutations,
 } from './use-attribute-definitions';
-export { useLots, useLot, useCreateLot, useSellerLots } from './use-lots';
+export {
+  useLots,
+  useLot,
+  useCreateLot,
+  useUpdateLot,
+  useSellerLots,
+} from './use-lots';
 export {
   useOrders,
   useOrder,
   useCreateOrder,
   useSubmitOrderCredentials,
+  useCompleteOrderService,
   useConfirmOrder,
 } from './use-orders';
 export {
@@ -40,3 +47,14 @@ export {
 } from './use-chat';
 export { useChatRealtime } from './use-chat-realtime';
 export { useAuth } from '@/providers/AuthProvider';
+export {
+  useModOverview,
+  useModUsers,
+  useModUser,
+  useModLots,
+  useModReports,
+  useModTickets,
+  useModTicket,
+  useModAudit,
+  useModerationMutations,
+} from './use-moderation';

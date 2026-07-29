@@ -5,6 +5,7 @@ import { ArrowLeft, FolderOpen, Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { AppImage } from '@/components/ui/app-image';
 import { useAuth } from '@/hooks';
+import { isStaffRole } from '@/lib/staff';
 import type { CategoryPublic } from '@/types/category';
 
 type CategoryBrowseHeroProps = {
@@ -17,7 +18,7 @@ export function CategoryBrowseHero({
   createHref,
 }: CategoryBrowseHeroProps) {
   const t = useTranslations('listings');
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   return (
     <header className="space-y-3">
@@ -36,7 +37,7 @@ export function CategoryBrowseHero({
             alt=""
             fill
             priority
-            sizes="(max-width: 1240px) 100vw, 1240px"
+            sizes="(max-width: 1520px) 100vw, 1520px"
             className="object-cover"
           />
         ) : (
@@ -68,7 +69,7 @@ export function CategoryBrowseHero({
             </h1>
           </div>
 
-          {isAuthenticated && createHref ? (
+          {isAuthenticated && createHref && !isStaffRole(user?.role) ? (
             <Link
               href={createHref}
               className="btn-primary inline-flex h-10 shrink-0 items-center gap-2 px-4 text-sm sm:h-11 sm:px-5"

@@ -20,3 +20,8 @@ export const localeLabels: Record<string, string> = {
   en: 'English',
   ru: 'Русский',
 };
+
+export const localeShortLabels: Record<string, string> = {
+  en: 'EN',
+  ru: 'RU',
+};

@@ -7,6 +7,7 @@ import {
   CHAT_WS_EVENTS,
   releaseChatSocket,
 } from '@/lib/chat-socket';
+import { playNotificationSound } from '@/lib/notification-sound';
 import { notificationKeys } from '@/services/notifications.service';
 import type {
   AppNotification,
@@ -39,6 +40,8 @@ export function useNotificationsRealtime({
       if (!notification?.id) {
         return;
       }
+
+      playNotificationSound();
 
       queryClient.setQueryData<UnreadCountResult>(
         notificationKeys.unreadCount(),

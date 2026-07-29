@@ -11,17 +11,16 @@ test.describe('Auth flow', () => {
     test.skip(!available, 'Backend and Redis must be running for auth flow e2e');
   });
 
-  test('verifies email and opens dashboard', async ({ page }) => {
+  test('verifies email and opens home', async ({ page }) => {
     const user = createTestUserPayload();
     const token = await registerAndGetVerificationToken(user);
 
     await page.goto(`/auth/verify/${token}`);
 
     await expect(page.getByText("You're all set")).toBeVisible({ timeout: 15_000 });
-    await page.getByRole('button', { name: 'Go to dashboard' }).click();
+    await page.getByRole('button', { name: 'Continue' }).click();
 
-    await expect(page).toHaveURL('/dashboard');
-    await expect(page.getByRole('heading', { name: 'Dashboard Page' })).toBeVisible();
+    await expect(page).toHaveURL('/');
   });
 
   test('logs in with verified account', async ({ page }) => {
@@ -38,7 +37,6 @@ test.describe('Auth flow', () => {
     await page.getByLabel('Password').fill(user.password);
     await page.getByRole('button', { name: 'Sign in' }).click();
 
-    await expect(page).toHaveURL('/dashboard', { timeout: 15_000 });
-    await expect(page.getByRole('heading', { name: 'Dashboard Page' })).toBeVisible();
+    await expect(page).toHaveURL('/', { timeout: 15_000 });
   });
 });

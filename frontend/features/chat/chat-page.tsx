@@ -31,7 +31,7 @@ export function ChatPage({ title, conversationId }: ChatPageProps) {
     : undefined;
 
   return (
-    <div className="mx-auto flex h-full min-h-0 w-full max-w-[1240px] flex-col gap-4 px-5 py-4 sm:gap-5 sm:py-6">
+    <div className="mx-auto flex h-full min-h-0 w-full max-w-site flex-col gap-4 px-5 py-4 sm:gap-5 sm:py-6">
       <div className="shrink-0">
         <h1 className="page-title text-2xl sm:text-3xl">{title}</h1>
         <p className="mt-1 text-sm text-subtle">{t('subtitle')}</p>
