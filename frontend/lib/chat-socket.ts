@@ -35,6 +35,7 @@ async function fetchWsToken(): Promise<string> {
 let socket: Socket | null = null;
 let subscriberCount = 0;
 let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+let connectInFlight: Promise<void> | null = null;
 
 function startHeartbeat(activeSocket: Socket): void {
   if (heartbeatTimer) {
@@ -57,39 +58,75 @@ function stopHeartbeat(): void {
   heartbeatTimer = null;
 }
 
+function ensureSocket(): Socket {
+  if (socket) {
+    return socket;
+  }
+
+  socket = io(`${getChatSocketUrl()}/chat`, {
+    withCredentials: true,
+    autoConnect: false,
+    // Polling first so the auth handshake is reliable behind proxies.
+    transports: ['polling', 'websocket'],
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 1_000,
+    reconnectionDelayMax: 10_000,
+  });
+
+  socket.on('reconnect_attempt', () => {
+    void fetchWsToken()
+      .then((token) => {
+        if (socket) {
+          socket.auth = { token };
+        }
+      })
+      .catch(() => {
+        // Next attempt will retry token fetch.
+      });
+  });
+
+  return socket;
+}
+
+async function connectSocket(activeSocket: Socket): Promise<void> {
+  if (activeSocket.connected) {
+    return;
+  }
+
+  if (connectInFlight) {
+    await connectInFlight;
+    return;
+  }
+
+  connectInFlight = (async () => {
+    const token = await fetchWsToken();
+    activeSocket.auth = { token };
+    if (!activeSocket.connected) {
+      activeSocket.connect();
+    }
+  })().finally(() => {
+    connectInFlight = null;
+  });
+
+  await connectInFlight;
+}
+
 export function acquireChatSocket(): Socket {
   if (typeof window === 'undefined') {
     throw new Error('Chat socket is client-only');
   }
 
-  if (!socket) {
-    socket = io(`${getChatSocketUrl()}/chat`, {
-      withCredentials: true,
-      autoConnect: false,
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionAttempts: Infinity,
-      reconnectionDelay: 1_000,
-      reconnectionDelayMax: 10_000,
-      auth: (cb) => {
-        void fetchWsToken()
-          .then((token) => cb({ token }))
-          .catch((error: unknown) => {
-            cb(error instanceof Error ? error : new Error(String(error)));
-          });
-      },
-    });
-  }
-
+  const activeSocket = ensureSocket();
   subscriberCount += 1;
 
-  if (!socket.connected) {
-    socket.connect();
-  }
+  void connectSocket(activeSocket).catch((error: unknown) => {
+    console.error('[chat-socket] failed to authenticate/connect', error);
+  });
 
-  startHeartbeat(socket);
+  startHeartbeat(activeSocket);
 
-  return socket;
+  return activeSocket;
 }
 
 export function releaseChatSocket(): void {
