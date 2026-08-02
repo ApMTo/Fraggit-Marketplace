@@ -175,6 +175,23 @@ export class AuthController {
     };
   }
 
+  @Get('ws-token')
+  @UseGuards(JwtAuthGuard)
+  @ApiCookieAuth('access_token')
+  @ApiOperation({
+    summary: 'Issue access token for Socket.IO handshake',
+    description:
+      'Returns the current access_token for cross-origin WebSocket auth ' +
+      '(browser cookies on the frontend host are not sent to the API host).',
+  })
+  getWsToken(@Req() req: Request) {
+    const token = req.cookies?.access_token as string | undefined;
+    if (!token) {
+      throw new UnauthorizedException({ code: 'errors.unauthorized' });
+    }
+    return { token };
+  }
+
   @Post('refresh')
   @Public()
   @HttpCode(HttpStatus.CREATED)

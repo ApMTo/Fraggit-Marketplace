@@ -121,7 +121,7 @@ describe('ChatGateway', () => {
     await gateway.handleConnection(client as never);
 
     expect(chatAuthService.authenticateHandshake).toHaveBeenCalledWith(
-      'access_token=token',
+      client.handshake,
     );
     expect(client.join).toHaveBeenCalledWith('user:user-1');
     expect(chatPresenceService.setOnline).toHaveBeenCalledWith('user-1');

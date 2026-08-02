@@ -20,10 +20,18 @@ export class ChatAuthService {
     private readonly userAuthCache: UserAuthCacheService,
   ) {}
 
-  async authenticateHandshake(cookieHeader?: string): Promise<AuthUser> {
-    const token = cookieHeader
-      ? parseCookieHeader(cookieHeader).access_token
+  async authenticateHandshake(handshake: {
+    headers?: { cookie?: string };
+    auth?: Record<string, unknown>;
+  }): Promise<AuthUser> {
+    const authToken =
+      typeof handshake.auth?.token === 'string'
+        ? handshake.auth.token
+        : undefined;
+    const cookieToken = handshake.headers?.cookie
+      ? parseCookieHeader(handshake.headers.cookie).access_token
       : undefined;
+    const token = authToken || cookieToken;
 
     if (!token) {
       throw new UnauthorizedException('chat_auth_token_missing');

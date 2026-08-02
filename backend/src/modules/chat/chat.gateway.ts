@@ -55,7 +55,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleConnection(client: AuthenticatedSocket): Promise<void> {
     try {
       const user = await this.chatAuthService.authenticateHandshake(
-        client.handshake.headers.cookie,
+        client.handshake,
       );
 
       client.data.user = user;

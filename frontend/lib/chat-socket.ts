@@ -1,4 +1,5 @@
 import { io, type Socket } from 'socket.io-client';
+import api from '@/lib/api';
 
 export const CHAT_WS_EVENTS = {
   HEARTBEAT: 'heartbeat',
@@ -21,6 +22,14 @@ function getChatSocketUrl(): string {
   }
 
   return 'http://localhost:3001';
+}
+
+async function fetchWsToken(): Promise<string> {
+  const result = await api.get<{ token: string }>('/auth/ws-token');
+  if (!result?.token) {
+    throw new Error('chat_ws_token_missing');
+  }
+  return result.token;
 }
 
 let socket: Socket | null = null;
@@ -62,6 +71,13 @@ export function acquireChatSocket(): Socket {
       reconnectionAttempts: Infinity,
       reconnectionDelay: 1_000,
       reconnectionDelayMax: 10_000,
+      auth: (cb) => {
+        void fetchWsToken()
+          .then((token) => cb({ token }))
+          .catch((error: unknown) => {
+            cb(error instanceof Error ? error : new Error(String(error)));
+          });
+      },
     });
   }
 
