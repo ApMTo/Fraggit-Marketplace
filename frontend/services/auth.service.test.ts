@@ -32,6 +32,8 @@ describe('authService', () => {
         username: 'testuser',
         displayName: 'Test User',
         password: 'Str0ng!Pass',
+        acceptedTerms: true,
+        acceptedPrivacy: true,
       }),
     ).resolves.toEqual({ message: 'ok' });
 
@@ -40,6 +42,8 @@ describe('authService', () => {
       username: 'testuser',
       displayName: 'Test User',
       password: 'Str0ng!Pass',
+      acceptedTerms: true,
+      acceptedPrivacy: true,
     });
   });
 

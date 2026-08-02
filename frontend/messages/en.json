@@ -299,11 +299,45 @@
       "about": "About",
       "privacy": "Privacy",
       "terms": "Terms",
+      "marketplaceRules": "Marketplace Rules",
+      "sellerPolicy": "Seller Policy",
       "support": "Support",
       "contacts": "Contacts",
       "telegram": "Telegram",
       "discord": "Discord",
       "copyright": "© {year} Fraggit. All rights reserved."
+    }
+  },
+  "legal": {
+    "document": {
+      "version": "Version",
+      "lastUpdated": "Last updated",
+      "related": "Related documents"
+    },
+    "footer": {
+      "terms": "Terms",
+      "privacy": "Privacy",
+      "marketplaceRules": "Marketplace Rules",
+      "sellerPolicy": "Seller Policy",
+      "copyright": "© {year} Fraggit. All rights reserved."
+    },
+    "pages": {
+      "terms": {
+        "title": "Terms of Service",
+        "description": "Terms governing use of the Fraggit marketplace."
+      },
+      "privacy": {
+        "title": "Privacy Policy",
+        "description": "How Fraggit collects and processes personal data."
+      },
+      "marketplaceRules": {
+        "title": "Marketplace Rules",
+        "description": "Trading rules, disputes, and refund policy on Fraggit."
+      },
+      "sellerPolicy": {
+        "title": "Seller Policy",
+        "description": "Additional obligations for sellers on Fraggit."
+      }
     }
   },
   "pages": {
@@ -923,7 +957,13 @@
       "goToLogin": "Back to sign in",
       "hasAccount": "Already have an account?",
       "signIn": "Sign in",
-      "passwordHint": "At least 10 characters with upper, lower, digit, and special character"
+      "passwordHint": "At least 10 characters with upper, lower, digit, and special character",
+      "legalConsentPrefix": "I agree to the",
+      "legalTermsLink": "Terms of Service",
+      "legalPrivacyLink": "Privacy Policy",
+      "legalConsentAnd": "and",
+      "legalMarketplaceLink": "Marketplace Rules",
+      "legalConsentRequired": "You must accept the legal documents to create an account"
     },
     "verify": {
       "title": "Email verification",
