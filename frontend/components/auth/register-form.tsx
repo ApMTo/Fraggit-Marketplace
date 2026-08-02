@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import { AuthLayout } from '@/components/auth/auth-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { resolveAuthErrorKey } from '@/lib/auth-errors';
@@ -28,6 +29,7 @@ type RegisterFormValues = {
   email: string;
   password: string;
   confirmPassword: string;
+  acceptedLegal: boolean;
 };
 
 export function RegisterForm() {
@@ -45,6 +47,7 @@ export function RegisterForm() {
       email: '',
       password: '',
       confirmPassword: '',
+      acceptedLegal: false,
     },
     validate: (values) => {
       const errors: Partial<Record<keyof RegisterFormValues, string>> = {};
@@ -77,6 +80,10 @@ export function RegisterForm() {
         errors.confirmPassword = tValidation(confirmError);
       }
 
+      if (!values.acceptedLegal) {
+        errors.acceptedLegal = t('register.legalConsentRequired');
+      }
+
       return errors;
     },
     validateOnChange: false,
@@ -88,6 +95,8 @@ export function RegisterForm() {
           displayName: values.displayName.trim(),
           email: values.email.trim(),
           password: values.password,
+          acceptedTerms: true,
+          acceptedPrivacy: true,
         });
         setSubmittedEmail(values.email.trim());
       } catch (error) {
@@ -247,6 +256,46 @@ export function RegisterForm() {
               {formik.touched.confirmPassword && formik.errors.confirmPassword ? (
                 <p className="text-xs text-destructive">
                   {formik.errors.confirmPassword}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="acceptedLegal"
+                  name="acceptedLegal"
+                  checked={formik.values.acceptedLegal}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  hasError={Boolean(
+                    formik.touched.acceptedLegal && formik.errors.acceptedLegal,
+                  )}
+                />
+                <label
+                  htmlFor="acceptedLegal"
+                  className="text-sm leading-relaxed text-muted"
+                >
+                  {t('register.legalConsentPrefix')}{' '}
+                  <Link href="/terms" className="text-link hover:underline">
+                    {t('register.legalTermsLink')}
+                  </Link>
+                  ,{' '}
+                  <Link href="/privacy" className="text-link hover:underline">
+                    {t('register.legalPrivacyLink')}
+                  </Link>{' '}
+                  {t('register.legalConsentAnd')}{' '}
+                  <Link
+                    href="/marketplace-rules"
+                    className="text-link hover:underline"
+                  >
+                    {t('register.legalMarketplaceLink')}
+                  </Link>
+                </label>
+              </div>
+              {formik.touched.acceptedLegal && formik.errors.acceptedLegal ? (
+                <p className="text-xs text-destructive">
+                  {formik.errors.acceptedLegal}
                 </p>
               ) : null}
             </div>

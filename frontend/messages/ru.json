@@ -299,11 +299,45 @@
       "about": "О нас",
       "privacy": "Конфиденциальность",
       "terms": "Условия",
+      "marketplaceRules": "Правила торговли",
+      "sellerPolicy": "Для продавцов",
       "support": "Поддержка",
       "contacts": "Контакты",
       "telegram": "Telegram",
       "discord": "Discord",
       "copyright": "© {year} Fraggit. Все права защищены."
+    }
+  },
+  "legal": {
+    "document": {
+      "version": "Версия",
+      "lastUpdated": "Обновлено",
+      "related": "Связанные документы"
+    },
+    "footer": {
+      "terms": "Условия",
+      "privacy": "Конфиденциальность",
+      "marketplaceRules": "Правила торговли",
+      "sellerPolicy": "Для продавцов",
+      "copyright": "© {year} Fraggit. Все права защищены."
+    },
+    "pages": {
+      "terms": {
+        "title": "Пользовательское соглашение",
+        "description": "Условия использования маркетплейса Fraggit."
+      },
+      "privacy": {
+        "title": "Политика конфиденциальности",
+        "description": "Как Fraggit собирает и обрабатывает персональные данные."
+      },
+      "marketplaceRules": {
+        "title": "Правила торговли",
+        "description": "Правила сделок, споров и возвратов на Fraggit."
+      },
+      "sellerPolicy": {
+        "title": "Политика для продавцов",
+        "description": "Дополнительные обязанности продавцов на Fraggit."
+      }
     }
   },
   "pages": {
@@ -923,7 +957,13 @@
       "goToLogin": "Вернуться ко входу",
       "hasAccount": "Уже есть аккаунт?",
       "signIn": "Войти",
-      "passwordHint": "Минимум 10 символов: заглавные, строчные, цифра и спецсимвол"
+      "passwordHint": "Минимум 10 символов: заглавные, строчные, цифра и спецсимвол",
+      "legalConsentPrefix": "Я соглашаюсь с",
+      "legalTermsLink": "Пользовательским соглашением",
+      "legalPrivacyLink": "Политикой конфиденциальности",
+      "legalConsentAnd": "и",
+      "legalMarketplaceLink": "Правилами торговли",
+      "legalConsentRequired": "Для создания аккаунта необходимо принять юридические документы"
     },
     "verify": {
       "title": "Подтверждение email",

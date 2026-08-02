@@ -56,6 +56,11 @@ model User {
   telegramId       String?
   telegramUsername String?
 
+  acceptedTermsVersion   String?
+  acceptedTermsAt        DateTime?
+  acceptedPrivacyVersion String?
+  acceptedPrivacyAt      DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   lots            Lot[]

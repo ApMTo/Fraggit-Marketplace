@@ -12,6 +12,7 @@ import { PrismaService } from '../../database/prisma.service';
 import { RedisService } from '../../database/redis.service';
 import { MailQueueService } from '../mail/mail-queue.service';
 import { UserRole, UserStatus } from '@prisma/client';
+import { LEGAL_VERSION } from '../../common/constants/legal.constants';
 import { AuthSessionService } from './auth-session.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import {
@@ -25,6 +26,8 @@ type PendingRegistration = {
   displayName: string;
   email: string;
   passwordHash: string;
+  acceptedTermsVersion: string;
+  acceptedPrivacyVersion: string;
 };
 
 @Injectable()
@@ -58,6 +61,8 @@ export class AuthRegistrationService {
       displayName: dto.displayName.trim(),
       email,
       passwordHash: await hashPassword(dto.password),
+      acceptedTermsVersion: LEGAL_VERSION,
+      acceptedPrivacyVersion: LEGAL_VERSION,
     };
 
     await this.savePending(token, email, username, payload);
@@ -100,6 +105,7 @@ export class AuthRegistrationService {
       throw new ConflictException('user_already_exists');
     }
 
+    const now = new Date();
     const user = await this.prisma.user.create({
       data: {
         email: data.email,
@@ -109,6 +115,10 @@ export class AuthRegistrationService {
         role: UserRole.USER,
         status: UserStatus.ACTIVE,
         emailVerified: true,
+        acceptedTermsVersion: data.acceptedTermsVersion,
+        acceptedTermsAt: now,
+        acceptedPrivacyVersion: data.acceptedPrivacyVersion,
+        acceptedPrivacyAt: now,
       },
     });
 

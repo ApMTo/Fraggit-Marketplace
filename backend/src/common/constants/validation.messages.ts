@@ -9,4 +9,5 @@ export const V = {
   usernameLength: 'validation.username_length',
   displayNameLength: 'validation.display_name_length',
   bioMaxLength: 'validation.bio_max_length',
+  mustBeBoolean: 'validation.must_be_boolean',
 } as const;

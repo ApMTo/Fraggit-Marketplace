@@ -3,13 +3,24 @@
 import { usePathname } from 'next/navigation';
 import { type ReactNode } from 'react';
 import { AppHeader } from '@/components/layout/app-header';
+import { LegalFooter } from '@/features/legal';
 import { isChatRoute } from '@/lib/chat-route';
 import { cn } from '@/lib/utils';
 
 const AUTH_ROUTES = new Set(['/login', '/register']);
+const LEGAL_ROUTES = new Set([
+  '/terms',
+  '/privacy',
+  '/marketplace-rules',
+  '/seller-policy',
+]);
 
 function isAuthRoute(pathname: string): boolean {
   return AUTH_ROUTES.has(pathname) || pathname.startsWith('/auth/');
+}
+
+function shouldShowLegalFooter(pathname: string): boolean {
+  return pathname !== '/' && !isAuthRoute(pathname) && !LEGAL_ROUTES.has(pathname);
 }
 
 type AppShellProps = {
@@ -20,6 +31,7 @@ export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const hideHeader = isAuthRoute(pathname);
   const lockViewport = isChatRoute(pathname);
+  const showLegalFooter = shouldShowLegalFooter(pathname);
 
   return (
     <div
@@ -38,6 +50,7 @@ export function AppShell({ children }: AppShellProps) {
       >
         {children}
       </main>
+      {showLegalFooter ? <LegalFooter /> : null}
     </div>
   );
 }

@@ -37,6 +37,8 @@ export type RegisterPayload = {
   displayName: string;
   email: string;
   password: string;
+  acceptedTerms: boolean;
+  acceptedPrivacy: boolean;
 };
 
 export type LoginPayload = {

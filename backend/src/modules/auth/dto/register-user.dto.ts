@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, Matches, MinLength } from 'class-validator';
+import {
+  Equals,
+  IsBoolean,
+  IsEmail,
+  IsString,
+  Matches,
+  MinLength,
+} from 'class-validator';
 import { V } from '../../../common/constants/validation.messages';
 
 export class RegisterUserDto {
@@ -29,4 +36,14 @@ export class RegisterUserDto {
   @IsString({ message: V.passwordRequired })
   @MinLength(10, { message: V.passwordMinLength10 })
   password!: string;
+
+  @ApiProperty({ example: true })
+  @IsBoolean({ message: V.mustBeBoolean })
+  @Equals(true, { message: 'terms_acceptance_required' })
+  acceptedTerms!: boolean;
+
+  @ApiProperty({ example: true })
+  @IsBoolean({ message: V.mustBeBoolean })
+  @Equals(true, { message: 'privacy_acceptance_required' })
+  acceptedPrivacy!: boolean;
 }

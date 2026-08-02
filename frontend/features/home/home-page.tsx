@@ -94,8 +94,10 @@ export async function HomePage({ isAuthenticated }: HomePageProps) {
         copyright={t('footer.copyright', { year: currentYear })}
         links={[
           { label: t('footer.about'), href: '#about' },
-          { label: t('footer.privacy'), href: '#privacy' },
-          { label: t('footer.terms'), href: '#terms' },
+          { label: t('footer.privacy'), href: '/privacy' },
+          { label: t('footer.terms'), href: '/terms' },
+          { label: t('footer.marketplaceRules'), href: '/marketplace-rules' },
+          { label: t('footer.sellerPolicy'), href: '/seller-policy' },
           { label: t('footer.support'), href: '#support' },
           { label: t('footer.contacts'), href: '#contacts' },
         ]}
