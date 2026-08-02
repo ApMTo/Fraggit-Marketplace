@@ -25,11 +25,11 @@ function getChatSocketUrl(): string {
 }
 
 async function fetchWsToken(): Promise<string> {
-  const result = await api.get<{ token: string }>('/auth/ws-token');
-  if (!result?.token) {
+  const { data } = await api.get<{ token: string }>('/auth/ws-token');
+  if (!data?.token) {
     throw new Error('chat_ws_token_missing');
   }
-  return result.token;
+  return data.token;
 }
 
 let socket: Socket | null = null;
