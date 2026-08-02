@@ -46,6 +46,8 @@ export {
   useStartConversation,
 } from './use-chat';
 export { useChatRealtime } from './use-chat-realtime';
+export { useLotStatusRealtime } from './use-lot-status-realtime';
+export { useDisputeRealtime } from './use-dispute-realtime';
 export { useAuth } from '@/providers/AuthProvider';
 export {
   useModOverview,

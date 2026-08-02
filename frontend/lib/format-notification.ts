@@ -9,20 +9,34 @@ function isI18nKey(value: string): boolean {
   return value.startsWith('items.');
 }
 
+const STRING_PARAMS = [
+  'orderNumber',
+  'listingTitle',
+  'preview',
+  'subject',
+  'targetUsername',
+  'reporterUsername',
+] as const;
+
 function metadataParams(
   metadata: AppNotification['metadata'],
   t: TranslateFn,
 ): Record<string, string> {
-  if (!metadata) {
-    return { orderPart: '', note: '' };
-  }
-
   const params: Record<string, string> = {
     orderPart: '',
     note: '',
+    preview: '',
+    listingTitle: '',
+    subject: '',
+    targetUsername: '',
+    reporterUsername: '',
   };
 
-  for (const key of ['orderNumber', 'listingTitle'] as const) {
+  if (!metadata) {
+    return params;
+  }
+
+  for (const key of STRING_PARAMS) {
     const value = metadata[key];
     if (value != null && String(value).trim()) {
       params[key] = String(value);

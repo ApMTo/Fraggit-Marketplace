@@ -12,6 +12,8 @@ import {
 } from '@/lib/format-notification';
 import { unlockNotificationSound } from '@/lib/notification-sound';
 import { cn } from '@/lib/utils';
+import { useDisputeRealtime } from '@/hooks/use-dispute-realtime';
+import { useLotStatusRealtimeGlobal } from '@/hooks/use-lot-status-realtime';
 import { useNotificationsRealtime } from '@/hooks/use-notifications-realtime';
 import {
   notificationKeys,
@@ -32,6 +34,8 @@ export function NotificationsBell({ enabled }: NotificationsBellProps) {
   const menuId = useId();
 
   useNotificationsRealtime({ enabled });
+  useLotStatusRealtimeGlobal(enabled);
+  useDisputeRealtime(enabled);
 
   const unreadQuery = useQuery({
     queryKey: notificationKeys.unreadCount(),

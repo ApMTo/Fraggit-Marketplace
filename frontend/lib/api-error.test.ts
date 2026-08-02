@@ -51,6 +51,22 @@ describe('getApiErrorCode', () => {
     expect(getApiErrorCode(error)).toBe('too_many_attempts');
   });
 
+  it('returns Nest HttpException string response shape', () => {
+    const error = createAxiosError({
+      status: 'error',
+      error: {
+        message: {
+          message: 'email_already_exists',
+          error: 'Conflict',
+          statusCode: 409,
+        },
+        code: 409,
+      },
+    });
+
+    expect(getApiErrorCode(error)).toBe('email_already_exists');
+  });
+
   it('returns null when response is missing', () => {
     expect(getApiErrorCode(new Error('boom'))).toBeNull();
   });

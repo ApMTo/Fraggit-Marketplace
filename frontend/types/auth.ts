@@ -100,7 +100,10 @@ export type ApiErrorBody = {
     message:
       | string
       | {
-          code: string;
+          code?: string;
+          message?: string;
+          error?: string;
+          statusCode?: number;
           resendAvailableInSeconds?: number;
           restriction?: AccountRestriction;
         }

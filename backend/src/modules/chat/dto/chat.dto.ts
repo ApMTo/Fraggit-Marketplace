@@ -130,3 +130,8 @@ export class WsMarkReadDto {
   @IsUUID('4', { message: V.invalidUuid })
   lastReadMessageId!: string;
 }
+
+export class WsLotSubscribeDto {
+  @IsUUID('4', { message: V.invalidUuid })
+  lotId!: string;
+}

@@ -13,6 +13,7 @@ import {
 } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { RoleHierarchy } from '../../auth/enums/roles.enum';
+import { ChatGateway } from '../../chat/chat.gateway';
 import { CHAT_USER_SELECT } from '../../chat/constants/chat.select';
 import { LOT_DISPUTE_SYSTEM_EVENT } from '../constants/lot-dispute.constants';
 import { ModerationNotificationsService } from './moderation-notifications.service';
@@ -99,6 +100,7 @@ export class ModerationLotDisputeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: ModerationNotificationsService,
+    private readonly chatGateway: ChatGateway,
   ) {}
 
   async ensureRoomForTicket(ticketId: string) {
@@ -269,6 +271,7 @@ export class ModerationLotDisputeService {
           select: {
             id: true,
             reporterId: true,
+            assigneeId: true,
             order: {
               select: { buyerId: true, sellerId: true },
             },
@@ -327,6 +330,13 @@ export class ModerationLotDisputeService {
 
     const href = `/orders/${room.orderId}#order-dispute`;
 
+    this.chatGateway.emitDisputeMessageToUsers([...recipientIds, authorId], {
+      roomId: room.id,
+      orderId: room.orderId,
+      ticketId: room.ticket?.id ?? null,
+      message,
+    });
+
     await this.notifications.notifyLotDisputeMessage({
       recipientIds: recipientIds.filter((id) => id !== authorId),
       roomId: room.id,
@@ -344,14 +354,25 @@ export class ModerationLotDisputeService {
   async onTicketClaimed(ticketId: string, assigneeUsername: string) {
     const room = await this.prisma.lotDisputeRoom.findUnique({
       where: { ticketId },
-      select: { id: true },
+      select: {
+        id: true,
+        orderId: true,
+        ticketId: true,
+        ticket: {
+          select: {
+            reporterId: true,
+            assigneeId: true,
+            order: { select: { buyerId: true, sellerId: true } },
+          },
+        },
+      },
     });
 
     if (!room) {
       return;
     }
 
-    await this.prisma.lotDisputeMessage.create({
+    const message = await this.prisma.lotDisputeMessage.create({
       data: {
         roomId: room.id,
         kind: LotDisputeMessageKind.SYSTEM,
@@ -361,6 +382,14 @@ export class ModerationLotDisputeService {
           assigneeUsername,
         },
       },
+      select: MESSAGE_SELECT,
+    });
+
+    this.chatGateway.emitDisputeMessageToUsers(this.recipientIdsForRoom(room), {
+      roomId: room.id,
+      orderId: room.orderId,
+      ticketId: room.ticketId,
+      message,
     });
   }
 
@@ -382,20 +411,53 @@ export class ModerationLotDisputeService {
     event: string,
     metadata: Record<string, unknown>,
   ) {
-    await this.prisma.$transaction([
-      this.prisma.lotDisputeMessage.create({
+    const room = await this.prisma.lotDisputeRoom.findUnique({
+      where: { id: roomId },
+      select: {
+        id: true,
+        orderId: true,
+        ticketId: true,
+        ticket: {
+          select: {
+            reporterId: true,
+            assigneeId: true,
+            order: { select: { buyerId: true, sellerId: true } },
+          },
+        },
+      },
+    });
+
+    const message = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.lotDisputeMessage.create({
         data: {
           roomId,
           kind: LotDisputeMessageKind.SYSTEM,
           body: event,
           metadata: { event, ...metadata },
         },
-      }),
-      this.prisma.lotDisputeRoom.update({
+        select: MESSAGE_SELECT,
+      });
+
+      await tx.lotDisputeRoom.update({
         where: { id: roomId },
         data: { status: LotDisputeRoomStatus.CLOSED },
-      }),
-    ]);
+      });
+
+      return created;
+    });
+
+    if (room) {
+      this.chatGateway.emitDisputeMessageToUsers(
+        this.recipientIdsForRoom(room),
+        {
+          roomId: room.id,
+          orderId: room.orderId,
+          ticketId: room.ticketId,
+          roomStatus: LotDisputeRoomStatus.CLOSED,
+          message,
+        },
+      );
+    }
   }
 
   private async canAccessRoom(
@@ -450,6 +512,7 @@ export class ModerationLotDisputeService {
   private recipientIdsForRoom(room: {
     ticket: {
       reporterId: string;
+      assigneeId?: string | null;
       order: { buyerId: string; sellerId: string } | null;
     } | null;
   }) {
@@ -458,11 +521,14 @@ export class ModerationLotDisputeService {
     }
 
     return [
-      ...new Set([
-        room.ticket.order.buyerId,
-        room.ticket.order.sellerId,
-        room.ticket.reporterId,
-      ]),
+      ...new Set(
+        [
+          room.ticket.order.buyerId,
+          room.ticket.order.sellerId,
+          room.ticket.reporterId,
+          room.ticket.assigneeId ?? null,
+        ].filter((id): id is string => Boolean(id)),
+      ),
     ];
   }
 

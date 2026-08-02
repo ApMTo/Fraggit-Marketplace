@@ -9,6 +9,7 @@ import { orderKeys } from '@/services/orders.service';
 import type {
   CreateReportPayload,
   CreateTicketPayload,
+  LotDisputeRoomDetail,
   LotStatus,
   ModerationReasonPayload,
   ModerationTargetType,
@@ -134,7 +135,7 @@ export function useLotDisputeRoom(roomId: string | null) {
     queryKey: moderationKeys.lotDisputeRoom(roomId ?? ''),
     queryFn: () => moderationService.getLotDisputeRoom(roomId!),
     enabled: Boolean(roomId),
-    refetchInterval: 10_000,
+    staleTime: 30_000,
   });
 }
 
@@ -143,7 +144,7 @@ export function useOrderDisputeRoom(orderId: string, enabled = true) {
     queryKey: moderationKeys.orderDisputeRoom(orderId),
     queryFn: () => moderationService.getOrderDisputeRoom(orderId),
     enabled: Boolean(orderId) && enabled,
-    refetchInterval: 10_000,
+    staleTime: 30_000,
   });
 }
 
@@ -152,7 +153,7 @@ export function useTicketLotDispute(ticketId: string | null) {
     queryKey: moderationKeys.ticketLotDispute(ticketId ?? ''),
     queryFn: () => moderationService.getTicketLotDispute(ticketId!),
     enabled: Boolean(ticketId),
-    refetchInterval: 10_000,
+    staleTime: 30_000,
   });
 }
 
@@ -399,11 +400,27 @@ export function useModerationMutations() {
         roomId: string;
         body: string;
       }) => moderationService.addLotDisputeMessage(roomId, body),
-      onSuccess: (_data, variables) => {
-        void queryClient.invalidateQueries({
-          queryKey: moderationKeys.lotDisputeRoom(variables.roomId),
-        });
-        void queryClient.invalidateQueries({ queryKey: moderationKeys.all });
+      onSuccess: (data, variables) => {
+        const message = data?.message;
+        if (!message) {
+          void queryClient.invalidateQueries({
+            queryKey: moderationKeys.lotDisputeRoom(variables.roomId),
+          });
+          return;
+        }
+
+        queryClient.setQueryData<LotDisputeRoomDetail>(
+          moderationKeys.lotDisputeRoom(variables.roomId),
+          (prev) => {
+            if (!prev) {
+              return prev;
+            }
+            if (prev.messages.some((item) => item.id === message.id)) {
+              return prev;
+            }
+            return { ...prev, messages: [...prev.messages, message] };
+          },
+        );
       },
     }),
   };

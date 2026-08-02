@@ -29,8 +29,16 @@ export function getApiErrorCode(error: unknown): string | null {
     return message[0] ?? null;
   }
 
-  if (typeof message === 'object' && 'code' in message) {
-    return message.code;
+  if (typeof message === 'object' && message !== null) {
+    // Nest ConflictException({ code: '...' }) or custom payload
+    if ('code' in message && typeof message.code === 'string') {
+      return message.code;
+    }
+
+    // Nest ConflictException('email_already_exists') → { message, error, statusCode }
+    if ('message' in message && typeof message.message === 'string') {
+      return message.message;
+    }
   }
 
   return null;

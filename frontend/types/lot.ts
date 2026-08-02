@@ -1,6 +1,11 @@
 import type { AttributeType } from './category';
 
-export type LotStatus = 'OPEN' | 'CLOSED' | 'ARCHIVED';
+export type LotStatus =
+  | 'OPEN'
+  | 'CLOSED'
+  | 'ARCHIVED'
+  | 'REMOVED'
+  | 'UNDER_REVIEW';
 
 export type LotType = 'ACCOUNT' | 'SERVICE';
 

@@ -682,6 +682,12 @@
     "createLot": "Create lot",
     "sell": "Sell",
     "staffCannotTrade": "Staff accounts cannot buy or sell on the marketplace.",
+    "lotStatusBanner": {
+      "UNDER_REVIEW": "This lot is under review and temporarily unavailable.",
+      "REMOVED": "This lot has been removed by moderation.",
+      "CLOSED": "This lot is closed and unavailable for purchase.",
+      "ARCHIVED": "This lot has been archived."
+    },
     "table": {
       "attributes": "Details",
       "seller": "Seller",

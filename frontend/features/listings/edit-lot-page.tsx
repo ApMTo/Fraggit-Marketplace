@@ -29,6 +29,7 @@ import {
   useSubcategories,
   useUpdateLot,
 } from '@/hooks';
+import { useLotStatusRealtime } from '@/hooks/use-lot-status-realtime';
 import { resolveApiError } from '@/lib/api-errors';
 import { useAuth } from '@/providers/AuthProvider';
 import type { AttributeDefinitionPublic } from '@/types/category';
@@ -96,6 +97,7 @@ export function EditLotPage({
   const tListings = useTranslations('listings');
   const { user, isLoading: authLoading } = useAuth();
   const { data: lot, isLoading: lotLoading, isError } = useLot(lotId);
+  useLotStatusRealtime(lotId, Boolean(user));
   const lotHref = `/listings/${categorySlug}/${subcategorySlug}/lot/${lotId}`;
 
   const { data: categories } = useCategories();

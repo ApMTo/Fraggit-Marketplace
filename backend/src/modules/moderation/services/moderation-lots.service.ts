@@ -6,6 +6,7 @@ import {
   Prisma,
 } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { ChatGateway } from '../../chat/chat.gateway';
 import { MOD_LOT_LIST_SELECT } from '../constants/moderation.select';
 import { FindModerationLotsQueryDto } from '../dto/moderation-lots.dto';
 import { ModerationAuditService } from './moderation-audit.service';
@@ -15,6 +16,7 @@ export class ModerationLotsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: ModerationAuditService,
+    private readonly chatGateway: ChatGateway,
   ) {}
 
   async findLots(query: FindModerationLotsQueryDto) {
@@ -70,7 +72,7 @@ export class ModerationLotsService {
     const lot = await this.requireLot(lotId);
     const nextStatus = lot.stock > 0 ? LotStatus.OPEN : LotStatus.CLOSED;
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const updated = await tx.lot.update({
         where: { id: lotId },
         data: { status: nextStatus },
@@ -92,6 +94,14 @@ export class ModerationLotsService {
 
       return { lot: updated };
     });
+
+    this.chatGateway.emitLotStatusUpdate({
+      lotId,
+      status: result.lot.status,
+      sellerId: lot.sellerId,
+    });
+
+    return result;
   }
 
   private async setStatus(
@@ -103,7 +113,7 @@ export class ModerationLotsService {
   ) {
     const lot = await this.requireLot(lotId);
 
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const updated = await tx.lot.update({
         where: { id: lotId },
         data: { status },
@@ -125,12 +135,20 @@ export class ModerationLotsService {
 
       return { lot: updated };
     });
+
+    this.chatGateway.emitLotStatusUpdate({
+      lotId,
+      status: result.lot.status,
+      sellerId: lot.sellerId,
+    });
+
+    return result;
   }
 
   private async requireLot(lotId: string) {
     const lot = await this.prisma.lot.findUnique({
       where: { id: lotId },
-      select: { id: true, status: true, stock: true },
+      select: { id: true, status: true, stock: true, sellerId: true },
     });
 
     if (!lot) {

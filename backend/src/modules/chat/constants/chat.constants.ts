@@ -21,6 +21,10 @@ export const CHAT_WS_EVENTS = {
   MESSAGE_READ_ACK: 'message:read:ack',
   PRESENCE_UPDATE: 'presence:update',
   NOTIFICATION_NEW: 'notification:new',
+  LOT_SUBSCRIBE: 'lot:subscribe',
+  LOT_UNSUBSCRIBE: 'lot:unsubscribe',
+  LOT_STATUS_UPDATE: 'lot:status:update',
+  DISPUTE_MESSAGE_NEW: 'dispute:message:new',
   ERROR: 'error',
 } as const;
 

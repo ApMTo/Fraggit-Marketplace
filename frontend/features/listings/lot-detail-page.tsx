@@ -20,6 +20,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { formatLotPrice } from '@/features/listings/lib/format-lot-price';
 import { useCreateOrder, useLot } from '@/hooks';
+import { useLotStatusRealtime } from '@/hooks/use-lot-status-realtime';
 import { resolveApiError } from '@/lib/api-errors';
 import { userProfileHref } from '@/lib/app-nav';
 import { isStaffRole } from '@/lib/staff';
@@ -49,6 +50,7 @@ export function LotDetailPage({
   const pathname = usePathname();
   const { user } = useAuth();
   const { data: lot, isLoading, isError } = useLot(lotId);
+  useLotStatusRealtime(lotId, Boolean(user));
   const createOrder = useCreateOrder();
   const backHref = `/listings/${categorySlug}/${subcategorySlug}`;
   const [activeImageId, setActiveImageId] = useState<string | null>(null);
@@ -134,6 +136,7 @@ export function LotDetailPage({
   const rating = Number(lot.seller.rating) || 0;
   const isOwnLot = Boolean(user && user.id === lot.sellerId);
   const staffCannotTrade = isStaffRole(user?.role);
+  const isAvailable = lot.status === 'OPEN';
   const description = lot.description?.trim() ?? '';
   const descriptionCollapsible = description.length > DESCRIPTION_COLLAPSE_AT;
   const visibleDescription =
@@ -151,6 +154,15 @@ export function LotDetailPage({
         <ArrowLeft className="size-4" aria-hidden="true" />
         {t('backToListings')}
       </Link>
+
+      {!isAvailable ? (
+        <div
+          role="status"
+          className="rounded-[var(--radius-sm)] border border-border bg-surface-elevated px-4 py-3 text-sm text-muted"
+        >
+          {t(`lotStatusBanner.${lot.status}`)}
+        </div>
+      ) : null}
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(300px,380px)] lg:gap-8">
         <div className="flex min-w-0 flex-col gap-8">
@@ -341,7 +353,7 @@ export function LotDetailPage({
             </div>
 
             {isOwnLot ? (
-              lot.status === 'OPEN' && !staffCannotTrade ? (
+              isAvailable && !staffCannotTrade ? (
                 <Link
                   href={`/listings/${categorySlug}/${subcategorySlug}/lot/${lotId}/edit`}
                   className="btn-primary inline-flex h-12 w-full items-center justify-center text-base"
@@ -352,10 +364,18 @@ export function LotDetailPage({
                 <p className="text-center text-sm text-muted-foreground">
                   {t('staffCannotTrade')}
                 </p>
-              ) : null
+              ) : (
+                <p className="text-center text-sm text-muted-foreground">
+                  {t(`lotStatusBanner.${lot.status}`)}
+                </p>
+              )
             ) : staffCannotTrade ? (
               <p className="text-center text-sm text-muted-foreground">
                 {t('staffCannotTrade')}
+              </p>
+            ) : !isAvailable ? (
+              <p className="text-center text-sm text-muted-foreground">
+                {t(`lotStatusBanner.${lot.status}`)}
               </p>
             ) : (
               <div className="space-y-3">

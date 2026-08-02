@@ -6,11 +6,11 @@ import { useRouter } from 'next/navigation';
 import { useFormik } from 'formik';
 import { useTranslations } from 'next-intl';
 import { MailCheck } from 'lucide-react';
-import toast from 'react-hot-toast';
 import { AuthLayout } from '@/components/auth/auth-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { FormError } from '@/components/ui/form-error';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { resolveAuthErrorKey } from '@/lib/auth-errors';
@@ -30,6 +30,13 @@ type RegisterFormValues = {
   password: string;
   confirmPassword: string;
   acceptedLegal: boolean;
+};
+
+const FIELD_ERROR_KEYS: Partial<
+  Record<string, keyof RegisterFormValues>
+> = {
+  email_already_exists: 'email',
+  username_already_exists: 'username',
 };
 
 export function RegisterForm() {
@@ -88,7 +95,12 @@ export function RegisterForm() {
     },
     validateOnChange: false,
     validateOnBlur: true,
-    onSubmit: async (values, { setSubmitting }) => {
+    onSubmit: async (
+      values,
+      { setSubmitting, setStatus, setFieldError, setFieldTouched },
+    ) => {
+      setStatus(undefined);
+
       try {
         await register({
           username: values.username.trim(),
@@ -100,12 +112,27 @@ export function RegisterForm() {
         });
         setSubmittedEmail(values.email.trim());
       } catch (error) {
-        toast.error(tErrors(resolveAuthErrorKey(error)));
+        const key = resolveAuthErrorKey(error);
+        const message = tErrors(key);
+        const field = FIELD_ERROR_KEYS[key];
+
+        if (field) {
+          setFieldError(field, message);
+          void setFieldTouched(field, true, false);
+        } else {
+          setStatus({ formError: message });
+        }
       } finally {
         setSubmitting(false);
       }
     },
   });
+
+  const clearFormError = () => {
+    if (formik.status?.formError) {
+      formik.setStatus(undefined);
+    }
+  };
 
   if (submittedEmail) {
     return (
@@ -152,6 +179,10 @@ export function RegisterForm() {
       <Card>
         <CardContent>
           <form onSubmit={formik.handleSubmit} className="space-y-4" noValidate>
+            {formik.status?.formError ? (
+              <FormError>{formik.status.formError}</FormError>
+            ) : null}
+
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="username">{t('fields.username')}</Label>
@@ -161,7 +192,10 @@ export function RegisterForm() {
                   autoComplete="username"
                   placeholder={t('placeholders.username')}
                   value={formik.values.username}
-                  onChange={formik.handleChange}
+                  onChange={(event) => {
+                    clearFormError();
+                    formik.handleChange(event);
+                  }}
                   onBlur={formik.handleBlur}
                   hasError={Boolean(
                     formik.touched.username && formik.errors.username,
@@ -182,7 +216,10 @@ export function RegisterForm() {
                   autoComplete="name"
                   placeholder={t('placeholders.displayName')}
                   value={formik.values.displayName}
-                  onChange={formik.handleChange}
+                  onChange={(event) => {
+                    clearFormError();
+                    formik.handleChange(event);
+                  }}
                   onBlur={formik.handleBlur}
                   hasError={Boolean(
                     formik.touched.displayName && formik.errors.displayName,
@@ -205,7 +242,10 @@ export function RegisterForm() {
                 autoComplete="email"
                 placeholder={t('placeholders.email')}
                 value={formik.values.email}
-                onChange={formik.handleChange}
+                onChange={(event) => {
+                  clearFormError();
+                  formik.handleChange(event);
+                }}
                 onBlur={formik.handleBlur}
                 hasError={Boolean(formik.touched.email && formik.errors.email)}
               />

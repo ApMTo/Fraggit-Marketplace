@@ -46,6 +46,30 @@ describe('resolveAuthErrorKey', () => {
     ).toBe('password_mismatch');
   });
 
+  it('returns known code from Nest HttpException response shape', () => {
+    const error = new AxiosError('Request failed');
+    error.isAxiosError = true;
+    error.response = {
+      data: {
+        status: 'error',
+        error: {
+          message: {
+            message: 'email_already_exists',
+            error: 'Conflict',
+            statusCode: 409,
+          },
+          code: 409,
+        },
+      },
+      status: 409,
+      statusText: 'Conflict',
+      headers: {},
+      config: {} as never,
+    };
+
+    expect(resolveAuthErrorKey(error)).toBe('email_already_exists');
+  });
+
   it('returns generic for unknown codes', () => {
     expect(resolveAuthErrorKey(createAxiosError('something_unknown'))).toBe(
       'generic',

@@ -14,7 +14,11 @@ import { PinoLogger } from 'nestjs-pino';
 import { AuthUser } from '../../common/decorators/current-user.decorator';
 import { CHAT_WS_EVENTS } from './constants/chat.constants';
 import { ChatMessage } from './constants/chat.select';
-import { WsMarkReadDto, WsSendTextMessageDto } from './dto/chat.dto';
+import {
+  WsLotSubscribeDto,
+  WsMarkReadDto,
+  WsSendTextMessageDto,
+} from './dto/chat.dto';
 import { ChatAuthService } from './services/chat-auth.service';
 import { ChatPresenceService } from './services/chat-presence.service';
 import { ChatReadService } from './services/chat-read.service';
@@ -214,8 +218,46 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return result;
   }
 
+  @SubscribeMessage(CHAT_WS_EVENTS.LOT_SUBSCRIBE)
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  )
+  async handleLotSubscribe(
+    @ConnectedSocket() client: AuthenticatedSocket,
+    @MessageBody() dto: WsLotSubscribeDto,
+  ) {
+    this.requireUser(client);
+    await client.join(this.lotRoom(dto.lotId));
+    return { ok: true, lotId: dto.lotId };
+  }
+
+  @SubscribeMessage(CHAT_WS_EVENTS.LOT_UNSUBSCRIBE)
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  )
+  async handleLotUnsubscribe(
+    @ConnectedSocket() client: AuthenticatedSocket,
+    @MessageBody() dto: WsLotSubscribeDto,
+  ) {
+    this.requireUser(client);
+    await client.leave(this.lotRoom(dto.lotId));
+    return { ok: true, lotId: dto.lotId };
+  }
+
   private userRoom(userId: string): string {
     return `user:${userId}`;
+  }
+
+  private lotRoom(lotId: string): string {
+    return `lot:${lotId}`;
   }
 
   emitMessageToParticipants(
@@ -233,5 +275,49 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server
       .to(this.userRoom(userId))
       .emit(CHAT_WS_EVENTS.NOTIFICATION_NEW, { notification });
+  }
+
+  /**
+   * Push lot status to viewers currently on the lot page + the seller.
+   * Tiny payload; no polling.
+   */
+  emitLotStatusUpdate(params: {
+    lotId: string;
+    status: string;
+    sellerId: string;
+  }): void {
+    const payload = {
+      lotId: params.lotId,
+      status: params.status,
+      sellerId: params.sellerId,
+    };
+
+    // One emit covering lot viewers + seller (seller may also be in lot room —
+    // Socket.IO delivers once per socket even if joined to both rooms).
+    this.server
+      .to(this.lotRoom(params.lotId))
+      .to(this.userRoom(params.sellerId))
+      .emit(CHAT_WS_EVENTS.LOT_STATUS_UPDATE, payload);
+  }
+
+  /**
+   * Fan-out dispute message to participants' user rooms only (already joined).
+   */
+  emitDisputeMessageToUsers(
+    userIds: string[],
+    payload: {
+      roomId: string;
+      orderId?: string | null;
+      ticketId?: string | null;
+      roomStatus?: string;
+      message: unknown;
+    },
+  ): void {
+    const uniqueIds = [...new Set(userIds)];
+    for (const userId of uniqueIds) {
+      this.server
+        .to(this.userRoom(userId))
+        .emit(CHAT_WS_EVENTS.DISPUTE_MESSAGE_NEW, payload);
+    }
   }
 }
