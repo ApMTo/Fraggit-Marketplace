@@ -45,6 +45,9 @@ export class UserProfileDto {
   telegramUsername!: string | null;
 
   @ApiPropertyOptional({ nullable: true })
+  telegramLocale!: string | null;
+
+  @ApiPropertyOptional({ nullable: true })
   emailChangedAt!: Date | null;
 
   @ApiPropertyOptional({ nullable: true })

@@ -50,7 +50,7 @@ export class ChatNotificationProcessor extends WorkerHost {
     if (isOnline) {
       this.logger.info(
         { jobId: job.id, recipientUserId, conversationId },
-        'Skipping offline email — user is online now',
+        'Skipping offline notification — user is online now',
       );
       return;
     }
@@ -62,10 +62,11 @@ export class ChatNotificationProcessor extends WorkerHost {
         conversationId,
         attempt: job.attemptsMade + 1,
       },
-      'Sending offline chat notification email',
+      'Delivering offline chat notification',
     );
 
-    await this.chatNotificationService.sendOfflineEmail({
+    await this.chatNotificationService.deliverOfflineChat({
+      recipientUserId,
       recipientEmail,
       senderDisplayName,
       conversationId,
@@ -76,15 +77,14 @@ export class ChatNotificationProcessor extends WorkerHost {
   private async processOrderOffline(
     job: Job<OrderNotifyOfflineJobData>,
   ): Promise<void> {
-    const { recipientUserId, recipientEmail, subject, title, body, href } =
-      job.data;
+    const data = job.data;
 
-    const isOnline = await this.chatPresence.isOnline(recipientUserId);
+    const isOnline = await this.chatPresence.isOnline(data.recipientUserId);
 
     if (isOnline) {
       this.logger.info(
-        { jobId: job.id, recipientUserId },
-        'Skipping offline order email — user is online now',
+        { jobId: job.id, recipientUserId: data.recipientUserId },
+        'Skipping offline order notification — user is online now',
       );
       return;
     }
@@ -92,18 +92,12 @@ export class ChatNotificationProcessor extends WorkerHost {
     this.logger.info(
       {
         jobId: job.id,
-        recipientUserId,
+        recipientUserId: data.recipientUserId,
         attempt: job.attemptsMade + 1,
       },
-      'Sending offline order notification email',
+      'Delivering offline order notification',
     );
 
-    await this.chatNotificationService.sendOfflineOrderEmail({
-      recipientEmail,
-      subject,
-      title,
-      body,
-      href,
-    });
+    await this.chatNotificationService.deliverOfflineOrder(data);
   }
 }

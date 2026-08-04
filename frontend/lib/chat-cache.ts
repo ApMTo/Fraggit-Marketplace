@@ -88,17 +88,9 @@ export function upsertConversationMessage(
   queryClient.setQueryData<InfiniteData<MessageListResult>>(
     chatKeys.messages(message.conversationId),
     (existing) => {
+      // Only append to an already-fetched thread; never seed partial history.
       if (!existing) {
-        return {
-          pages: [
-            {
-              items: [message],
-              hasMore: false,
-              nextBeforeMessageId: null,
-            },
-          ],
-          pageParams: [undefined],
-        };
+        return existing;
       }
 
       const alreadyPresent = existing.pages.some((page) =>

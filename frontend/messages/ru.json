@@ -567,7 +567,8 @@
     "title": "Настройки",
     "backToProfile": "Назад к профилю",
     "sections": {
-      "security": "Безопасность"
+      "security": "Безопасность",
+      "telegram": "Telegram"
     },
     "security": {
       "subtitle": "Управление email, именем пользователя, паролем и двухфакторной аутентификацией.",
@@ -629,6 +630,25 @@
         "enabled": "Двухфакторная аутентификация включена",
         "disabled": "Двухфакторная аутентификация выключена"
       }
+    },
+    "telegram": {
+      "title": "Уведомления Telegram",
+      "subtitle": "Привяжите Telegram, чтобы получать сообщения чата и заказов в боте, когда вы офлайн. Язык выбирается в самом боте.",
+      "loadError": "Не удалось загрузить настройки Telegram.",
+      "retry": "Повторить",
+      "notLinked": "Telegram ещё не привязан.",
+      "connect": "Подключить Telegram",
+      "connecting": "Открываем бота…",
+      "linkOpened": "Бот открыт — подтвердите привязку и выберите язык там.",
+      "linkedAs": "Привязан как {username}",
+      "linkedAnonymous": "аккаунт без username",
+      "localeLabel": "Язык бота: {locale}",
+      "localeEn": "английский",
+      "localeRu": "русский",
+      "localeHint": "Сменить язык можно командой /language в боте.",
+      "unlink": "Отвязать Telegram",
+      "unlinking": "Отвязываем…",
+      "unlinked": "Telegram отвязан"
     }
   },
   "listings": {
@@ -651,6 +671,8 @@
     "pageOf": "Страница {page} из {totalPages}",
     "prevPage": "Назад",
     "nextPage": "Далее",
+    "prevPhoto": "Предыдущее фото",
+    "nextPhoto": "Следующее фото",
     "backToCategories": "Все категории",
     "backToCategory": "К категории",
     "backToListings": "К объявлениям",
@@ -1107,6 +1129,7 @@
   },
   "errors": {
     "generic": "Что-то пошло не так. Попробуйте снова.",
+    "telegram_bot_unavailable": "Telegram-бот временно недоступен. Попробуйте позже.",
     "email_already_exists": "Этот email уже зарегистрирован",
     "username_already_exists": "Это имя пользователя занято",
     "verification_already_sent": "Письмо уже отправлено. Проверьте почту.",

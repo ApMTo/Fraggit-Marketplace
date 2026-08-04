@@ -16,6 +16,7 @@ export const USER_PROFILE_SELECT = {
   emailVerified: true,
   twoFactorEnabled: true,
   telegramUsername: true,
+  telegramLocale: true,
   emailChangedAt: true,
   usernameChangedAt: true,
   createdAt: true,

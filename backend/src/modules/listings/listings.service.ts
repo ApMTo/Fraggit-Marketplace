@@ -11,6 +11,7 @@ import { assertStaffCannotTrade } from '../moderation/policies/moderation-policy
 import { AttributeDefinitionsService } from '../attribute-definitions/attribute-definitions.service';
 import { FilesService } from '../files/files.service';
 import { SubcategoriesService } from '../subcategories/subcategories.service';
+import { TelegramService } from '../telegram/telegram.service';
 import {
   LOT_DETAIL_SELECT,
   LOT_LIST_SELECT,
@@ -45,6 +46,7 @@ export class ListingsService {
     private readonly subcategoriesService: SubcategoriesService,
     private readonly attributeDefinitionsService: AttributeDefinitionsService,
     private readonly filesService: FilesService,
+    private readonly telegramService: TelegramService,
   ) {}
 
   async createLot(
@@ -95,7 +97,7 @@ export class ListingsService {
       throw new BadRequestException('service_question_required');
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const lot = await this.prisma.$transaction(async (tx) => {
       return tx.lot.create({
         data: {
           title: dto.title,
@@ -121,6 +123,16 @@ export class ListingsService {
         select: LOT_DETAIL_SELECT,
       });
     });
+
+    void this.telegramService.notifyLotCreated({
+      sellerId,
+      lotId: lot.id,
+      title: lot.title,
+      categorySlug: lot.category.slug,
+      subcategorySlug: lot.subcategory.slug,
+    });
+
+    return lot;
   }
 
   async findById(id: string): Promise<LotDetail> {

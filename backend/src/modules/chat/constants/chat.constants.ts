@@ -51,4 +51,7 @@ export type OrderNotifyOfflineJobData = {
   title: string;
   body: string;
   href: string;
+  titleKey: string;
+  bodyKey?: string | null;
+  notificationParams: Record<string, string>;
 };

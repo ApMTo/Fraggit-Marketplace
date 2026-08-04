@@ -53,12 +53,18 @@ describe('ChatNotificationService', () => {
       get: jest.fn().mockReturnValue('https://fraggit.test'),
     };
 
+    const telegramService = {
+      tryNotifyOfflineChat: jest.fn().mockResolvedValue(false),
+      tryNotifyOfflineOrder: jest.fn().mockResolvedValue(false),
+    };
+
     service = new ChatNotificationService(
       chatPresence as unknown as ChatPresenceService,
       chatNotificationQueue as unknown as ChatNotificationQueueService,
       messageService as unknown as MessageService,
       mailQueue as unknown as MailQueueService,
       configService as unknown as ConfigService,
+      telegramService as never,
     );
   });
 
@@ -155,6 +161,12 @@ describe('ChatNotificationService', () => {
       title: 'New order',
       body: 'A buyer placed order #FRG-100 (Rare skin).',
       href: 'https://fraggit.test/orders/order-1',
+      titleKey: 'items.orderCreated.seller.title',
+      bodyKey: 'items.orderCreated.seller.body',
+      notificationParams: {
+        orderNumber: 'FRG-100',
+        listingTitle: 'Rare skin',
+      },
     });
   });
 

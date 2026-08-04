@@ -65,5 +65,13 @@ export default () => {
         ),
       },
     },
+    telegram: {
+      botToken: process.env.TELEGRAM_BOT_TOKEN || '',
+      botUsername: process.env.TELEGRAM_BOT_USERNAME || '',
+      linkCodeTtlSeconds: parseInt(
+        process.env.TELEGRAM_LINK_CODE_TTL_SECONDS || '600',
+        10,
+      ),
+    },
   };
 };

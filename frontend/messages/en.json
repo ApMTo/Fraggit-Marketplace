@@ -567,7 +567,8 @@
     "title": "Settings",
     "backToProfile": "Back to profile",
     "sections": {
-      "security": "Security"
+      "security": "Security",
+      "telegram": "Telegram"
     },
     "security": {
       "subtitle": "Manage your email, username, password, and two-factor authentication.",
@@ -629,6 +630,25 @@
         "enabled": "Two-factor authentication enabled",
         "disabled": "Two-factor authentication disabled"
       }
+    },
+    "telegram": {
+      "title": "Telegram notifications",
+      "subtitle": "Link Telegram to get chat and order alerts in the bot when you are offline. Language is chosen inside the bot.",
+      "loadError": "Could not load Telegram settings.",
+      "retry": "Try again",
+      "notLinked": "Telegram is not linked yet.",
+      "connect": "Connect Telegram",
+      "connecting": "Opening bot…",
+      "linkOpened": "Bot opened — confirm the link and choose a language there.",
+      "linkedAs": "Linked as {username}",
+      "linkedAnonymous": "linked account",
+      "localeLabel": "Bot language: {locale}",
+      "localeEn": "English",
+      "localeRu": "Russian",
+      "localeHint": "Change language anytime with /language in the bot.",
+      "unlink": "Unlink Telegram",
+      "unlinking": "Unlinking…",
+      "unlinked": "Telegram unlinked"
     }
   },
   "listings": {
@@ -651,6 +671,8 @@
     "pageOf": "Page {page} of {totalPages}",
     "prevPage": "Previous",
     "nextPage": "Next",
+    "prevPhoto": "Previous photo",
+    "nextPhoto": "Next photo",
     "backToCategories": "All categories",
     "backToCategory": "Back to category",
     "backToListings": "Back to listings",
@@ -1107,6 +1129,7 @@
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
+    "telegram_bot_unavailable": "Telegram bot is temporarily unavailable. Try again later.",
     "email_already_exists": "This email is already registered",
     "username_already_exists": "This username is taken",
     "verification_already_sent": "A verification email was already sent. Check your inbox.",

@@ -4,6 +4,7 @@ import { resolveNotificationEmailText } from '../../notifications/constants/noti
 import { NotificationItem } from '../../notifications/constants/notification.select';
 import { MailQueueService } from '../../mail/mail-queue.service';
 import { EmailTemplates } from '../../mail/utils/email-templates';
+import { TelegramService } from '../../telegram/telegram.service';
 import { buildMessagePreviewText } from '../constants/chat.select';
 import { ChatMessage } from '../constants/chat.select';
 import { ChatNotificationQueueService } from './chat-notification-queue.service';
@@ -20,7 +21,15 @@ function notificationParams(
   const record = metadata as Record<string, unknown>;
   const params: Record<string, string> = {};
 
-  for (const key of ['orderNumber', 'listingTitle', 'note'] as const) {
+  for (const key of [
+    'orderNumber',
+    'listingTitle',
+    'note',
+    'subject',
+    'targetUsername',
+    'reporterUsername',
+    'preview',
+  ] as const) {
     const value = record[key];
     if (typeof value === 'string' || typeof value === 'number') {
       params[key] = String(value);
@@ -38,6 +47,7 @@ export class ChatNotificationService {
     private readonly messageService: MessageService,
     private readonly mailQueue: MailQueueService,
     private readonly configService: ConfigService,
+    private readonly telegramService: TelegramService,
   ) {}
 
   async notifyAboutNewMessage(
@@ -104,7 +114,57 @@ export class ChatNotificationService {
       title,
       body,
       href,
+      titleKey: notification.title,
+      bodyKey: notification.body,
+      notificationParams: params,
     });
+  }
+
+  async deliverOfflineChat(data: {
+    recipientUserId: string;
+    recipientEmail: string;
+    senderDisplayName: string;
+    conversationId: string;
+    messagePreview: string;
+  }): Promise<void> {
+    const viaTelegram = await this.telegramService.tryNotifyOfflineChat({
+      recipientUserId: data.recipientUserId,
+      senderDisplayName: data.senderDisplayName,
+      conversationId: data.conversationId,
+      messagePreview: data.messagePreview,
+    });
+
+    if (viaTelegram) {
+      return;
+    }
+
+    await this.sendOfflineEmail(data);
+  }
+
+  async deliverOfflineOrder(data: {
+    recipientUserId: string;
+    recipientEmail: string;
+    subject: string;
+    title: string;
+    body: string;
+    href: string;
+    titleKey: string;
+    bodyKey?: string | null;
+    notificationParams: Record<string, string>;
+  }): Promise<void> {
+    const viaTelegram = await this.telegramService.tryNotifyOfflineOrder({
+      recipientUserId: data.recipientUserId,
+      titleKey: data.titleKey,
+      bodyKey: data.bodyKey,
+      notificationParams: data.notificationParams,
+      href: data.href,
+    });
+
+    if (viaTelegram) {
+      return;
+    }
+
+    await this.sendOfflineOrderEmail(data);
   }
 
   async sendOfflineEmail(data: {

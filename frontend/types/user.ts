@@ -18,6 +18,7 @@ export type UserProfile = {
   emailVerified: boolean;
   twoFactorEnabled: boolean;
   telegramUsername: string | null;
+  telegramLocale: string | null;
   emailChangedAt: string | null;
   usernameChangedAt: string | null;
   createdAt: string;

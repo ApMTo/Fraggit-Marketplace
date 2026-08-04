@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
   Package,
   ShieldCheck,
   Star,
@@ -53,7 +55,7 @@ export function LotDetailPage({
   useLotStatusRealtime(lotId, Boolean(user));
   const createOrder = useCreateOrder();
   const backHref = `/listings/${categorySlug}/${subcategorySlug}`;
-  const [activeImageId, setActiveImageId] = useState<string | null>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [buyerAnswer, setBuyerAnswer] = useState('');
@@ -121,17 +123,44 @@ export function LotDetailPage({
     );
   }
 
-  const galleryImages =
-    lot.images.length > 0
-      ? lot.images
-      : lot.previewUrl
-        ? [{ id: 'preview', url: lot.previewUrl, sortOrder: 0 }]
-        : [];
-  const activeImage =
-    galleryImages.find((image) => image.id === activeImageId) ??
-    galleryImages[0] ??
-    null;
-  const coverUrl = activeImage?.url ?? null;
+  const galleryImages = (() => {
+    const images: { id: string; url: string }[] = [];
+    const seen = new Set<string>();
+
+    if (lot.previewUrl) {
+      seen.add(lot.previewUrl);
+      images.push({ id: 'preview', url: lot.previewUrl });
+    }
+
+    for (const image of lot.images) {
+      if (seen.has(image.url)) {
+        continue;
+      }
+      seen.add(image.url);
+      images.push({ id: image.id, url: image.url });
+    }
+
+    return images;
+  })();
+  const safeImageIndex =
+    galleryImages.length === 0
+      ? 0
+      : Math.min(activeImageIndex, galleryImages.length - 1);
+  const canSlide = galleryImages.length > 1;
+
+  function showPreviousImage() {
+    setActiveImageIndex((index) =>
+      galleryImages.length === 0
+        ? 0
+        : (index - 1 + galleryImages.length) % galleryImages.length,
+    );
+  }
+
+  function showNextImage() {
+    setActiveImageIndex((index) =>
+      galleryImages.length === 0 ? 0 : (index + 1) % galleryImages.length,
+    );
+  }
   const sellerName = lot.seller.displayName || lot.seller.username;
   const rating = Number(lot.seller.rating) || 0;
   const isOwnLot = Boolean(user && user.id === lot.sellerId);
@@ -168,54 +197,61 @@ export function LotDetailPage({
         <div className="flex min-w-0 flex-col gap-8">
           <section className="space-y-3">
             <div className="overflow-hidden rounded-[var(--radius-lg)] border border-border bg-surface">
-              <div className="relative aspect-[16/10] bg-surface-elevated">
-                {coverUrl ? (
-                  <AppImage
-                    src={coverUrl}
-                    alt=""
-                    fill
-                    priority
-                    sizes="(max-width: 1024px) 100vw, 55vw"
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="flex size-full items-center justify-center text-subtle">
-                    <Package className="size-12" aria-hidden="true" />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {galleryImages.length > 1 ? (
-              <ul className="grid grid-cols-4 gap-2 sm:grid-cols-5">
-                {galleryImages.map((image) => {
-                  const isActive = image.id === (activeImage?.id ?? null);
-                  return (
-                    <li key={image.id}>
-                      <button
-                        type="button"
-                        onClick={() => setActiveImageId(image.id)}
-                        aria-pressed={isActive}
-                        className={cn(
-                          'relative aspect-square w-full overflow-hidden rounded-[var(--radius-sm)] border transition-colors',
-                          isActive
-                            ? 'border-[var(--focus)] ring-1 ring-[var(--focus)]'
-                            : 'border-border hover:border-border-strong',
-                        )}
+              <div className="relative aspect-[16/10] overflow-hidden bg-surface-elevated">
+                {galleryImages.length > 0 ? (
+                  <div
+                    className="flex size-full transition-transform duration-700 ease-out"
+                    style={{
+                      transform: `translateX(-${safeImageIndex * 100}%)`,
+                    }}
+                  >
+                    {galleryImages.map((image, index) => (
+                      <div
+                        key={image.id}
+                        className="relative h-full w-full shrink-0"
                       >
                         <AppImage
                           src={image.url}
                           alt=""
                           fill
-                          sizes="(max-width: 640px) 25vw, 120px"
+                          priority={index === 0}
+                          sizes="(max-width: 1024px) 100vw, 55vw"
                           className="object-cover"
                         />
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : null}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex size-full items-center justify-center text-subtle">
+                    <Package className="size-12" aria-hidden="true" />
+                  </div>
+                )}
+
+                {canSlide ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={showPreviousImage}
+                      aria-label={t('prevPhoto')}
+                      className="absolute top-1/2 left-3 z-10 flex size-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-border bg-surface/90 text-foreground opacity-50 shadow-[var(--shadow-sm)] transition-opacity hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)]"
+                    >
+                      <ChevronLeft className="size-5" aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={showNextImage}
+                      aria-label={t('nextPhoto')}
+                      className="absolute top-1/2 right-3 z-10 flex size-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-border bg-surface/90 text-foreground opacity-50 shadow-[var(--shadow-sm)] transition-opacity hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus)]"
+                    >
+                      <ChevronRight className="size-5" aria-hidden="true" />
+                    </button>
+                    <div className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-surface/90 px-2.5 py-1 text-xs font-medium tabular-nums text-foreground shadow-[var(--shadow-sm)]">
+                      {safeImageIndex + 1} / {galleryImages.length}
+                    </div>
+                  </>
+                ) : null}
+              </div>
+            </div>
           </section>
 
           {description ? (
