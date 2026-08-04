@@ -8,16 +8,19 @@ import {
   releaseChatSocket,
 } from '@/lib/chat-socket';
 import { moderationKeys } from '@/services/moderation.service';
+import { orderKeys } from '@/services/orders.service';
 import type {
   LotDisputeMessage,
   LotDisputeRoomDetail,
 } from '@/types/moderation';
+import type { OrderDetail, OrderStatus } from '@/types/order';
 
 export type DisputeMessageNewPayload = {
   roomId: string;
   orderId?: string | null;
   ticketId?: string | null;
   roomStatus?: 'OPEN' | 'CLOSED';
+  orderStatus?: OrderStatus;
   message: LotDisputeMessage;
 };
 
@@ -48,6 +51,9 @@ function upsertDisputeMessage(
   };
 }
 
+/**
+ * Patches open dispute-room + order caches over the shared /chat socket.
+ */
 export function useDisputeRealtime(enabled = true) {
   const queryClient = useQueryClient();
 
@@ -69,17 +75,43 @@ export function useDisputeRealtime(enabled = true) {
       );
 
       if (payload.orderId) {
+        const orderRoomKey = moderationKeys.orderDisputeRoom(payload.orderId);
+        const hadOrderRoom = Boolean(queryClient.getQueryData(orderRoomKey));
+
         queryClient.setQueryData<LotDisputeRoomDetail>(
-          moderationKeys.orderDisputeRoom(payload.orderId),
+          orderRoomKey,
           (prev) => upsertDisputeMessage(prev, payload),
         );
+
+        // First event after open: fetch full room (participants + history).
+        if (!hadOrderRoom) {
+          void queryClient.invalidateQueries({ queryKey: orderRoomKey });
+        }
+
+        if (payload.orderStatus) {
+          queryClient.setQueryData<OrderDetail>(
+            orderKeys.detail(payload.orderId),
+            (prev) =>
+              prev ? { ...prev, status: payload.orderStatus! } : prev,
+          );
+          void queryClient.invalidateQueries({
+            queryKey: orderKeys.lists(),
+          });
+        }
       }
 
       if (payload.ticketId) {
+        const ticketKey = moderationKeys.ticketLotDispute(payload.ticketId);
+        const hadTicketRoom = Boolean(queryClient.getQueryData(ticketKey));
+
         queryClient.setQueryData<LotDisputeRoomDetail>(
-          moderationKeys.ticketLotDispute(payload.ticketId),
+          ticketKey,
           (prev) => upsertDisputeMessage(prev, payload),
         );
+
+        if (!hadTicketRoom) {
+          void queryClient.invalidateQueries({ queryKey: ticketKey });
+        }
       }
     };
 

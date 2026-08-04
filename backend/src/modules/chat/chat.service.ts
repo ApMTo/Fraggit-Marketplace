@@ -151,4 +151,8 @@ export class ChatService {
   onOrderApproved(params: Parameters<ChatOrderService['onOrderApproved']>[0]) {
     return this.chatOrderService.onOrderApproved(params);
   }
+
+  onOrderDisputed(params: Parameters<ChatOrderService['onOrderDisputed']>[0]) {
+    return this.chatOrderService.onOrderDisputed(params);
+  }
 }

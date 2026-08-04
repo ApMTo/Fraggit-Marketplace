@@ -30,6 +30,7 @@ const AUTH_SKIP_REFRESH_PATHS = [
   '/auth/login',
   '/auth/register',
   '/auth/refresh',
+  '/auth/clear-session',
   '/auth/verify/',
 ];
 
@@ -70,9 +71,20 @@ function attachLocaleHeader(config: InternalAxiosRequestConfig): void {
 
 let refreshPromise: Promise<AuthSessionResponse | null> | null = null;
 
+function clearServerAuthCookies(): void {
+  void api
+    .post(
+      '/auth/clear-session',
+      {},
+      { skipAuthRefresh: true } as RetryableRequestConfig,
+    )
+    .catch(() => undefined);
+}
+
 function invalidateSession(): void {
   clearCsrfToken();
   clearClientAuthCookies();
+  clearServerAuthCookies();
   notifySessionInvalidated();
 }
 

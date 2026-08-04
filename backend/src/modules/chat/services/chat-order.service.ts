@@ -9,6 +9,7 @@ import {
   buildOrderApprovedMetadata,
   buildOrderCreatedMetadata,
   buildOrderCredentialsMetadata,
+  buildOrderDisputedMetadata,
   buildOrderServiceCompletedMetadata,
   OrderSystemMetadata,
 } from '../utils/system-message-metadata.util';
@@ -201,6 +202,66 @@ export class ChatOrderService {
         entityType: 'order',
         entityId: params.orderId,
         metadata: { ...sharedMeta, role: 'buyer' },
+      },
+    ]);
+
+    await this.deliverNotifications(notifications);
+
+    return message;
+  }
+
+  async onOrderDisputed(
+    params: OrderChatEventParams & {
+      reporterId: string;
+    },
+  ): Promise<ChatMessage> {
+    const frontendUrl = this.getFrontendUrl();
+    const metadata = buildOrderDisputedMetadata({
+      ...params,
+      frontendUrl,
+    });
+
+    const message = await this.appendSystemMessage(params, {
+      content: metadata.messageKey,
+      metadata,
+    });
+
+    const keys = NOTIFICATION_KEYS.orderDisputed;
+    const sharedMeta = {
+      orderId: params.orderId,
+      orderNumber: params.orderNumber,
+      listingTitle: params.listingTitle,
+    };
+
+    const otherPartyId =
+      params.reporterId === params.buyerId ? params.sellerId : params.buyerId;
+
+    const notifications = await this.notificationsService.createMany([
+      {
+        userId: otherPartyId,
+        type: NotificationType.LOT_DISPUTE_MESSAGE,
+        title: keys.counterparty.title,
+        body: keys.counterparty.body,
+        href: `/orders/${params.orderId}#order-dispute`,
+        entityType: 'order',
+        entityId: params.orderId,
+        metadata: {
+          ...sharedMeta,
+          role: otherPartyId === params.sellerId ? 'seller' : 'buyer',
+        },
+      },
+      {
+        userId: params.reporterId,
+        type: NotificationType.LOT_DISPUTE_MESSAGE,
+        title: keys.reporter.title,
+        body: keys.reporter.body,
+        href: `/orders/${params.orderId}#order-dispute`,
+        entityType: 'order',
+        entityId: params.orderId,
+        metadata: {
+          ...sharedMeta,
+          role: params.reporterId === params.sellerId ? 'seller' : 'buyer',
+        },
       },
     ]);
 

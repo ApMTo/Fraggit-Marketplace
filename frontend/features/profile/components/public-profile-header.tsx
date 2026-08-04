@@ -106,7 +106,7 @@ export function PublicProfileHeader({ profile }: PublicProfileHeaderProps) {
               onClick={() => void handleMessage()}
               isLoading={startConversation.isPending}
             >
-              <MessageCircle className="size-4" />
+              {!startConversation.isPending && <MessageCircle className="size-4" />}
               {t('message')}
             </Button>
           ) : null}

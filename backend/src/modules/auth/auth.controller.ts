@@ -199,7 +199,7 @@ export class AuthController {
   @ApiHeader(CSRF_HEADER)
   @ApiOperation({ summary: 'Refresh access token' })
   @ApiResponse({ status: 201, type: AuthSessionResponseDto })
-  refresh(@Req() req: Request) {
+  async refresh(@Req() req: Request) {
     const { deviceId, sessionId } = req.cookies as {
       deviceId?: string;
       sessionId?: string;
@@ -210,11 +210,24 @@ export class AuthController {
     }
 
     try {
-      return this.authService.refresh(sessionId, deviceId, req);
+      return await this.authService.refresh(sessionId, deviceId, req);
     } catch (error) {
       clearAuthCookies(req);
       throw error;
     }
+  }
+
+  @Post('clear-session')
+  @Public()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @ApiOperation({
+    summary:
+      'Clear auth cookies without a valid session (stale/expired tokens)',
+  })
+  @ApiResponse({ status: 204, description: 'Auth cookies cleared' })
+  clearSession(@Req() req: Request): void {
+    clearAuthCookies(req);
   }
 
   @Post('logout')

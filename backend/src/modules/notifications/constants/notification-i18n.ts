@@ -36,6 +36,16 @@ export const NOTIFICATION_KEYS = {
       body: 'items.orderApproved.buyer.body',
     },
   },
+  orderDisputed: {
+    counterparty: {
+      title: 'items.orderDisputed.counterparty.title',
+      body: 'items.orderDisputed.counterparty.body',
+    },
+    reporter: {
+      title: 'items.orderDisputed.reporter.title',
+      body: 'items.orderDisputed.reporter.body',
+    },
+  },
   reportStatus: {
     resolved: {
       title: 'items.reportStatus.resolved.title',
@@ -94,6 +104,12 @@ const EMAIL_EN: Record<string, string> = {
   [NOTIFICATION_KEYS.orderApproved.buyer.title]: 'Order completed',
   [NOTIFICATION_KEYS.orderApproved.buyer.body]:
     'Order #{orderNumber} was completed successfully.',
+  [NOTIFICATION_KEYS.orderDisputed.counterparty.title]: 'Dispute opened',
+  [NOTIFICATION_KEYS.orderDisputed.counterparty.body]:
+    'A dispute was opened on order #{orderNumber} ({listingTitle}).',
+  [NOTIFICATION_KEYS.orderDisputed.reporter.title]: 'Dispute opened',
+  [NOTIFICATION_KEYS.orderDisputed.reporter.body]:
+    'Your dispute on order #{orderNumber} ({listingTitle}) is open.',
   [NOTIFICATION_KEYS.reportStatus.resolved.title]: 'Report resolved',
   [NOTIFICATION_KEYS.reportStatus.resolved.body]:
     'Your report was reviewed and marked as resolved.{note}',

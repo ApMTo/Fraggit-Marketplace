@@ -89,6 +89,13 @@ export const authService = {
     return data;
   },
 
+  async clearSession(): Promise<void> {
+    await api.post('/auth/clear-session', {}, {
+      skipAuthRefresh: true,
+    } as { skipAuthRefresh?: boolean });
+    clearCsrfToken();
+  },
+
   async forgotPassword(
     payload: ForgotPasswordPayload,
   ): Promise<AuthMessageResponse> {

@@ -507,6 +507,7 @@ enum LotDisputeRoomStatus {
 
 enum LotDisputeMessageKind {
   TEXT
+  IMAGE
   SYSTEM
 }
 

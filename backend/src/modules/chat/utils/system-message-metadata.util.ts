@@ -26,11 +26,16 @@ export type OrderApprovedMetadata = OrderSystemBase & {
   event: typeof CHAT_SYSTEM_EVENT.ORDER_APPROVED;
 };
 
+export type OrderDisputedMetadata = OrderSystemBase & {
+  event: typeof CHAT_SYSTEM_EVENT.ORDER_DISPUTED;
+};
+
 export type OrderSystemMetadata =
   | OrderCreatedMetadata
   | OrderCredentialsMetadata
   | OrderServiceCompletedMetadata
-  | OrderApprovedMetadata;
+  | OrderApprovedMetadata
+  | OrderDisputedMetadata;
 
 function buildOrderUrl(frontendUrl: string, orderId: string): string {
   return `${frontendUrl}/orders/${orderId}`;
@@ -105,5 +110,23 @@ export function buildOrderApprovedMetadata(params: {
     listingTitle: params.listingTitle,
     url: buildOrderUrl(params.frontendUrl, params.orderId),
     messageKey: 'system.orderApproved',
+  };
+}
+
+export function buildOrderDisputedMetadata(params: {
+  orderId: string;
+  orderNumber: string;
+  listingId: string;
+  listingTitle: string;
+  frontendUrl: string;
+}): OrderDisputedMetadata {
+  return {
+    event: CHAT_SYSTEM_EVENT.ORDER_DISPUTED,
+    orderId: params.orderId,
+    orderNumber: params.orderNumber,
+    listingId: params.listingId,
+    listingTitle: params.listingTitle,
+    url: buildOrderUrl(params.frontendUrl, params.orderId),
+    messageKey: 'system.orderDisputed',
   };
 }

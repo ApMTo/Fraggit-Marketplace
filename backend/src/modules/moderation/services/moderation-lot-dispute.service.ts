@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -16,6 +17,7 @@ import { RoleHierarchy } from '../../auth/enums/roles.enum';
 import { ChatGateway } from '../../chat/chat.gateway';
 import { CHAT_USER_SELECT } from '../../chat/constants/chat.select';
 import { LOT_DISPUTE_SYSTEM_EVENT } from '../constants/lot-dispute.constants';
+import { CreateLotDisputeMessageDto } from '../dto/moderation-lot-dispute.dto';
 import { ModerationNotificationsService } from './moderation-notifications.service';
 import {
   assertNotOrderDisputeParty,
@@ -27,6 +29,12 @@ const OPEN_TICKET_STATUSES: TicketStatus[] = [
   TicketStatus.IN_PROGRESS,
   TicketStatus.WAITING_USER,
 ];
+
+const ALLOWED_IMAGE_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+]);
 
 const ROOM_SELECT = {
   id: true,
@@ -119,8 +127,16 @@ export class ModerationLotDisputeService {
         id: true,
         type: true,
         orderId: true,
+        reporterId: true,
         reporter: { select: { username: true } },
-        order: { select: { id: true, lotId: true } },
+        order: {
+          select: {
+            id: true,
+            lotId: true,
+            buyerId: true,
+            sellerId: true,
+          },
+        },
       },
     });
 
@@ -133,7 +149,7 @@ export class ModerationLotDisputeService {
       throw new NotFoundException({ code: 'errors.ticket_not_found' });
     }
 
-    const room = await this.prisma.$transaction(async (tx) => {
+    const { room, message } = await this.prisma.$transaction(async (tx) => {
       const created = await tx.lotDisputeRoom.create({
         data: {
           lotId: ticket.order!.lotId,
@@ -143,7 +159,7 @@ export class ModerationLotDisputeService {
         select: ROOM_SELECT,
       });
 
-      await tx.lotDisputeMessage.create({
+      const createdMessage = await tx.lotDisputeMessage.create({
         data: {
           roomId: created.id,
           kind: LotDisputeMessageKind.SYSTEM,
@@ -153,9 +169,27 @@ export class ModerationLotDisputeService {
             reporterUsername: ticket.reporter.username,
           },
         },
+        select: MESSAGE_SELECT,
       });
 
-      return created;
+      return { room: created, message: createdMessage };
+    });
+
+    const recipientIds = [
+      ...new Set([
+        ticket.order.buyerId,
+        ticket.order.sellerId,
+        ticket.reporterId,
+      ]),
+    ];
+
+    this.chatGateway.emitDisputeMessageToUsers(recipientIds, {
+      roomId: room.id,
+      orderId: room.orderId,
+      ticketId: room.ticketId,
+      roomStatus: room.status,
+      orderStatus: 'DISPUTED',
+      message,
     });
 
     return room;
@@ -250,7 +284,7 @@ export class ModerationLotDisputeService {
     roomId: string,
     authorId: string,
     authorRole: UserRole,
-    body: string,
+    dto: CreateLotDisputeMessageDto,
   ) {
     await this.assertCanAccessRoom(roomId, authorId, authorRole);
 
@@ -313,12 +347,48 @@ export class ModerationLotDisputeService {
       }
     }
 
+    const imageUrl = dto.url?.trim();
+    const textBody = dto.body?.trim() ?? '';
+
+    let kind: LotDisputeMessageKind = LotDisputeMessageKind.TEXT;
+    let body = textBody;
+    let metadata: Prisma.InputJsonValue | undefined;
+
+    if (imageUrl) {
+      if (!dto.mimeType || !ALLOWED_IMAGE_MIME_TYPES.has(dto.mimeType)) {
+        throw new BadRequestException({ code: 'errors.invalid_file_type' });
+      }
+
+      if (!imageUrl.startsWith('https://')) {
+        throw new BadRequestException({
+          code: 'errors.chat_invalid_attachment_url',
+        });
+      }
+
+      if (dto.size == null) {
+        throw new BadRequestException({ code: 'errors.invalid_file_size' });
+      }
+
+      kind = LotDisputeMessageKind.IMAGE;
+      body = textBody || '[image]';
+      metadata = {
+        url: imageUrl,
+        mimeType: dto.mimeType,
+        size: dto.size,
+        ...(dto.width != null ? { width: dto.width } : {}),
+        ...(dto.height != null ? { height: dto.height } : {}),
+      };
+    } else if (!textBody) {
+      throw new BadRequestException({ code: 'errors.message_required' });
+    }
+
     const message = await this.prisma.lotDisputeMessage.create({
       data: {
         roomId,
         authorId,
-        kind: LotDisputeMessageKind.TEXT,
-        body: body.trim(),
+        kind,
+        body,
+        ...(metadata ? { metadata } : {}),
       },
       select: MESSAGE_SELECT,
     });
@@ -344,7 +414,10 @@ export class ModerationLotDisputeService {
       lotTitle: room.lot.title,
       reportId: room.report?.id,
       authorUsername: message.author?.username,
-      preview: body.trim().slice(0, 120),
+      preview:
+        kind === LotDisputeMessageKind.IMAGE
+          ? '[image]'
+          : textBody.slice(0, 120),
       href,
     });
 

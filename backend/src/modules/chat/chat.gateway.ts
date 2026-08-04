@@ -310,6 +310,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       orderId?: string | null;
       ticketId?: string | null;
       roomStatus?: string;
+      orderStatus?: string;
       message: unknown;
     },
   ): void {

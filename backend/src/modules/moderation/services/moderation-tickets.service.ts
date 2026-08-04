@@ -19,6 +19,7 @@ import {
 } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { RoleHierarchy } from '../../auth/enums/roles.enum';
+import { ChatService } from '../../chat/chat.service';
 import { OrderCompletionService } from '../../orders/services/order-completion.service';
 import {
   assertNotOrderDisputeParty,
@@ -57,6 +58,7 @@ export class ModerationTicketsService {
     private readonly orderCompletion: OrderCompletionService,
     private readonly notifications: ModerationNotificationsService,
     private readonly lotDisputes: ModerationLotDisputeService,
+    private readonly chatService: ChatService,
   ) {}
 
   async create(reporterId: string, dto: CreateTicketDto) {
@@ -549,10 +551,13 @@ export class ModerationTicketsService {
       where: { id: dto.orderId },
       select: {
         id: true,
+        orderNumber: true,
         buyerId: true,
         sellerId: true,
         status: true,
         autoApproveAt: true,
+        lotId: true,
+        lot: { select: { id: true, title: true } },
       },
     });
 
@@ -639,6 +644,16 @@ export class ModerationTicketsService {
     });
 
     await this.lotDisputes.ensureRoomForTicket(ticket.id);
+
+    await this.chatService.onOrderDisputed({
+      orderId: order.id,
+      orderNumber: order.orderNumber,
+      buyerId: order.buyerId,
+      sellerId: order.sellerId,
+      listingId: order.lotId,
+      listingTitle: order.lot.title,
+      reporterId,
+    });
 
     return { ticket };
   }

@@ -93,6 +93,16 @@
           "body": "Модерация закрыла обращение без изменения исхода{orderPart}.{note}"
         }
       },
+      "orderDisputed": {
+        "counterparty": {
+          "title": "Открыт спор",
+          "body": "По заказу #{orderNumber} ({listingTitle}) открыт спор."
+        },
+        "reporter": {
+          "title": "Спор открыт",
+          "body": "Ваш спор по заказу #{orderNumber} ({listingTitle}) открыт."
+        }
+      },
       "lotDisputeMessage": {
         "title": "Чат модерации",
         "body": "Новое сообщение по лоту «{listingTitle}».{preview}"
@@ -124,6 +134,7 @@
     "moderatorAuthor": "Модератор · @{username}",
     "adminAuthor": "Админ · @{username}",
     "unknownAuthor": "Неизвестно",
+    "imageAlt": "Прикреплённое фото",
     "reportMeta": "Жалоба от @{reporter} · {status}",
     "reportStatus": {
       "OPEN": "Открыта",
@@ -499,7 +510,8 @@
       "orderCreated": "Заказ #{orderNumber} создан.",
       "orderCredentials": "Продавец передал данные по заказу #{orderNumber}.",
       "orderServiceCompleted": "Продавец отметил услугу по заказу #{orderNumber} как выполненную.",
-      "orderApproved": "Заказ #{orderNumber} завершён."
+      "orderApproved": "Заказ #{orderNumber} завершён.",
+      "orderDisputed": "По заказу #{orderNumber} открыт спор."
     }
   },
   "profile": {

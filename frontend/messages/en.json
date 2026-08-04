@@ -93,6 +93,16 @@
           "body": "Moderation closed the case without changing the outcome{orderPart}.{note}"
         }
       },
+      "orderDisputed": {
+        "counterparty": {
+          "title": "Dispute opened",
+          "body": "A dispute was opened on order #{orderNumber} ({listingTitle})."
+        },
+        "reporter": {
+          "title": "Dispute opened",
+          "body": "Your dispute on order #{orderNumber} ({listingTitle}) is open."
+        }
+      },
       "lotDisputeMessage": {
         "title": "Mediation chat",
         "body": "New message about {listingTitle}.{preview}"
@@ -124,6 +134,7 @@
     "moderatorAuthor": "Moderator · @{username}",
     "adminAuthor": "Admin · @{username}",
     "unknownAuthor": "Unknown",
+    "imageAlt": "Attached photo",
     "reportMeta": "Report from @{reporter} · {status}",
     "reportStatus": {
       "OPEN": "Open",
@@ -499,7 +510,8 @@
       "orderCreated": "Order #{orderNumber} created.",
       "orderCredentials": "The seller sent delivery data for order #{orderNumber}.",
       "orderServiceCompleted": "The seller marked the service for order #{orderNumber} as completed.",
-      "orderApproved": "Order #{orderNumber} completed."
+      "orderApproved": "Order #{orderNumber} completed.",
+      "orderDisputed": "A dispute was opened on order #{orderNumber}."
     }
   },
   "profile": {

@@ -3,22 +3,40 @@
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
+import { AppImage } from '@/components/ui/app-image';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
+import { MessageComposer } from '@/features/chat/components/message-composer';
 import {
   useLotDisputeRoom,
   useModerationMutations,
 } from '@/hooks/use-moderation';
 import { resolveApiErrorKey } from '@/lib/api-errors';
+import { readImageDimensions } from '@/lib/chat-image';
 import { cn } from '@/lib/utils';
+import { filesService } from '@/services/files.service';
 import type { UserRole } from '@/types/auth';
-import type { LotDisputeMessage, LotDisputeRoomDetail } from '@/types/moderation';
+import type {
+  LotDisputeImageMetadata,
+  LotDisputeMessage,
+  LotDisputeRoomDetail,
+} from '@/types/moderation';
 
 const STAFF_ROLES: UserRole[] = ['MODERATOR', 'ADMIN', 'SUPER_ADMIN', 'OWNER'];
 
 function isStaffRole(role: UserRole): boolean {
   return STAFF_ROLES.includes(role);
+}
+
+function isImageMetadata(
+  metadata: LotDisputeMessage['metadata'],
+): metadata is LotDisputeImageMetadata {
+  return Boolean(
+    metadata &&
+      typeof metadata === 'object' &&
+      'url' in metadata &&
+      typeof metadata.url === 'string',
+  );
 }
 
 type Props = {
@@ -83,6 +101,20 @@ function authorLabel(
   return t('unknownAuthor');
 }
 
+function sendErrorToast(
+  err: unknown,
+  t: ReturnType<typeof useTranslations>,
+) {
+  const key = resolveApiErrorKey(err);
+  toast.error(
+    key === 'errors.ticket_claim_required'
+      ? t('staffClaimRequired')
+      : key === 'errors.ticket_claim_party_conflict'
+        ? t('staffPartyConflict')
+        : t('sendError'),
+  );
+}
+
 export function LotMediationThread({
   roomId,
   initialData,
@@ -92,7 +124,7 @@ export function LotMediationThread({
   const t = useTranslations('lotDispute');
   const { data, isLoading, isError, refetch } = useLotDisputeRoom(roomId);
   const { addLotDisputeMessage } = useModerationMutations();
-  const [draft, setDraft] = useState('');
+  const [isSending, setIsSending] = useState(false);
 
   const detail = data ?? initialData ?? null;
   const closed = detail?.room.status === 'CLOSED';
@@ -101,6 +133,45 @@ export function LotMediationThread({
     () => detail?.messages ?? [],
     [detail?.messages],
   );
+
+  async function handleSendText(content: string) {
+    setIsSending(true);
+    try {
+      await addLotDisputeMessage.mutateAsync({ roomId, body: content });
+    } catch (err) {
+      sendErrorToast(err, t);
+      throw err;
+    } finally {
+      setIsSending(false);
+    }
+  }
+
+  async function handleSendImage(file: File) {
+    setIsSending(true);
+    try {
+      const [{ url }, dimensions] = await Promise.all([
+        filesService.uploadImage(file),
+        readImageDimensions(file).catch(() => ({
+          width: undefined as number | undefined,
+          height: undefined as number | undefined,
+        })),
+      ]);
+
+      await addLotDisputeMessage.mutateAsync({
+        roomId,
+        url,
+        mimeType: file.type,
+        size: file.size,
+        width: dimensions.width,
+        height: dimensions.height,
+      });
+    } catch (err) {
+      sendErrorToast(err, t);
+      throw err;
+    } finally {
+      setIsSending(false);
+    }
+  }
 
   if (!detail && isLoading) {
     return (
@@ -114,7 +185,12 @@ export function LotMediationThread({
     return (
       <div className={cn('space-y-2', className)}>
         <p className="text-sm text-muted-foreground">{t('loadError')}</p>
-        <Button type="button" size="sm" variant="secondary" onClick={() => refetch()}>
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
+          onClick={() => refetch()}
+        >
           {t('retry')}
         </Button>
       </div>
@@ -153,46 +229,76 @@ export function LotMediationThread({
         ) : (
           sortedMessages.map((message) => {
             const fromStaff =
-              message.kind === 'TEXT' &&
+              (message.kind === 'TEXT' || message.kind === 'IMAGE') &&
               message.author &&
               isStaffRole(message.author.role);
+            const image =
+              message.kind === 'IMAGE' && isImageMetadata(message.metadata)
+                ? message.metadata
+                : null;
 
             return (
-            <li
-              key={message.id}
-              className={cn(
-                'rounded-md px-3 py-2 text-sm',
-                message.kind === 'SYSTEM'
-                  ? 'bg-background/80 text-center text-xs text-muted-foreground'
-                  : fromStaff
-                    ? 'border border-[var(--link)]/25 bg-[var(--blue-a12)]'
-                    : 'bg-background',
-              )}
-            >
-              {message.kind !== 'SYSTEM' ? (
-                <p className="text-xs text-muted-foreground">
-                  <span
-                    className={cn(
-                      'font-medium',
-                      fromStaff ? 'text-[var(--link)]' : 'text-foreground',
-                    )}
-                  >
-                    {authorLabel(message, t)}
-                  </span>
-                  <span> · {new Date(message.createdAt).toLocaleString()}</span>
-                </p>
-              ) : null}
-              <p
+              <li
+                key={message.id}
                 className={cn(
-                  'whitespace-pre-wrap break-words',
-                  message.kind === 'SYSTEM' ? 'mt-0' : 'mt-1',
+                  'rounded-md px-3 py-2 text-sm',
+                  message.kind === 'SYSTEM'
+                    ? 'bg-background/80 text-center text-xs text-muted-foreground'
+                    : fromStaff
+                      ? 'border border-[var(--link)]/25 bg-[var(--blue-a12)]'
+                      : 'bg-background',
                 )}
               >
-                {message.kind === 'SYSTEM'
-                  ? resolveSystemMessage(message, t)
-                  : message.body}
-              </p>
-            </li>
+                {message.kind !== 'SYSTEM' ? (
+                  <p className="text-xs text-muted-foreground">
+                    <span
+                      className={cn(
+                        'font-medium',
+                        fromStaff ? 'text-[var(--link)]' : 'text-foreground',
+                      )}
+                    >
+                      {authorLabel(message, t)}
+                    </span>
+                    <span>
+                      {' '}
+                      · {new Date(message.createdAt).toLocaleString()}
+                    </span>
+                  </p>
+                ) : null}
+
+                {message.kind === 'SYSTEM' ? (
+                  <p className="whitespace-pre-wrap break-words">
+                    {resolveSystemMessage(message, t)}
+                  </p>
+                ) : image ? (
+                  <div className="mt-2 space-y-2">
+                    <a
+                      href={image.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="relative block max-w-xs overflow-hidden rounded-[var(--radius-sm)] border border-border"
+                    >
+                      <AppImage
+                        src={image.url}
+                        alt={t('imageAlt')}
+                        width={image.width ?? 480}
+                        height={image.height ?? 320}
+                        className="h-auto max-h-64 w-full object-contain"
+                        unoptimized
+                      />
+                    </a>
+                    {message.body && message.body !== '[image]' ? (
+                      <p className="whitespace-pre-wrap break-words">
+                        {message.body}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : (
+                  <p className="mt-1 whitespace-pre-wrap break-words">
+                    {message.body}
+                  </p>
+                )}
+              </li>
             );
           })
         )}
@@ -200,43 +306,18 @@ export function LotMediationThread({
 
       {!closed ? (
         staffReplyLocked ? (
-          <p className="text-sm text-muted-foreground">{t('staffClaimRequired')}</p>
+          <p className="text-sm text-muted-foreground">
+            {t('staffClaimRequired')}
+          </p>
         ) : (
-        <form
-          className="flex gap-2"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            const body = draft.trim();
-            if (body.length < 1) return;
-            try {
-              await addLotDisputeMessage.mutateAsync({ roomId, body });
-              setDraft('');
-              await refetch();
-            } catch (err) {
-              const key = resolveApiErrorKey(err);
-              toast.error(
-                key === 'errors.ticket_claim_required'
-                  ? t('staffClaimRequired')
-                  : key === 'errors.ticket_claim_party_conflict'
-                    ? t('staffPartyConflict')
-                    : t('sendError'),
-              );
-            }
-          }}
-        >
-          <Input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder={t('messagePlaceholder')}
-            maxLength={4000}
-          />
-          <Button
-            type="submit"
-            disabled={addLotDisputeMessage.isPending || draft.trim().length < 1}
-          >
-            {t('send')}
-          </Button>
-        </form>
+          <div className="overflow-hidden rounded-md border border-border">
+            <MessageComposer
+              disabled={closed}
+              isSending={isSending || addLotDisputeMessage.isPending}
+              onSendText={handleSendText}
+              onSendImage={handleSendImage}
+            />
+          </div>
         )
       ) : (
         <p className="text-xs text-muted-foreground">{t('closedHint')}</p>

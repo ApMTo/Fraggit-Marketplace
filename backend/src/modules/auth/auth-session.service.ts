@@ -12,7 +12,6 @@ import { SessionsService } from '../sessions/sessions.service';
 import { TokenService } from '../token/token.service';
 import { createUserPayload } from './utils/create-user-payload.util';
 import { clearAuthCookies, setAuthCookies } from './utils/auth-cookies.util';
-import { getClientIp } from './utils/get-client-ip.util';
 
 @Injectable()
 export class AuthSessionService {
@@ -39,13 +38,11 @@ export class AuthSessionService {
     );
     const deviceId = uuidv4();
     const csrfToken = uuidv4();
-    const ip = getClientIp(req);
     const userAgent = req.headers['user-agent'] || '';
     const sessionId = await this.sessionsService.saveSession(
       user.id,
       tokens.refreshTokenId,
       deviceId,
-      ip,
       userAgent,
       csrfToken,
     );
@@ -83,12 +80,10 @@ export class AuthSessionService {
 
     const refreshPayload =
       await this.jwtService.verifyRefreshToken(refreshToken);
-    const ip = getClientIp(req);
     const userAgent = req.headers['user-agent'] || '';
     const userId = await this.sessionsService.validateSession(
       sessionId,
       deviceId,
-      ip,
       userAgent,
       refreshPayload.jti,
       csrfToken,
@@ -131,7 +126,6 @@ export class AuthSessionService {
       user.id,
       newTokens.refreshTokenId,
       deviceId,
-      ip,
       userAgent,
       newCsrfToken,
       sessionId,

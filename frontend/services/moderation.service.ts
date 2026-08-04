@@ -283,11 +283,20 @@ export const moderationService = {
     return data;
   },
 
-  async addLotDisputeMessage(roomId: string, body: string) {
-    const { data } = await api.post<{ message: LotDisputeRoomDetail['messages'][number] }>(
-      `/moderation/lot-disputes/${roomId}/messages`,
-      { body },
-    );
+  async addLotDisputeMessage(
+    roomId: string,
+    payload: {
+      body?: string;
+      url?: string;
+      mimeType?: string;
+      size?: number;
+      width?: number;
+      height?: number;
+    },
+  ) {
+    const { data } = await api.post<{
+      message: LotDisputeRoomDetail['messages'][number];
+    }>(`/moderation/lot-disputes/${roomId}/messages`, payload);
     return data;
   },
 

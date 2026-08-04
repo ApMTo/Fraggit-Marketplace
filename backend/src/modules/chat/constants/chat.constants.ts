@@ -33,6 +33,7 @@ export const CHAT_SYSTEM_EVENT = {
   ORDER_CREDENTIALS: 'order_credentials',
   ORDER_SERVICE_COMPLETED: 'order_service_completed',
   ORDER_APPROVED: 'order_approved',
+  ORDER_DISPUTED: 'order_disputed',
 } as const;
 
 export type ChatNotifyOfflineJobData = {

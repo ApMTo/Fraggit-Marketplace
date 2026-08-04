@@ -395,11 +395,16 @@ export function useModerationMutations() {
     addLotDisputeMessage: useMutation({
       mutationFn: ({
         roomId,
-        body,
+        ...payload
       }: {
         roomId: string;
-        body: string;
-      }) => moderationService.addLotDisputeMessage(roomId, body),
+        body?: string;
+        url?: string;
+        mimeType?: string;
+        size?: number;
+        width?: number;
+        height?: number;
+      }) => moderationService.addLotDisputeMessage(roomId, payload),
       onSuccess: (data, variables) => {
         const message = data?.message;
         if (!message) {

@@ -1,13 +1,11 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { RedisService } from '../../database/redis.service';
-import { getSubnet } from '../auth/utils/get-subnet.util';
 
 type SessionRecord = {
   userId: string;
   refreshTokenId: string;
   deviceId: string;
-  subnet: string;
   userAgent: string;
   csrfToken: string;
 };
@@ -34,13 +32,11 @@ export class SessionsService {
     userId: string,
     refreshTokenId: string,
     deviceId: string,
-    ip: string,
     userAgent: string,
     csrfToken: string,
     sessionId?: string,
   ): Promise<string> {
     const token = sessionId ?? uuidv4();
-    const subnet = getSubnet(ip);
     const sessionKey = this.sessionKey(token);
     const userSessionsKey = this.userSessionsKey(userId);
     const userDeviceKey = this.userDeviceKey(userId, deviceId);
@@ -51,7 +47,6 @@ export class SessionsService {
         userId,
         refreshTokenId,
         deviceId,
-        subnet,
         userAgent,
         csrfToken,
       }),
@@ -114,7 +109,6 @@ export class SessionsService {
   async validateSession(
     sessionId: string,
     deviceId: string,
-    ip: string,
     userAgent: string,
     refreshTokenId?: string,
     csrfToken?: string,
@@ -128,11 +122,6 @@ export class SessionsService {
 
     if (session.deviceId !== deviceId) {
       throw new UnauthorizedException({ code: 'errors.invalid_device' });
-    }
-
-    const subnet = getSubnet(ip);
-    if (session.subnet !== subnet) {
-      throw new UnauthorizedException({ code: 'errors.ip_mismatch' });
     }
 
     if (session.userAgent !== userAgent) {

@@ -4,7 +4,10 @@ export type NotificationType =
   | 'ORDER_APPROVED'
   | 'TICKET_REPLY'
   | 'REPORT_STATUS'
-  | 'TICKET_RESOLVED';
+  | 'TICKET_RESOLVED'
+  | 'TICKET_VERDICT_REQUESTED'
+  | 'REPORT_VERDICT_REQUESTED'
+  | 'LOT_DISPUTE_MESSAGE';
 
 export type AppNotification = {
   id: string;

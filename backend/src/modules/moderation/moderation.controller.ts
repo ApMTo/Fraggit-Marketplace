@@ -363,13 +363,13 @@ export class ModerationController {
   @Post('lot-disputes/:roomId/messages')
   @HttpCode(HttpStatus.CREATED)
   @ApiHeader(CSRF_HEADER)
-  @ApiOperation({ summary: 'Post in lot mediation room' })
+  @ApiOperation({ summary: 'Post text or image in lot mediation room' })
   addLotDisputeMessage(
     @CurrentUser() user: AuthUser,
     @Param('roomId', ParseUUIDPipe) roomId: string,
     @Body() dto: CreateLotDisputeMessageDto,
   ) {
-    return this.lotDisputes.addMessage(roomId, user.id, user.role, dto.body);
+    return this.lotDisputes.addMessage(roomId, user.id, user.role, dto);
   }
 
   // ── Tickets ────────────────────────────────────────────

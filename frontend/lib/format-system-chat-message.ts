@@ -10,6 +10,7 @@ const SYSTEM_EVENT_KEYS: Record<string, string> = {
   order_credentials: 'system.orderCredentials',
   order_service_completed: 'system.orderServiceCompleted',
   order_approved: 'system.orderApproved',
+  order_disputed: 'system.orderDisputed',
 };
 
 function readMetaString(

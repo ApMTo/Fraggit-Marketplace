@@ -157,7 +157,15 @@ export type ModUserReportConversationSummary = {
 
 export type LotDisputeRoomStatus = 'OPEN' | 'CLOSED';
 
-export type LotDisputeMessageKind = 'TEXT' | 'SYSTEM';
+export type LotDisputeMessageKind = 'TEXT' | 'IMAGE' | 'SYSTEM';
+
+export type LotDisputeImageMetadata = {
+  url: string;
+  mimeType: string;
+  size: number;
+  width?: number;
+  height?: number;
+};
 
 export type LotDisputeRoomSummary = {
   id: string;
@@ -199,7 +207,7 @@ export type LotDisputeMessage = {
   authorId: string | null;
   kind: LotDisputeMessageKind;
   body: string;
-  metadata: unknown;
+  metadata: LotDisputeImageMetadata | Record<string, unknown> | null;
   createdAt: string;
   author: {
     id: string;

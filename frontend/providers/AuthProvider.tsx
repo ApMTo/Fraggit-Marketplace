@@ -190,6 +190,11 @@ export function AuthProvider({
       clearClientAuthCookies();
       setSessionActive(false);
       await stopSessionQuery();
+      try {
+        await authService.clearSession();
+      } catch {
+        // Best-effort wipe of httpOnly cookies when logout itself fails.
+      }
     } finally {
       router.push('/login');
       router.refresh();
