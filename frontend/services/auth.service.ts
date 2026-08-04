@@ -92,7 +92,7 @@ export const authService = {
   async clearSession(): Promise<void> {
     await api.post('/auth/clear-session', {}, {
       skipAuthRefresh: true,
-    } as { skipAuthRefresh?: boolean });
+    } as import('axios').AxiosRequestConfig);
     clearCsrfToken();
   },
 
