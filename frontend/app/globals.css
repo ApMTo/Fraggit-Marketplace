@@ -258,6 +258,14 @@
     backdrop-filter: blur(20px) saturate(140%);
   }
 
+  .glass-header-bar {
+    background: var(--header-bg);
+    backdrop-filter: blur(20px) saturate(140%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+  }
+
   .marketing-hero {
     position: relative;
     overflow: hidden;

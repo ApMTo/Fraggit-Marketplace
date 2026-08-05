@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell } from 'lucide-react';
+import { HeaderAction } from '@/components/layout/header-action';
 import { formatChatListTime } from '@/lib/chat-time';
 import {
   formatNotificationBody,
@@ -27,6 +28,7 @@ type NotificationsBellProps = {
 
 export function NotificationsBell({ enabled }: NotificationsBellProps) {
   const t = useTranslations('notifications');
+  const tNav = useTranslations('common.nav');
   const locale = useLocale();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -113,6 +115,12 @@ export function NotificationsBell({ enabled }: NotificationsBellProps) {
 
   const unreadCount = unreadQuery.data?.count ?? 0;
   const items = listQuery.data?.items ?? [];
+  const badge =
+    unreadCount > 0 ? (
+      <span className="absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-brand-cyan px-1 text-[10px] font-semibold leading-none text-[oklch(0.145_0.018_265)]">
+        {unreadCount > 99 ? '99+' : unreadCount}
+      </span>
+    ) : null;
 
   return (
     <div ref={rootRef} className="relative">
@@ -123,14 +131,24 @@ export function NotificationsBell({ enabled }: NotificationsBellProps) {
         aria-controls={menuId}
         aria-label={t('open')}
         onClick={() => setOpen((value) => !value)}
-        className="relative inline-flex size-9 cursor-pointer items-center justify-center rounded-[var(--radius-sm)] text-muted transition-[background-color,color] duration-300 hover:bg-surface-elevated hover:text-foreground"
+        className="relative inline-flex size-9 cursor-pointer items-center justify-center rounded-full text-muted transition-colors hover:bg-surface-elevated hover:text-foreground md:hidden"
       >
-        <Bell className="size-4" />
-        {unreadCount > 0 ? (
-          <span className="absolute top-1 right-1 flex min-w-4 items-center justify-center rounded-full bg-brand-cyan px-1 text-[10px] font-semibold leading-none text-[oklch(0.145_0.018_265)]">
-            {unreadCount > 99 ? '99+' : unreadCount}
-          </span>
-        ) : null}
+        <Bell className="size-4" aria-hidden="true" />
+        {badge}
+      </button>
+
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        aria-controls={menuId}
+        aria-label={t('open')}
+        onClick={() => setOpen((value) => !value)}
+        className="hidden cursor-pointer border-0 bg-transparent p-0 md:inline-flex"
+      >
+        <HeaderAction label={tNav('notifications')} badge={badge}>
+          <Bell className="size-4" aria-hidden="true" />
+        </HeaderAction>
       </button>
 
       {open ? (

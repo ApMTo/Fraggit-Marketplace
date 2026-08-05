@@ -5,6 +5,7 @@ import { FolderOpen, Gamepad2, Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Spinner } from '@/components/ui/spinner';
+import { HeaderCategorySearch } from '@/components/layout/header-category-search';
 import { CategoryBrowseCard } from '@/features/listings/components/category-browse-card';
 import { useAuth, useCategories } from '@/hooks';
 import { isStaffRole } from '@/lib/staff';
@@ -41,6 +42,11 @@ export function ListingsHubPage() {
           </Link>
         ) : null}
       </header>
+
+      <div id="game-search" className="relative w-full max-w-xl">
+        <HeaderCategorySearch className="max-w-none" />
+        <p className="mt-2 text-xs text-muted md:hidden">{t('searchGamesHint')}</p>
+      </div>
 
       <section
         className="relative flex flex-col gap-5"
@@ -82,7 +88,7 @@ export function ListingsHubPage() {
         ) : null}
 
         {!isLoading && !isError && categories && categories.length > 0 ? (
-          <div className="grid grid-cols-4 gap-x-3 gap-y-5 sm:grid-cols-6 sm:gap-x-4 sm:gap-y-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {categories.map((category) => (
               <CategoryBrowseCard key={category.id} category={category} />
             ))}

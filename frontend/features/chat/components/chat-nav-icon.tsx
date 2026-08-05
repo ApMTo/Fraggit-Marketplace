@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { MessageSquare } from 'lucide-react';
+import { HeaderAction } from '@/components/layout/header-action';
 import { useConversations } from '@/hooks/use-chat';
 import { useChatRealtime } from '@/hooks/use-chat-realtime';
 import {
@@ -17,6 +18,14 @@ import { useAuth } from '@/providers/AuthProvider';
 type ChatNavIconProps = {
   enabled: boolean;
 };
+
+function UnreadBadge({ count }: { count: number }) {
+  return (
+    <span className="absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-brand-cyan px-1 text-[10px] font-semibold leading-none text-[oklch(0.145_0.018_265)]">
+      {count > 9 ? '9+' : count}
+    </span>
+  );
+}
 
 export function ChatNavIcon({ enabled }: ChatNavIconProps) {
   const t = useTranslations('common.nav');
@@ -60,19 +69,17 @@ export function ChatNavIcon({ enabled }: ChatNavIconProps) {
     ) ?? 0;
 
   const showBadge = !onChatPage && unreadTotal > 0;
+  const badge = showBadge ? <UnreadBadge count={unreadTotal} /> : null;
 
   return (
     <Link
       href="/chat"
       aria-label={t('chat')}
-      className="relative inline-flex size-9 cursor-pointer items-center justify-center rounded-[var(--radius-sm)] text-muted transition-[background-color,color] duration-300 hover:bg-surface-elevated hover:text-foreground"
+      className="hidden cursor-pointer outline-none focus-visible:rounded-[var(--radius-sm)] focus-visible:ring-2 focus-visible:ring-[var(--focus)] md:inline-flex"
     >
-      <MessageSquare className="size-4" />
-      {showBadge ? (
-        <span className="absolute top-1 right-1 flex min-w-4 items-center justify-center rounded-full bg-brand-cyan px-1 text-[10px] font-semibold leading-none text-[oklch(0.145_0.018_265)]">
-          {unreadTotal > 9 ? '9+' : unreadTotal}
-        </span>
-      ) : null}
+      <HeaderAction label={t('chat')} badge={badge}>
+        <MessageSquare className="size-4" aria-hidden="true" />
+      </HeaderAction>
     </Link>
   );
 }

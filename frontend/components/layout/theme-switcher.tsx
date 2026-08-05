@@ -20,7 +20,7 @@ export function ThemeSwitcher() {
       type="button"
       onClick={toggleTheme}
       aria-label={t('theme.label')}
-      className="dropdown-trigger inline-flex size-9 shrink-0 cursor-pointer items-center justify-center text-foreground"
+      className="dropdown-trigger inline-flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-foreground"
     >
       {isDark ? (
         <Moon className="size-4 text-muted" aria-hidden />

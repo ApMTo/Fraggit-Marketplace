@@ -20,7 +20,7 @@ type PageProps = {
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const { lotId } = await params;
+  const { categorySlug, subcategorySlug, lotId } = await params;
   const t = await getTranslations('listings');
   const lot = await fetchLotById(lotId);
 
@@ -31,9 +31,38 @@ export async function generateMetadata({
     };
   }
 
+  const description =
+    lot.description?.replace(/\s+/g, ' ').trim().slice(0, 160) ||
+    t('categorySubtitle');
+  const imageUrl = lot.previewUrl ?? lot.images[0]?.url ?? null;
+  const path = `/listings/${categorySlug}/${subcategorySlug}/lot/${lotId}`;
+
   return {
     title: `${lot.title} | Fraggit`,
-    description: lot.description?.slice(0, 160) || t('categorySubtitle'),
+    description,
+    openGraph: {
+      title: lot.title,
+      description,
+      type: 'website',
+      url: path,
+      siteName: 'Fraggit',
+      ...(imageUrl
+        ? {
+            images: [
+              {
+                url: imageUrl,
+                alt: lot.title,
+              },
+            ],
+          }
+        : {}),
+    },
+    twitter: {
+      card: imageUrl ? 'summary_large_image' : 'summary',
+      title: lot.title,
+      description,
+      ...(imageUrl ? { images: [imageUrl] } : {}),
+    },
   };
 }
 

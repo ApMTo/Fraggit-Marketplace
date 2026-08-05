@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { LogOut, UserRound } from 'lucide-react';
+import { HeaderAction } from '@/components/layout/header-action';
 import {
   getAppNavItems,
   isNavItemActive,
@@ -34,13 +35,12 @@ export function UserMenu() {
     <DropdownMenu
       size="sm"
       align="end"
+      variant="bare"
+      showChevron={false}
       trigger={
-        <>
-          <div className="flex items-center gap-2">
-            <UserRound className="size-3.5 shrink-0 text-muted" />
-            <span className="max-w-24 truncate">{user.displayName}</span>
-          </div>
-        </>
+        <HeaderAction label={tNav('profile')}>
+          <UserRound className="size-3.5" aria-hidden="true" />
+        </HeaderAction>
       }
     >
       {items.map((item) => (

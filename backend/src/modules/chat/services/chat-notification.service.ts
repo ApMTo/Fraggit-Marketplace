@@ -1,10 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { RedisService } from '../../../database/redis.service';
 import { resolveNotificationEmailText } from '../../notifications/constants/notification-i18n';
 import { NotificationItem } from '../../notifications/constants/notification.select';
 import { MailQueueService } from '../../mail/mail-queue.service';
 import { EmailTemplates } from '../../mail/utils/email-templates';
 import { TelegramService } from '../../telegram/telegram.service';
+import {
+  CHAT_NOTIFY_COOLDOWN_KEY_PREFIX,
+  CHAT_NOTIFY_COOLDOWN_SECONDS,
+} from '../constants/chat.constants';
 import { buildMessagePreviewText } from '../constants/chat.select';
 import { ChatMessage } from '../constants/chat.select';
 import { ChatNotificationQueueService } from './chat-notification-queue.service';
@@ -48,6 +53,7 @@ export class ChatNotificationService {
     private readonly mailQueue: MailQueueService,
     private readonly configService: ConfigService,
     private readonly telegramService: TelegramService,
+    private readonly redis: RedisService,
   ) {}
 
   async notifyAboutNewMessage(
@@ -69,6 +75,14 @@ export class ChatNotificationService {
       return;
     }
 
+    const allowed = await this.claimChatNotifyCooldown(
+      recipientId,
+      message.senderId,
+    );
+    if (!allowed) {
+      return;
+    }
+
     const recipientEmail = await this.messageService.getUserEmail(recipientId);
     const preview = buildMessagePreviewText(message.type, message.content);
 
@@ -81,18 +95,22 @@ export class ChatNotificationService {
     });
   }
 
+  private async claimChatNotifyCooldown(
+    recipientUserId: string,
+    senderUserId: string,
+  ): Promise<boolean> {
+    const key = `${CHAT_NOTIFY_COOLDOWN_KEY_PREFIX}${recipientUserId}:${senderUserId}`;
+    const claimed = await this.redis.setIfNotExists(
+      key,
+      '1',
+      CHAT_NOTIFY_COOLDOWN_SECONDS,
+    );
+    return claimed !== false;
+  }
+
   async notifyOfflineAboutOrderNotification(
     notification: NotificationItem,
   ): Promise<void> {
-    const isOnline = await this.chatPresence.isOnline(notification.userId);
-
-    if (isOnline) {
-      return;
-    }
-
-    const recipientEmail = await this.messageService.getUserEmail(
-      notification.userId,
-    );
     const frontendUrl = this.configService.get<string>(
       'frontendUrl',
       'http://localhost:3000',
@@ -100,8 +118,24 @@ export class ChatNotificationService {
     const href = notification.href
       ? `${frontendUrl}${notification.href.startsWith('/') ? '' : '/'}${notification.href}`
       : frontendUrl;
-
     const params = notificationParams(notification.metadata);
+
+    const isOnline = await this.chatPresence.isOnline(notification.userId);
+
+    if (isOnline) {
+      await this.telegramService.tryNotifyOfflineOrder({
+        recipientUserId: notification.userId,
+        titleKey: notification.title,
+        bodyKey: notification.body,
+        notificationParams: params,
+        href,
+      });
+      return;
+    }
+
+    const recipientEmail = await this.messageService.getUserEmail(
+      notification.userId,
+    );
     const title = resolveNotificationEmailText(notification.title, params);
     const body = notification.body
       ? resolveNotificationEmailText(notification.body, params)

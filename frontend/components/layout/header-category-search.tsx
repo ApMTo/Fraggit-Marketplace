@@ -8,11 +8,20 @@ import { useTranslations } from 'next-intl';
 import { AppImage } from '@/components/ui/app-image';
 import { Input } from '@/components/ui/input';
 import { useCategorySearch, useDebouncedValue } from '@/hooks';
+import { cn } from '@/lib/utils';
 import type { CategoryPublic } from '@/types/category';
 
 const DEBOUNCE_MS = 500;
 
-export function HeaderCategorySearch() {
+type HeaderCategorySearchProps = {
+  id?: string;
+  className?: string;
+};
+
+export function HeaderCategorySearch({
+  id,
+  className,
+}: HeaderCategorySearchProps) {
   const t = useTranslations('common.search');
   const router = useRouter();
   const listboxId = useId();
@@ -90,10 +99,14 @@ export function HeaderCategorySearch() {
   }
 
   return (
-    <div ref={rootRef} className="relative w-full max-w-md min-w-0 flex-1">
+    <div
+      ref={rootRef}
+      id={id}
+      className={cn('relative w-full max-w-xl min-w-0 flex-1 lg:max-w-2xl', className)}
+    >
       <div className="relative">
         <Search
-          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-subtle"
+          className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-subtle"
           aria-hidden="true"
         />
         <Input
@@ -111,7 +124,7 @@ export function HeaderCategorySearch() {
           aria-expanded={showPanel}
           role="combobox"
           autoComplete="off"
-          className="h-10 pl-10"
+          className="h-10 rounded-full border-border bg-surface-elevated pl-10 shadow-none focus-visible:shadow-[0_0_0_3px_var(--blue-a24)]"
         />
       </div>
 

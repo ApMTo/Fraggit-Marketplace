@@ -7,6 +7,7 @@ import {
 } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 import { ChatGateway } from '../../chat/chat.gateway';
+import { TelegramService } from '../../telegram/telegram.service';
 import { MOD_LOT_LIST_SELECT } from '../constants/moderation.select';
 import { FindModerationLotsQueryDto } from '../dto/moderation-lots.dto';
 import { ModerationAuditService } from './moderation-audit.service';
@@ -17,6 +18,7 @@ export class ModerationLotsService {
     private readonly prisma: PrismaService,
     private readonly audit: ModerationAuditService,
     private readonly chatGateway: ChatGateway,
+    private readonly telegramService: TelegramService,
   ) {}
 
   async findLots(query: FindModerationLotsQueryDto) {
@@ -101,6 +103,15 @@ export class ModerationLotsService {
       sellerId: lot.sellerId,
     });
 
+    void this.telegramService.notifyLotStatusChanged({
+      sellerId: lot.sellerId,
+      lotId: lot.id,
+      title: lot.title,
+      categorySlug: lot.category.slug,
+      subcategorySlug: lot.subcategory.slug,
+      status: result.lot.status,
+    });
+
     return result;
   }
 
@@ -142,13 +153,30 @@ export class ModerationLotsService {
       sellerId: lot.sellerId,
     });
 
+    void this.telegramService.notifyLotStatusChanged({
+      sellerId: lot.sellerId,
+      lotId: lot.id,
+      title: lot.title,
+      categorySlug: lot.category.slug,
+      subcategorySlug: lot.subcategory.slug,
+      status: result.lot.status,
+    });
+
     return result;
   }
 
   private async requireLot(lotId: string) {
     const lot = await this.prisma.lot.findUnique({
       where: { id: lotId },
-      select: { id: true, status: true, stock: true, sellerId: true },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        stock: true,
+        sellerId: true,
+        category: { select: { slug: true } },
+        subcategory: { select: { slug: true } },
+      },
     });
 
     if (!lot) {

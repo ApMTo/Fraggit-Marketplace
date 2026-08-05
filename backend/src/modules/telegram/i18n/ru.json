@@ -20,6 +20,11 @@
   "notifications": {
     "chat_message": "💬 <b>Новое сообщение</b>\nот <b>{sender}</b>\n\n<i>{preview}</i>\n\n{openLink}",
     "lot_created": "✅ <b>Лот опубликован</b>\n\n📦 <b>{title}</b>\nОн уже на витрине и доступен покупателям.\n\n{openLink}",
+    "lot_removed": "🚫 <b>Лот снят</b>\n\n📦 <b>{title}</b>\nМодерация сняла этот лот с витрины.\n\n{openLink}",
+    "lot_under_review": "🔍 <b>Лот на проверке</b>\n\n📦 <b>{title}</b>\nЛот временно скрыт, пока модерация его проверяет.\n\n{openLink}",
+    "lot_restored": "✅ <b>Лот восстановлен</b>\n\n📦 <b>{title}</b>\nЛот снова доступен покупателям на витрине.\n\n{openLink}",
+    "lot_closed": "⏸ <b>Лот закрыт</b>\n\n📦 <b>{title}</b>\nЛот закрыт и больше недоступен для покупки.\n\n{openLink}",
+    "lot_archived": "📦 <b>Лот распродан</b>\n\n📦 <b>{title}</b>\nЗапас закончился — лот отправлен в архив.\n\n{openLink}",
     "items.orderCreated.seller.title": "🛒 Новый заказ",
     "items.orderCreated.seller.body": "Покупатель оформил заказ <b>#{orderNumber}</b>\n📦 {listingTitle}",
     "items.orderCreated.buyer.title": "✅ Заказ оформлен",

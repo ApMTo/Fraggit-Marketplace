@@ -291,6 +291,46 @@ export class TelegramService {
     categorySlug: string;
     subcategorySlug: string;
   }): Promise<void> {
+    await this.notifyLotEvent({
+      ...params,
+      templateKey: 'lot_created',
+    });
+  }
+
+  async notifyLotStatusChanged(params: {
+    sellerId: string;
+    lotId: string;
+    title: string;
+    categorySlug: string;
+    subcategorySlug: string;
+    status: 'REMOVED' | 'UNDER_REVIEW' | 'OPEN' | 'CLOSED' | 'ARCHIVED';
+  }): Promise<void> {
+    const templateKeyByStatus: Record<typeof params.status, string> = {
+      REMOVED: 'lot_removed',
+      UNDER_REVIEW: 'lot_under_review',
+      OPEN: 'lot_restored',
+      CLOSED: 'lot_closed',
+      ARCHIVED: 'lot_archived',
+    };
+
+    await this.notifyLotEvent({
+      sellerId: params.sellerId,
+      lotId: params.lotId,
+      title: params.title,
+      categorySlug: params.categorySlug,
+      subcategorySlug: params.subcategorySlug,
+      templateKey: templateKeyByStatus[params.status],
+    });
+  }
+
+  private async notifyLotEvent(params: {
+    sellerId: string;
+    lotId: string;
+    title: string;
+    categorySlug: string;
+    subcategorySlug: string;
+    templateKey: string;
+  }): Promise<void> {
     const delivery = await this.getLinkedDelivery(params.sellerId);
     if (!delivery) {
       return;
@@ -303,7 +343,7 @@ export class TelegramService {
     const href = `${frontendUrl}/listings/${params.categorySlug}/${params.subcategorySlug}/lot/${params.lotId}`;
     const text = tNotification(
       delivery.locale,
-      'lot_created',
+      params.templateKey,
       {
         title: params.title,
         href,

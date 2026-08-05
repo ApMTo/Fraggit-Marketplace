@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { HeaderAction } from '@/components/layout/header-action';
 import { cn } from '@/lib/utils';
 
 type SellNavButtonProps = {
@@ -23,17 +24,11 @@ export function SellNavButton({
       href={href}
       onClick={onClick}
       aria-label={t('createLot')}
-      className={cn(
-        'group inline-flex shrink-0 flex-col items-center gap-1 px-1 text-muted transition-colors hover:text-foreground',
-        className,
-      )}
+      className={cn('cursor-pointer outline-none focus-visible:rounded-[var(--radius-sm)] focus-visible:ring-2 focus-visible:ring-[var(--focus)]', className)}
     >
-      <span className="flex size-8 items-center justify-center rounded-full bg-surface-elevated text-foreground transition-colors group-hover:bg-surface-hover">
+      <HeaderAction label={t('sell')}>
         <Plus className="size-4" strokeWidth={2.5} aria-hidden="true" />
-      </span>
-      <span className="whitespace-nowrap text-[11px] leading-none font-medium tracking-wide">
-        {t('sell')}
-      </span>
+      </HeaderAction>
     </Link>
   );
 }

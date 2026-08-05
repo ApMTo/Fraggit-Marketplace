@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { type ReactNode } from 'react';
 import { AppHeader } from '@/components/layout/app-header';
+import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav';
 import { LegalFooter } from '@/features/legal';
 import { isChatRoute } from '@/lib/chat-route';
 import { cn } from '@/lib/utils';
@@ -32,6 +33,7 @@ export function AppShell({ children }: AppShellProps) {
   const hideHeader = isAuthRoute(pathname);
   const lockViewport = isChatRoute(pathname);
   const showLegalFooter = shouldShowLegalFooter(pathname);
+  const showBottomNav = !hideHeader;
 
   return (
     <div
@@ -41,16 +43,26 @@ export function AppShell({ children }: AppShellProps) {
       )}
     >
       {!hideHeader ? <AppHeader /> : null}
-      <main
+      <div
         className={cn(
-          'flex min-h-0 flex-col',
-          hideHeader ? 'min-h-dvh flex-1' : 'flex-1',
+          'flex min-h-0 flex-1 flex-col',
           lockViewport && 'overflow-hidden',
+          showBottomNav &&
+            'pb-[calc(3.75rem+env(safe-area-inset-bottom))] md:pb-0',
         )}
       >
-        {children}
-      </main>
-      {showLegalFooter ? <LegalFooter /> : null}
+        <main
+          className={cn(
+            'flex min-h-0 flex-col',
+            hideHeader ? 'min-h-dvh flex-1' : 'flex-1',
+            lockViewport && 'overflow-hidden',
+          )}
+        >
+          {children}
+        </main>
+        {showLegalFooter ? <LegalFooter /> : null}
+      </div>
+      {showBottomNav ? <MobileBottomNav /> : null}
     </div>
   );
 }

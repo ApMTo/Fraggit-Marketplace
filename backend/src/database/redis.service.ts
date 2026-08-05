@@ -81,6 +81,27 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       return null;
     }
   }
+  async setIfNotExists(
+    key: string,
+    value: string,
+    ttlSeconds?: number,
+  ): Promise<boolean | null> {
+    if (!key || value === undefined) {
+      this.logger.warn(`Invalid Redis setIfNotExists call: key="${key}"`);
+      return null;
+    }
+
+    try {
+      const result =
+        ttlSeconds && typeof ttlSeconds === 'number'
+          ? await this.client.set(key, value, 'EX', ttlSeconds, 'NX')
+          : await this.client.set(key, value, 'NX');
+      return result === 'OK';
+    } catch (err) {
+      this.logger.error(`Failed to SET NX key "${key}"`, err);
+      return null;
+    }
+  }
 
   async del(key: string): Promise<number | null> {
     if (!key) return null;

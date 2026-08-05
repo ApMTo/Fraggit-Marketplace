@@ -1,10 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { AppNavLinks } from '@/components/layout/app-nav-links';
 import { HeaderCategorySearch } from '@/components/layout/header-category-search';
 import { HeaderPreferences } from '@/components/layout/header-preferences';
-import { MobileMenu } from '@/components/layout/mobile-menu';
 import { SellNavButton } from '@/components/layout/sell-nav-button';
 import { UserMenu } from '@/components/layout/user-menu';
 import { Logo } from '@/components/layout/logo';
@@ -21,54 +19,44 @@ export function AppHeader() {
   const showSell = showAuthChrome && !isStaffRole(user?.role);
 
   return (
-    <header className="glass-header sticky top-0 z-50 border-b border-border">
-      <div className="mx-auto flex h-16 max-w-site items-center gap-3 px-5 lg:gap-4">
+    <header className="sticky top-0 z-50 px-3 pt-3 pb-2 md:px-5">
+      <div className="glass-header-bar mx-auto flex h-14 max-w-site items-center gap-3 px-4 md:h-[4.25rem] lg:gap-5 lg:px-5">
         <Logo />
 
-        <HeaderCategorySearch />
+        <div className="hidden min-w-0 flex-1 md:block">
+          <HeaderCategorySearch />
+        </div>
 
-        <nav
-          aria-label="Main"
-          className="hidden shrink-0 items-center md:flex"
-        >
-          <AppNavLinks orientation="horizontal" />
-        </nav>
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <HeaderPreferences />
 
-        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-2.5">
-          {showAuthChrome ? (
-            <div className="flex items-center gap-0.5">
-              <ChatNavIcon enabled />
-              <NotificationsBell enabled />
-            </div>
+          {isLoading ? (
+            <span className="hidden size-9 animate-pulse rounded-full bg-surface-elevated md:block" />
           ) : null}
 
-          <div className="hidden items-center gap-2 md:flex">
-            <HeaderPreferences />
-
-            {isLoading ? (
-              <span className="size-9 animate-pulse rounded-full bg-surface-elevated" />
-            ) : isAuthenticated ? (
-              <>
-                <span
-                  className="mx-0.5 hidden h-5 w-px bg-border sm:block"
-                  aria-hidden="true"
-                />
-                {showSell ? <SellNavButton className="size-p" /> : null}
+          {showAuthChrome ? (
+            <>
+              {showSell ? (
+                <div className="hidden md:block">
+                  <SellNavButton />
+                </div>
+              ) : null}
+              <ChatNavIcon enabled />
+              <NotificationsBell enabled />
+              <div className="hidden md:block">
                 <UserMenu />
-              </>
-            ) : (
-              <>
-                <SecondaryButton href="/register" size="sm">
-                  {t('register.submit')}
-                </SecondaryButton>
-                <BrandButton href="/login" size="sm">
-                  {t('login.submit')}
-                </BrandButton>
-              </>
-            )}
-          </div>
-
-          <MobileMenu />
+              </div>
+            </>
+          ) : !isLoading ? (
+            <div className="hidden items-center gap-2 md:flex">
+              <SecondaryButton href="/register" size="sm">
+                {t('register.submit')}
+              </SecondaryButton>
+              <BrandButton href="/login" size="sm">
+                {t('login.submit')}
+              </BrandButton>
+            </div>
+          ) : null}
         </div>
       </div>
     </header>

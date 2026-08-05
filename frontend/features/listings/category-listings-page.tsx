@@ -7,6 +7,7 @@ import { Package, PackageOpen } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Spinner } from '@/components/ui/spinner';
+import { HeaderCategorySearch } from '@/components/layout/header-category-search';
 import { CategoryBrowseHero } from '@/features/listings/components/category-browse-hero';
 import { ListingsPagination } from '@/features/listings/components/listings-pagination';
 import { LotBrowseToolbar } from '@/features/listings/components/lot-browse-toolbar';
@@ -335,9 +336,18 @@ function BrowseShell({
   createHref?: string;
   children: ReactNode;
 }) {
+  const t = useTranslations('listings');
+
   return (
     <div className="mx-auto flex w-full max-w-site flex-col gap-5 px-5 py-8 sm:py-10">
       <CategoryBrowseHero category={category} createHref={createHref} />
+      <div className="md:hidden">
+        <HeaderCategorySearch
+          id="game-search"
+          className="max-w-none flex-none"
+        />
+        <p className="mt-2 text-xs text-muted">{t('searchGamesHint')}</p>
+      </div>
       {children}
     </div>
   );

@@ -10,6 +10,9 @@ export const CHAT_RATE_LIMIT_KEY_PREFIX = 'chat:rate:';
 export const CHAT_RATE_LIMIT_MAX_MESSAGES = 30;
 export const CHAT_RATE_LIMIT_WINDOW_SECONDS = 60;
 
+export const CHAT_NOTIFY_COOLDOWN_KEY_PREFIX = 'chat:notify:cooldown:';
+export const CHAT_NOTIFY_COOLDOWN_SECONDS = 30 * 60;
+
 export const CHAT_MAX_TEXT_LENGTH = 2000;
 
 export const CHAT_WS_EVENTS = {

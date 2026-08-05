@@ -20,6 +20,11 @@
   "notifications": {
     "chat_message": "💬 <b>New message</b>\nfrom <b>{sender}</b>\n\n<i>{preview}</i>\n\n{openLink}",
     "lot_created": "✅ <b>Lot published</b>\n\n📦 <b>{title}</b>\nIt’s live on the marketplace and ready for buyers.\n\n{openLink}",
+    "lot_removed": "🚫 <b>Lot removed</b>\n\n📦 <b>{title}</b>\nModeration removed this lot from the marketplace.\n\n{openLink}",
+    "lot_under_review": "🔍 <b>Lot under review</b>\n\n📦 <b>{title}</b>\nThis lot is temporarily hidden while moderation reviews it.\n\n{openLink}",
+    "lot_restored": "✅ <b>Lot restored</b>\n\n📦 <b>{title}</b>\nYour lot is live on the marketplace again.\n\n{openLink}",
+    "lot_closed": "⏸ <b>Lot closed</b>\n\n📦 <b>{title}</b>\nThis lot is closed and no longer available for purchase.\n\n{openLink}",
+    "lot_archived": "📦 <b>Lot sold out</b>\n\n📦 <b>{title}</b>\nStock reached zero — the lot was archived.\n\n{openLink}",
     "items.orderCreated.seller.title": "🛒 New order",
     "items.orderCreated.seller.body": "A buyer placed order <b>#{orderNumber}</b>\n📦 {listingTitle}",
     "items.orderCreated.buyer.title": "✅ Order placed",

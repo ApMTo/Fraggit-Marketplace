@@ -21,12 +21,13 @@ type DropdownMenuProps = {
   align?: 'start' | 'end';
   className?: string;
   /** Compact menu trigger (default) or full-width form field. */
-  variant?: 'default' | 'field';
+  variant?: 'default' | 'field' | 'bare';
   size?: 'default' | 'sm';
   showChevron?: boolean;
   hasError?: boolean;
   disabled?: boolean;
   id?: string;
+  triggerClassName?: string;
 };
 
 export function DropdownMenu({
@@ -40,11 +41,13 @@ export function DropdownMenu({
   hasError = false,
   disabled = false,
   id,
+  triggerClassName,
 }: DropdownMenuProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
   const isField = variant === 'field';
+  const isBare = variant === 'bare';
   const isSm = size === 'sm';
 
   const close = useCallback(() => setOpen(false), []);
@@ -102,12 +105,15 @@ export function DropdownMenu({
                   ? 'border-destructive focus-visible:shadow-none'
                   : 'border-input-border',
               )
-            : cn(
-                'dropdown-trigger',
-                isSm
-                  ? 'h-9 gap-1 px-2.5 text-xs'
-                  : 'h-9 gap-1.5 px-3 text-sm',
-              ),
+            : isBare
+              ? 'border-0 bg-transparent p-0 shadow-none'
+              : cn(
+                  'dropdown-trigger',
+                  isSm
+                    ? 'h-9 gap-1 px-2.5 text-xs'
+                    : 'h-9 gap-1.5 px-3 text-sm',
+                ),
+          triggerClassName,
         )}
       >
         <span className={cn('min-w-0', isField && 'truncate text-left')}>
