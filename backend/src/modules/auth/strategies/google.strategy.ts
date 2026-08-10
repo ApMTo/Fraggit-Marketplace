@@ -28,8 +28,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       callbackURL:
         callbackURL || 'http://localhost:3000/api/auth/google/callback',
       scope: ['email', 'profile'],
-      // CSRF protection for the OAuth redirect (Redis-backed, no express-session).
-      state: stateStore,
+      // passport-oauth2@1.8+: custom state store must be `store`, not `state`.
+      // `state: <object>` is treated as truthy and falls back to express-session.
+      store: stateStore,
     });
   }
 
