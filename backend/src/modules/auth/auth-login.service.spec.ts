@@ -147,9 +147,11 @@ describe('AuthLoginService', () => {
   it('throws for unverified email', async () => {
     prisma.user.findUnique.mockResolvedValue({
       id: 'user-1',
+      passwordHash: 'hash',
       status: UserStatus.ACTIVE,
       emailVerified: false,
     });
+    jest.spyOn(passwordPolicy, 'verifyPassword').mockResolvedValue(true);
 
     await expect(
       service.login({ email: 'user@test.com', password: 'pass' }, req as never),
