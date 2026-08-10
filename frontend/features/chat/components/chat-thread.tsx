@@ -33,6 +33,7 @@ type ChatThreadProps = {
   conversationId: string;
   conversation: ConversationListItem | undefined;
   /** Full inbox page vs compact embed (e.g. order aside). */
+  variant?: 'page' | 'panel';
   className?: string;
 };
 
