@@ -1,16 +1,19 @@
 ﻿import { Injectable } from '@nestjs/common';
 import type { Request } from 'express';
+import { AuthGoogleService } from './auth-google.service';
 import { AuthLoginService } from './auth-login.service';
 import { AuthRegistrationService } from './auth-registration.service';
 import { AuthSessionService } from './auth-session.service';
 import { AuthPasswordResetService } from './auth-password-reset.service';
 import { AuthTwoFactorService } from './auth-two-factor.service';
+import { CompleteGoogleDto } from './dto/complete-google.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ResendTwoFactorDto } from './dto/resend-two-factor.dto';
 import { VerifyTwoFactorDto } from './dto/verify-two-factor.dto';
+import type { GoogleAuthProfile } from './strategies/google.strategy';
 
 @Injectable()
 export class AuthService {
@@ -20,6 +23,7 @@ export class AuthService {
     private readonly authSessionService: AuthSessionService,
     private readonly passwordResetService: AuthPasswordResetService,
     private readonly authTwoFactorService: AuthTwoFactorService,
+    private readonly authGoogleService: AuthGoogleService,
   ) {}
 
   register(data: RegisterUserDto) {
@@ -64,5 +68,17 @@ export class AuthService {
 
   resetPassword(dto: ResetPasswordDto) {
     return this.passwordResetService.resetPassword(dto);
+  }
+
+  handleGoogleCallback(profile: GoogleAuthProfile, req: Request) {
+    return this.authGoogleService.handleCallback(profile, req);
+  }
+
+  getGooglePending(token: string) {
+    return this.authGoogleService.getPending(token);
+  }
+
+  completeGoogleRegistration(dto: CompleteGoogleDto, req: Request) {
+    return this.authGoogleService.completeRegistration(dto, req);
   }
 }

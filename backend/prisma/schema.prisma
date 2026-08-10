@@ -21,11 +21,20 @@ enum UserStatus {
   PENDING_VERIFICATION
 }
 
+enum AuthProvider {
+  GOOGLE
+}
+
 model User {
   id String @id @default(uuid())
 
-  email        String @unique
-  passwordHash String
+  email        String  @unique
+  passwordHash String?
+
+  /// OAuth provider (null = email/password account).
+  provider   AuthProvider?
+  /// Stable id from the OAuth provider (e.g. Google `sub`).
+  providerId String?
 
   username    String  @unique
   displayName String
@@ -86,6 +95,8 @@ model User {
   ticketMessages  TicketMessage[]
 
   lotDisputeMessages LotDisputeMessage[]
+
+  @@unique([provider, providerId])
 }
 
 enum AttributeType {

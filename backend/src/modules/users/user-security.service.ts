@@ -301,6 +301,12 @@ export class UserSecurityService {
       throw new NotFoundException({ code: 'errors.user_not_found' });
     }
 
+    if (!user.passwordHash) {
+      throw new BadRequestException({
+        code: 'errors.oauth_account_no_password',
+      });
+    }
+
     const currentOk = await verifyPassword(
       user.passwordHash,
       dto.currentPassword,
@@ -471,6 +477,12 @@ export class UserSecurityService {
     if (!user.twoFactorEnabled) {
       throw new BadRequestException({
         code: 'errors.two_factor_not_enabled',
+      });
+    }
+
+    if (!user.passwordHash) {
+      throw new BadRequestException({
+        code: 'errors.oauth_account_no_password',
       });
     }
 

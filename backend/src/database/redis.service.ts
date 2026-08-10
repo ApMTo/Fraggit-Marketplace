@@ -65,6 +65,26 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  /** Atomic GET + DEL (one-time tokens). Falls back to GET/DEL if GETDEL unavailable. */
+  async getdel(key: string): Promise<string | null> {
+    if (!key) return null;
+    try {
+      return await this.client.getdel(key);
+    } catch (err) {
+      this.logger.error(`Failed to GETDEL key "${key}"`, err);
+      try {
+        const value = await this.client.get(key);
+        if (value !== null) {
+          await this.client.del(key);
+        }
+        return value;
+      } catch (fallbackErr) {
+        this.logger.error(`Failed GET/DEL fallback for "${key}"`, fallbackErr);
+        return null;
+      }
+    }
+  }
+
   async set(key: string, value: string, ttl?: number): Promise<'OK' | null> {
     if (!key || value === undefined) {
       this.logger.warn(`Invalid Redis set call: key="${key}"`);

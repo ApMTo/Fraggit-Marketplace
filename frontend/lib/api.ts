@@ -32,6 +32,7 @@ const AUTH_SKIP_REFRESH_PATHS = [
   '/auth/refresh',
   '/auth/clear-session',
   '/auth/verify/',
+  '/auth/google/',
 ];
 
 function shouldSkipRefresh(url: string | undefined): boolean {

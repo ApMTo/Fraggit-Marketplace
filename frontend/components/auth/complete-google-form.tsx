@@ -1,64 +1,63 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFormik } from 'formik';
 import { useTranslations } from 'next-intl';
-import { MailCheck } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { AuthLayout } from '@/components/auth/auth-layout';
-import { AuthSocialSection } from '@/components/auth/auth-social-section';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/form-error';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { resolveAuthErrorKey } from '@/lib/auth-errors';
 import {
   validateDisplayName,
-  validateEmail,
-  validatePasswordConfirmation,
-  validateRegisterPassword,
   validateUsername,
 } from '@/lib/validation/auth';
 import { useAuth } from '@/providers/AuthProvider';
+import { authService } from '@/services/auth.service';
 
-type RegisterFormValues = {
+type CompleteGoogleFormValues = {
   username: string;
   displayName: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
   acceptedLegal: boolean;
 };
 
+type CompleteGoogleFormProps = {
+  token: string;
+};
+
 const FIELD_ERROR_KEYS: Partial<
-  Record<string, keyof RegisterFormValues>
+  Record<string, keyof CompleteGoogleFormValues>
 > = {
-  email_already_exists: 'email',
   username_already_exists: 'username',
 };
 
-export function RegisterForm() {
+export function CompleteGoogleForm({ token }: CompleteGoogleFormProps) {
   const t = useTranslations('auth');
   const tErrors = useTranslations('auth.errors');
   const tValidation = useTranslations('auth.validation');
-  const { register } = useAuth();
+  const { updateUser } = useAuth();
   const router = useRouter();
-  const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const formik = useFormik<RegisterFormValues>({
+  const formik = useFormik<CompleteGoogleFormValues>({
     initialValues: {
       username: '',
       displayName: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
       acceptedLegal: false,
     },
+    enableReinitialize: true,
     validate: (values) => {
-      const errors: Partial<Record<keyof RegisterFormValues, string>> = {};
+      const errors: Partial<Record<keyof CompleteGoogleFormValues, string>> =
+        {};
 
       const usernameError = validateUsername(values.username);
       if (usernameError) {
@@ -68,24 +67,6 @@ export function RegisterForm() {
       const displayNameError = validateDisplayName(values.displayName);
       if (displayNameError) {
         errors.displayName = tValidation(displayNameError);
-      }
-
-      const emailError = validateEmail(values.email);
-      if (emailError) {
-        errors.email = tValidation(emailError);
-      }
-
-      const passwordError = validateRegisterPassword(values.password);
-      if (passwordError) {
-        errors.password = tValidation(passwordError);
-      }
-
-      const confirmError = validatePasswordConfirmation(
-        values.password,
-        values.confirmPassword,
-      );
-      if (confirmError) {
-        errors.confirmPassword = tValidation(confirmError);
       }
 
       if (!values.acceptedLegal) {
@@ -103,15 +84,17 @@ export function RegisterForm() {
       setStatus(undefined);
 
       try {
-        await register({
+        const response = await authService.completeGoogle({
+          token,
           username: values.username.trim(),
           displayName: values.displayName.trim(),
-          email: values.email.trim(),
-          password: values.password,
           acceptedTerms: true,
           acceptedPrivacy: true,
         });
-        setSubmittedEmail(values.email.trim());
+        updateUser(response.user);
+        toast.success(t('completeGoogle.success'));
+        router.replace('/');
+        router.refresh();
       } catch (error) {
         const key = resolveAuthErrorKey(error);
         const message = tErrors(key);
@@ -129,31 +112,67 @@ export function RegisterForm() {
     },
   });
 
-  const clearFormError = () => {
-    if (formik.status?.formError) {
-      formik.setStatus(undefined);
-    }
-  };
+  useEffect(() => {
+    let cancelled = false;
 
-  if (submittedEmail) {
+    async function loadPending() {
+      try {
+        const pending = await authService.getGooglePending(token);
+        if (cancelled) {
+          return;
+        }
+        setEmail(pending.email);
+        void formik.setFieldValue(
+          'displayName',
+          pending.suggestedDisplayName || '',
+        );
+      } catch (error) {
+        if (!cancelled) {
+          setLoadError(tErrors(resolveAuthErrorKey(error)));
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadPending();
+
+    return () => {
+      cancelled = true;
+    };
+    // formik identity is unstable; only re-run when token changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, tErrors]);
+
+  if (loading) {
     return (
       <AuthLayout
-        title={t('register.successTitle')}
-        subtitle={t('register.success')}
+        title={t('completeGoogle.title')}
+        subtitle={t('completeGoogle.subtitle')}
+      >
+        <Card>
+          <CardContent className="flex flex-col items-center gap-4 py-10">
+            <Spinner size="lg" />
+            <p className="text-sm text-subtle">{t('completeGoogle.loading')}</p>
+          </CardContent>
+        </Card>
+      </AuthLayout>
+    );
+  }
+
+  if (loadError || !email) {
+    return (
+      <AuthLayout
+        title={t('completeGoogle.title')}
+        subtitle={t('completeGoogle.subtitle')}
       >
         <Card>
           <CardContent className="flex flex-col items-center gap-6 py-10 text-center">
-            <MailCheck className="size-14 text-success" strokeWidth={1.5} />
-            <div className="space-y-2">
-              <p className="text-lg font-medium text-foreground">
-                {t('register.successTitle')}
-              </p>
-              <p className="text-sm text-muted">
-                {t('register.successDescription', { email: submittedEmail })}
-              </p>
-            </div>
-            <Button onClick={() => router.push('/login')}>
-              {t('register.goToLogin')}
+            <FormError>{loadError ?? tErrors('invalid_or_expired_token')}</FormError>
+            <Button onClick={() => router.push('/register')}>
+              {t('completeGoogle.tryAgain')}
             </Button>
           </CardContent>
         </Card>
@@ -161,18 +180,21 @@ export function RegisterForm() {
     );
   }
 
+  const clearFormError = () => {
+    if (formik.status?.formError) {
+      formik.setStatus(undefined);
+    }
+  };
+
   return (
     <AuthLayout
-      title={t('register.title')}
-      subtitle={t('register.subtitle')}
+      title={t('completeGoogle.title')}
+      subtitle={t('completeGoogle.subtitle')}
       footer={
         <>
-          {t('register.hasAccount')}{' '}
-          <Link
-            href="/login"
-            className="font-medium text-link hover:underline"
-          >
-            {t('register.signIn')}
+          {t('completeGoogle.hasAccount')}{' '}
+          <Link href="/login" className="font-medium text-link hover:underline">
+            {t('completeGoogle.signIn')}
           </Link>
         </>
       }
@@ -184,10 +206,19 @@ export function RegisterForm() {
               <FormError>{formik.status.formError}</FormError>
             ) : null}
 
-            <AuthSocialSection
-              googleLabel={t('register.continueWithGoogle')}
-              dividerLabel={t('register.orEmail')}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="google-email">{t('fields.email')}</Label>
+              <Input
+                id="google-email"
+                type="email"
+                value={email}
+                disabled
+                readOnly
+              />
+              <p className="text-xs text-subtle">
+                {t('completeGoogle.emailHint')}
+              </p>
+            </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -240,73 +271,6 @@ export function RegisterForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">{t('fields.email')}</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                placeholder={t('placeholders.email')}
-                value={formik.values.email}
-                onChange={(event) => {
-                  clearFormError();
-                  formik.handleChange(event);
-                }}
-                onBlur={formik.handleBlur}
-                hasError={Boolean(formik.touched.email && formik.errors.email)}
-              />
-              {formik.touched.email && formik.errors.email ? (
-                <p className="text-xs text-destructive">{formik.errors.email}</p>
-              ) : null}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">{t('fields.password')}</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                placeholder={t('placeholders.passwordRegister')}
-                value={formik.values.password}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                hasError={Boolean(
-                  formik.touched.password && formik.errors.password,
-                )}
-              />
-              {formik.touched.password && formik.errors.password ? (
-                <p className="text-xs text-destructive">
-                  {formik.errors.password}
-                </p>
-              ) : (
-                <p className="text-xs text-subtle">{t('register.passwordHint')}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">{t('fields.confirmPassword')}</Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                placeholder={t('placeholders.confirmPassword')}
-                value={formik.values.confirmPassword}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                hasError={Boolean(
-                  formik.touched.confirmPassword && formik.errors.confirmPassword,
-                )}
-              />
-              {formik.touched.confirmPassword && formik.errors.confirmPassword ? (
-                <p className="text-xs text-destructive">
-                  {formik.errors.confirmPassword}
-                </p>
-              ) : null}
-            </div>
-
-            <div className="space-y-2">
               <div className="flex items-start gap-3">
                 <Checkbox
                   id="acceptedLegal"
@@ -351,7 +315,7 @@ export function RegisterForm() {
               className="w-full"
               isLoading={formik.isSubmitting}
             >
-              {t('register.submit')}
+              {t('completeGoogle.submit')}
             </Button>
           </form>
         </CardContent>

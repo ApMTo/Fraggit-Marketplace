@@ -1,4 +1,4 @@
-import { getApiErrorCode } from '@/lib/api-error';
+import { getApiErrorCode, isApiError } from '@/lib/api-error';
 
 const KNOWN_ERROR_CODES = new Set([
   'email_already_exists',
@@ -33,10 +33,43 @@ const KNOWN_ERROR_CODES = new Set([
   'two_factor_already_enabled',
   'two_factor_not_enabled',
   'invalid_current_password',
+  'google_auth_failed',
+  'google_oauth_not_configured',
+  'oauth_account_no_password',
+  'terms_acceptance_required',
+  'privacy_acceptance_required',
+  'unique_constraint_failed',
 ]);
 
+function extractErrorCode(error: unknown): string | null {
+  // Prefer API payload — AxiosError also has a string `code` (ERR_BAD_REQUEST).
+  const fromApi = getApiErrorCode(error);
+  if (fromApi) {
+    return fromApi;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  if (isApiError(error)) {
+    return null;
+  }
+
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    typeof (error as { code: unknown }).code === 'string'
+  ) {
+    return (error as { code: string }).code;
+  }
+
+  return null;
+}
+
 export function resolveAuthErrorKey(error: unknown): string {
-  const code = getApiErrorCode(error);
+  const code = extractErrorCode(error);
 
   if (!code) {
     return 'generic';

@@ -61,11 +61,13 @@ export class AuthPasswordResetService {
           displayName: true,
           status: true,
           emailVerified: true,
+          passwordHash: true,
         },
       });
 
       if (
         user &&
+        user.passwordHash &&
         user.emailVerified &&
         user.status !== UserStatus.BANNED &&
         user.status !== UserStatus.SUSPENDED

@@ -23,7 +23,12 @@ const PROTECTED_EXACT = new Set(['/listings/new']);
 const LOT_EDIT_PATH =
   /^\/listings\/[^/]+\/[^/]+\/lot\/[^/]+\/edit$/;
 
-const GUEST_EXACT = new Set(['/login', '/register', '/forgot-password']);
+const GUEST_EXACT = new Set([
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/auth/complete-google',
+]);
 
 const GUEST_PREFIXES = ['/auth/reset-password'];
 

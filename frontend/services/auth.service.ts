@@ -15,6 +15,8 @@ import type {
   TwoFactorResendResponse,
   VerifyTwoFactorPayload,
   VerifyUserResponse,
+  CompleteGooglePayload,
+  GooglePendingResponse,
 } from '@/types/auth';
 import { isTwoFactorChallenge } from '@/types/auth';
 
@@ -68,6 +70,24 @@ export const authService = {
   async verify(token: string): Promise<VerifyUserResponse> {
     const { data } = await api.get<VerifyUserResponse>(
       `/auth/verify/${encodeURIComponent(token)}`,
+    );
+    syncCsrfFromCookie();
+    return data;
+  },
+
+  async getGooglePending(token: string): Promise<GooglePendingResponse> {
+    const { data } = await api.get<GooglePendingResponse>(
+      `/auth/google/pending/${encodeURIComponent(token)}`,
+    );
+    return data;
+  },
+
+  async completeGoogle(
+    payload: CompleteGooglePayload,
+  ): Promise<VerifyUserResponse> {
+    const { data } = await api.post<VerifyUserResponse>(
+      '/auth/google/complete',
+      payload,
     );
     syncCsrfFromCookie();
     return data;

@@ -7,6 +7,7 @@ import { useFormik } from 'formik';
 import { useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
 import { AuthLayout } from '@/components/auth/auth-layout';
+import { AuthSocialSection } from '@/components/auth/auth-social-section';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { FormError } from '@/components/ui/form-error';
@@ -19,6 +20,7 @@ import { validateEmail, validateLoginPassword } from '@/lib/validation/auth';
 import { useAuth } from '@/providers/AuthProvider';
 import { authService } from '@/services/auth.service';
 import { isTwoFactorChallenge } from '@/types/auth';
+import { useSearchParams } from 'next/navigation';
 
 type LoginFormValues = {
   email: string;
@@ -39,9 +41,21 @@ export function LoginForm({ redirectTo = '/' }: LoginFormProps) {
   const tValidation = useTranslations('auth.validation');
   const { login, verifyTwoFactor } = useAuth();
   const router = useRouter();
-  const [challengeId, setChallengeId] = useState<string | null>(null);
-  const [resendSeconds, setResendSeconds] = useState(0);
+  const searchParams = useSearchParams();
+  const challengeFromQuery = searchParams.get('twoFactorChallenge');
+  const errorFromQuery = searchParams.get('error');
+  const [challengeId, setChallengeId] = useState<string | null>(
+    () => challengeFromQuery,
+  );
+  const [resendSeconds, setResendSeconds] = useState(() =>
+    challengeFromQuery ? 30 : 0,
+  );
   const [resendPending, setResendPending] = useState(false);
+  const [oauthError, setOauthError] = useState<string | null>(() =>
+    errorFromQuery
+      ? tErrors(resolveAuthErrorKey({ code: errorFromQuery }))
+      : null,
+  );
 
   useEffect(() => {
     if (resendSeconds <= 0) {
@@ -174,6 +188,9 @@ export function LoginForm({ redirectTo = '/' }: LoginFormProps) {
   }
 
   const clearLoginError = () => {
+    if (oauthError) {
+      setOauthError(null);
+    }
     if (loginFormik.status?.formError || loginFormik.status?.restriction) {
       loginFormik.setStatus(undefined);
     }
@@ -305,8 +322,10 @@ export function LoginForm({ redirectTo = '/' }: LoginFormProps) {
             className="space-y-5"
             noValidate
           >
-            {loginFormik.status?.formError ? (
-              <FormError>{loginFormik.status.formError}</FormError>
+            {loginFormik.status?.formError || oauthError ? (
+              <FormError>
+                {loginFormik.status?.formError ?? oauthError}
+              </FormError>
             ) : null}
 
             {loginFormik.status?.restriction ? (
@@ -314,6 +333,11 @@ export function LoginForm({ redirectTo = '/' }: LoginFormProps) {
                 restriction={loginFormik.status.restriction}
               />
             ) : null}
+
+            <AuthSocialSection
+              googleLabel={t('login.continueWithGoogle')}
+              dividerLabel={t('login.orEmail')}
+            />
 
             <div className="space-y-2">
               <Label htmlFor="email">{t('fields.email')}</Label>

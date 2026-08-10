@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { LoginForm } from '@/components/auth/login-form';
 
 type LoginPageProps = {
@@ -5,5 +6,10 @@ type LoginPageProps = {
 };
 
 export function LoginPage({ redirectTo = '/' }: LoginPageProps) {
-  return <LoginForm redirectTo={redirectTo} />;
+  return (
+    <Suspense fallback={null}>
+      <LoginForm redirectTo={redirectTo} />
+    </Suspense>
+  );
 }
+

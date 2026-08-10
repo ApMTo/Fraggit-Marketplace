@@ -70,6 +70,33 @@ describe('resolveAuthErrorKey', () => {
     expect(resolveAuthErrorKey(error)).toBe('email_already_exists');
   });
 
+  it('prefers API message over Axios ERR_* code', () => {
+    const error = new AxiosError('Request failed');
+    error.isAxiosError = true;
+    error.code = 'ERR_BAD_REQUEST';
+    error.response = {
+      data: {
+        status: 'error',
+        error: {
+          message: { code: 'username_already_exists' },
+          code: 409,
+        },
+      },
+      status: 409,
+      statusText: 'Conflict',
+      headers: {},
+      config: {} as never,
+    };
+
+    expect(resolveAuthErrorKey(error)).toBe('username_already_exists');
+  });
+
+  it('reads plain redirect error payloads', () => {
+    expect(resolveAuthErrorKey({ code: 'google_auth_failed' })).toBe(
+      'google_auth_failed',
+    );
+  });
+
   it('returns generic for unknown codes', () => {
     expect(resolveAuthErrorKey(createAxiosError('something_unknown'))).toBe(
       'generic',

@@ -7,7 +7,9 @@
   Param,
   Post,
   Req,
+  Res,
   UnauthorizedException,
+  UseFilters,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -19,17 +21,22 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
+import { ConfigService } from '@nestjs/config';
 import { Public } from '../../decorators/public.decorator';
 import { AuthService } from './auth.service';
 import { clearAuthCookies } from './utils/auth-cookies.util';
 import { JwtAuthGuard } from './guards/jwt.guard';
+import { GoogleAuthGuard } from './guards/google-auth.guard';
+import { GoogleOAuthExceptionFilter } from './filters/google-oauth-exception.filter';
+import { CompleteGoogleDto } from './dto/complete-google.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ResendTwoFactorDto } from './dto/resend-two-factor.dto';
 import { VerifyTwoFactorDto } from './dto/verify-two-factor.dto';
+import type { GoogleAuthProfile } from './strategies/google.strategy';
 import {
   AuthErrorResponseDto,
   AuthMessageResponseDto,
@@ -52,7 +59,15 @@ const CSRF_HEADER = {
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  private readonly frontendUrl: string;
+
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {
+    this.frontendUrl =
+      this.configService.get<string>('frontendUrl') ?? 'http://localhost:3000';
+  }
 
   @Post('register')
   @Public()
@@ -254,5 +269,94 @@ export class AuthController {
   @ApiResponse({ status: 200, type: LogoutAllResponseDto })
   logoutAll(@Req() req: Request & { user: { id: string } }) {
     return this.authService.logoutAllSessions(req.user.id, req);
+  }
+
+  @Get('google')
+  @Public()
+  @UseGuards(GoogleAuthGuard)
+  @UseFilters(GoogleOAuthExceptionFilter)
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @ApiOperation({
+    summary: 'Start Google OAuth',
+    description: 'Redirects the browser to Google consent screen.',
+  })
+  @ApiResponse({ status: 302, description: 'Redirect to Google' })
+  googleAuth(): void {
+    // Passport GoogleAuthGuard handles the redirect.
+  }
+
+  @Get('google/callback')
+  @Public()
+  @UseGuards(GoogleAuthGuard)
+  @UseFilters(GoogleOAuthExceptionFilter)
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @ApiOperation({
+    summary: 'Google OAuth callback',
+    description:
+      'Existing Google users are signed in. New users are redirected to complete username/displayName.',
+  })
+  @ApiResponse({ status: 302, description: 'Redirect to frontend' })
+  async googleCallback(
+    @Req() req: Request & { user: GoogleAuthProfile },
+    @Res() res: Response,
+  ): Promise<void> {
+    try {
+      const outcome = await this.authService.handleGoogleCallback(
+        req.user,
+        req,
+      );
+
+      if (outcome.kind === 'complete') {
+        res.redirect(
+          `${this.frontendUrl}/auth/complete-google?token=${encodeURIComponent(outcome.token)}`,
+        );
+        return;
+      }
+
+      if (outcome.kind === 'two_factor') {
+        res.redirect(
+          `${this.frontendUrl}/login?twoFactorChallenge=${encodeURIComponent(outcome.challengeId)}`,
+        );
+        return;
+      }
+
+      if (outcome.kind === 'error') {
+        res.redirect(
+          `${this.frontendUrl}/login?error=${encodeURIComponent(outcome.code)}`,
+        );
+        return;
+      }
+
+      res.redirect(`${this.frontendUrl}/`);
+    } catch {
+      res.redirect(`${this.frontendUrl}/login?error=google_auth_failed`);
+    }
+  }
+
+  @Get('google/pending/:token')
+  @Public()
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Get pending Google registration profile' })
+  @ApiParam({ name: 'token', description: 'Pending signup token' })
+  @ApiResponse({ status: 200 })
+  @ApiResponse({ status: 400, type: AuthErrorResponseDto })
+  getGooglePending(@Param('token') token: string) {
+    return this.authService.getGooglePending(token);
+  }
+
+  @Post('google/complete')
+  @Public()
+  @HttpCode(HttpStatus.CREATED)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @ApiOperation({
+    summary: 'Complete Google registration',
+    description:
+      'Creates the account from a pending Google OAuth profile using username and displayName.',
+  })
+  @ApiResponse({ status: 201, type: VerifyUserResponseDto })
+  @ApiResponse({ status: 400, type: AuthErrorResponseDto })
+  @ApiResponse({ status: 409, type: AuthErrorResponseDto })
+  completeGoogle(@Body() data: CompleteGoogleDto, @Req() req: Request) {
+    return this.authService.completeGoogleRegistration(data, req);
   }
 }

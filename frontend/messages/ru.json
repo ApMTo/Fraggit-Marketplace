@@ -996,7 +996,9 @@
       "success": "Вы успешно вошли",
       "noAccount": "Нет аккаунта?",
       "createAccount": "Создать",
-      "forgotPassword": "Забыли пароль?"
+      "forgotPassword": "Забыли пароль?",
+      "continueWithGoogle": "Продолжить с Google",
+      "orEmail": "или email"
     },
     "register": {
       "title": "Создайте аккаунт",
@@ -1014,7 +1016,20 @@
       "legalPrivacyLink": "Политикой конфиденциальности",
       "legalConsentAnd": "и",
       "legalMarketplaceLink": "Правилами торговли",
-      "legalConsentRequired": "Для создания аккаунта необходимо принять юридические документы"
+      "legalConsentRequired": "Для создания аккаунта необходимо принять юридические документы",
+      "continueWithGoogle": "Продолжить с Google",
+      "orEmail": "или email"
+    },
+    "completeGoogle": {
+      "title": "Завершите профиль",
+      "subtitle": "Выберите username и отображаемое имя, чтобы создать аккаунт Fraggit",
+      "loading": "Загружаем данные Google…",
+      "submit": "Создать аккаунт",
+      "success": "Аккаунт успешно создан",
+      "emailHint": "Взято из вашего Google-аккаунта",
+      "hasAccount": "Уже есть аккаунт?",
+      "signIn": "Войти",
+      "tryAgain": "Попробовать Google снова"
     },
     "verify": {
       "title": "Подтверждение email",
@@ -1120,6 +1135,11 @@
       "too_many_code_attempts": "Слишком много неверных кодов. Запросите новый.",
       "invalid_or_expired_challenge": "Код входа истёк. Войдите снова.",
       "two_factor_resend_cooldown": "Подождите перед повторной отправкой кода.",
+      "google_auth_failed": "Не удалось войти через Google. Попробуйте снова.",
+      "google_oauth_not_configured": "Вход через Google не настроен.",
+      "oauth_account_no_password": "Этот аккаунт использует вход через Google и не имеет пароля.",
+      "terms_acceptance_required": "Необходимо принять Пользовательское соглашение.",
+      "privacy_acceptance_required": "Необходимо принять Политику конфиденциальности.",
       "two_factor_already_enabled": "Двухфакторная аутентификация уже включена.",
       "two_factor_not_enabled": "Двухфакторная аутентификация не включена.",
       "invalid_current_password": "Неверный текущий пароль"

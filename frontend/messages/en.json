@@ -996,7 +996,9 @@
       "success": "Signed in successfully",
       "noAccount": "Don't have an account?",
       "createAccount": "Create one",
-      "forgotPassword": "Forgot password?"
+      "forgotPassword": "Forgot password?",
+      "continueWithGoogle": "Continue with Google",
+      "orEmail": "or email"
     },
     "register": {
       "title": "Create your account",
@@ -1014,7 +1016,20 @@
       "legalPrivacyLink": "Privacy Policy",
       "legalConsentAnd": "and",
       "legalMarketplaceLink": "Marketplace Rules",
-      "legalConsentRequired": "You must accept the legal documents to create an account"
+      "legalConsentRequired": "You must accept the legal documents to create an account",
+      "continueWithGoogle": "Continue with Google",
+      "orEmail": "or email"
+    },
+    "completeGoogle": {
+      "title": "Finish your profile",
+      "subtitle": "Choose a username and display name to create your Fraggit account",
+      "loading": "Loading your Google profile…",
+      "submit": "Create account",
+      "success": "Account created successfully",
+      "emailHint": "Taken from your Google account",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "tryAgain": "Try Google again"
     },
     "verify": {
       "title": "Email verification",
@@ -1120,6 +1135,11 @@
       "too_many_code_attempts": "Too many incorrect codes. Request a new one.",
       "invalid_or_expired_challenge": "This login code expired. Sign in again.",
       "two_factor_resend_cooldown": "Wait before requesting another code.",
+      "google_auth_failed": "Google sign-in failed. Please try again.",
+      "google_oauth_not_configured": "Google sign-in is not configured.",
+      "oauth_account_no_password": "This account uses Google sign-in and has no password.",
+      "terms_acceptance_required": "You must accept the Terms of Service.",
+      "privacy_acceptance_required": "You must accept the Privacy Policy.",
       "two_factor_already_enabled": "Two-factor authentication is already enabled.",
       "two_factor_not_enabled": "Two-factor authentication is not enabled.",
       "invalid_current_password": "Current password is incorrect"

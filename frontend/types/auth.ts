@@ -94,6 +94,20 @@ export type ResetPasswordTokenResponse = {
   expiresInSeconds: number;
 };
 
+export type CompleteGooglePayload = {
+  token: string;
+  username: string;
+  displayName: string;
+  acceptedTerms: boolean;
+  acceptedPrivacy: boolean;
+};
+
+export type GooglePendingResponse = {
+  email: string;
+  suggestedDisplayName: string;
+  expiresInSeconds: number;
+};
+
 export type ApiErrorBody = {
   status: 'error';
   error: {

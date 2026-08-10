@@ -26,7 +26,15 @@ export class PrismaFilter implements ExceptionFilter {
       case 'P2002': {
         const target = exception.meta?.target as string[] | undefined;
 
-        if (target?.includes('name')) {
+        if (target?.includes('username')) {
+          httpException = new ConflictException({
+            code: 'username_already_exists',
+          });
+        } else if (target?.includes('email')) {
+          httpException = new ConflictException({
+            code: 'email_already_exists',
+          });
+        } else if (target?.includes('name')) {
           httpException = new ConflictException(
             'organization_name_already_exists',
           );

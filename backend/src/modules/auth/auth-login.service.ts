@@ -48,7 +48,7 @@ export class AuthLoginService {
       },
     });
 
-    if (!user) {
+    if (!user || !user.passwordHash) {
       await registerFailedLoginAttempt(this.redis, email);
       throw new UnauthorizedException({ code: 'invalid_credentials' });
     }
