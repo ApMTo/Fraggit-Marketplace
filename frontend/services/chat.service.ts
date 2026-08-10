@@ -12,6 +12,9 @@ export const chatKeys = {
   conversations: () => [...chatKeys.all, 'conversations'] as const,
   conversationList: (params?: { search?: string; page?: number; limit?: number }) =>
     [...chatKeys.conversations(), params ?? {}] as const,
+  /** Separate from conversation list so list cache updaters never see this shape. */
+  ensureConversation: (participantUserId: string) =>
+    [...chatKeys.all, 'ensure-conversation', participantUserId] as const,
   messages: (conversationId: string) =>
     [...chatKeys.all, 'messages', conversationId] as const,
 };

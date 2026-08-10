@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsInt,
+  IsNotEmpty,
   IsOptional,
   IsString,
   IsUUID,
@@ -9,6 +10,7 @@ import {
   MaxLength,
   Min,
   MinLength,
+  ValidateIf,
 } from 'class-validator';
 import { V } from '../../../common/constants/validation.messages';
 import { CHAT_MAX_TEXT_LENGTH } from '../constants/chat.constants';
@@ -134,4 +136,46 @@ export class WsMarkReadDto {
 export class WsLotSubscribeDto {
   @IsUUID('4', { message: V.invalidUuid })
   lotId!: string;
+}
+
+export class WsSendLotDisputeMessageDto {
+  @IsUUID('4', { message: V.invalidUuid })
+  roomId!: string;
+
+  @ValidateIf((dto: WsSendLotDisputeMessageDto) => !dto.url)
+  @IsString({ message: V.mustBeString })
+  @IsNotEmpty({ message: 'validation.message_required' })
+  @MaxLength(4000)
+  body?: string;
+
+  @ValidateIf((dto: WsSendLotDisputeMessageDto) => !dto.body?.trim())
+  @IsString({ message: V.mustBeString })
+  @MinLength(1, { message: 'validation.url_required' })
+  @MaxLength(2048, { message: 'validation.url_too_long' })
+  url?: string;
+
+  @ValidateIf((dto: WsSendLotDisputeMessageDto) => Boolean(dto.url))
+  @IsString({ message: V.mustBeString })
+  @MinLength(3, { message: 'validation.mime_type_required' })
+  @MaxLength(100, { message: 'validation.mime_type_too_long' })
+  mimeType?: string;
+
+  @ValidateIf((dto: WsSendLotDisputeMessageDto) => Boolean(dto.url))
+  @Type(() => Number)
+  @IsInt({ message: 'validation.file_size_must_be_integer' })
+  @Min(1, { message: 'validation.file_size_min_value' })
+  @Max(5_242_880, { message: 'validation.file_size_max_value' })
+  size?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: 'validation.width_must_be_integer' })
+  @Min(1, { message: 'validation.width_min_value' })
+  width?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: 'validation.height_must_be_integer' })
+  @Min(1, { message: 'validation.height_min_value' })
+  height?: number;
 }

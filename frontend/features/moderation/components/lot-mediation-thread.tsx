@@ -1,19 +1,26 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import toast from 'react-hot-toast';
 import { AppImage } from '@/components/ui/app-image';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { ImageLightbox } from '@/features/chat/components/image-lightbox';
 import { MessageComposer } from '@/features/chat/components/message-composer';
 import {
+  applyDisputeMessageToCache,
+  sendDisputeMessage,
+} from '@/hooks/use-dispute-realtime';
+import {
   useLotDisputeRoom,
-  useModerationMutations,
 } from '@/hooks/use-moderation';
 import { resolveApiErrorKey } from '@/lib/api-errors';
 import { readImageDimensions } from '@/lib/chat-image';
+import { formatMessageTime } from '@/lib/chat-time';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/providers/AuthProvider';
+import { useQueryClient } from '@tanstack/react-query';
 import { filesService } from '@/services/files.service';
 import type { UserRole } from '@/types/auth';
 import type {
@@ -43,7 +50,8 @@ type Props = {
   roomId: string;
   initialData?: LotDisputeRoomDetail | null;
   className?: string;
-  staffReplyLocked?: boolean;
+  /** Staff cannot reply until they claim; parties write as themselves. */
+  staffReplyLock?: 'claim' | null;
 };
 
 function resolveSystemMessage(
@@ -115,15 +123,131 @@ function sendErrorToast(
   );
 }
 
+type DisputeMessageBubbleProps = {
+  message: LotDisputeMessage;
+  isOwn: boolean;
+  locale: string;
+  enlargeLabel: string;
+  closeLightboxLabel: string;
+  t: ReturnType<typeof useTranslations>;
+};
+
+function DisputeMessageBubble({
+  message,
+  isOwn,
+  locale,
+  enlargeLabel,
+  closeLightboxLabel,
+  t,
+}: DisputeMessageBubbleProps) {
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const time = formatMessageTime(message.createdAt, locale);
+  const fromStaff =
+    Boolean(message.author) && isStaffRole(message.author!.role);
+  const image =
+    message.kind === 'IMAGE' && isImageMetadata(message.metadata)
+      ? message.metadata
+      : null;
+
+  if (message.kind === 'SYSTEM') {
+    return (
+      <div className="flex justify-center px-1 py-2">
+        <p className="max-w-[85%] rounded-[var(--radius-sm)] bg-surface-elevated px-3 py-1.5 text-center text-xs text-subtle">
+          {resolveSystemMessage(message, t)}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn('flex px-1 py-1', isOwn ? 'justify-end' : 'justify-start')}
+    >
+      <div className="max-w-[min(100%,420px)]">
+        {!isOwn ? (
+          <p
+            className={cn(
+              'mb-1 px-1 text-xs font-medium',
+              fromStaff ? 'text-[var(--link)]' : 'text-subtle',
+            )}
+          >
+            {authorLabel(message, t)}
+          </p>
+        ) : null}
+
+        <div
+          className={cn(
+            'rounded-[var(--radius-md)] px-3.5 py-2 shadow-[var(--shadow-md)]',
+            isOwn
+              ? 'rounded-br-sm bg-[linear-gradient(120deg,var(--blue)_0%,var(--purple)_100%)] text-white'
+              : fromStaff
+                ? 'rounded-bl-sm border border-[var(--link)]/30 bg-[var(--blue-a12)] text-foreground'
+                : 'rounded-bl-sm border border-border bg-surface-elevated text-foreground',
+          )}
+        >
+          {image ? (
+            <button
+              type="button"
+              onClick={() => setLightboxOpen(true)}
+              aria-label={enlargeLabel}
+              className="relative mb-1.5 block max-w-full cursor-zoom-in overflow-hidden rounded-[var(--radius-sm)] text-left"
+            >
+              <AppImage
+                src={image.url}
+                alt={t('imageAlt')}
+                width={image.width ?? 280}
+                height={image.height ?? 200}
+                className="max-h-64 w-auto max-w-full object-cover"
+                unoptimized
+              />
+            </button>
+          ) : null}
+
+          {message.kind === 'TEXT' ||
+          (image && message.body && message.body !== '[image]') ? (
+            <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+              {message.body}
+            </p>
+          ) : null}
+
+          {time ? (
+            <time
+              dateTime={message.createdAt}
+              className={cn(
+                'mt-1 block text-right text-[11px] tabular-nums',
+                isOwn ? 'text-white/70' : 'text-subtle',
+              )}
+            >
+              {time}
+            </time>
+          ) : null}
+        </div>
+      </div>
+
+      {image ? (
+        <ImageLightbox
+          open={lightboxOpen}
+          src={image.url}
+          onClose={() => setLightboxOpen(false)}
+          closeLabel={closeLightboxLabel}
+        />
+      ) : null}
+    </div>
+  );
+}
+
 export function LotMediationThread({
   roomId,
   initialData,
   className,
-  staffReplyLocked = false,
+  staffReplyLock = null,
 }: Props) {
   const t = useTranslations('lotDispute');
+  const tChat = useTranslations('chat');
+  const locale = useLocale();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { data, isLoading, isError, refetch } = useLotDisputeRoom(roomId);
-  const { addLotDisputeMessage } = useModerationMutations();
   const [isSending, setIsSending] = useState(false);
 
   const detail = data ?? initialData ?? null;
@@ -137,7 +261,11 @@ export function LotMediationThread({
   async function handleSendText(content: string) {
     setIsSending(true);
     try {
-      await addLotDisputeMessage.mutateAsync({ roomId, body: content });
+      const message = await sendDisputeMessage(roomId, { body: content });
+      applyDisputeMessageToCache(queryClient, roomId, message, {
+        orderId: detail?.room.orderId,
+        ticketId: detail?.room.ticketId,
+      });
     } catch (err) {
       sendErrorToast(err, t);
       throw err;
@@ -157,13 +285,16 @@ export function LotMediationThread({
         })),
       ]);
 
-      await addLotDisputeMessage.mutateAsync({
-        roomId,
+      const message = await sendDisputeMessage(roomId, {
         url,
         mimeType: file.type,
         size: file.size,
         width: dimensions.width,
         height: dimensions.height,
+      });
+      applyDisputeMessageToCache(queryClient, roomId, message, {
+        orderId: detail?.room.orderId,
+        ticketId: detail?.room.ticketId,
       });
     } catch (err) {
       sendErrorToast(err, t);
@@ -211,7 +342,7 @@ export function LotMediationThread({
         <p className="text-sm text-muted-foreground">
           {t('participants')}:{' '}
           {detail.participants.length > 0
-            ? detail.participants.map((user) => `@${user.username}`).join(', ')
+            ? detail.participants.map((p) => `@${p.username}`).join(', ')
             : '—'}
         </p>
         {closed ? (
@@ -221,107 +352,52 @@ export function LotMediationThread({
         ) : null}
       </div>
 
-      <ol className="min-h-[120px] max-h-80 space-y-2 overflow-y-auto rounded-md border border-border/70 bg-muted/20 p-3">
-        {sortedMessages.length === 0 ? (
-          <li className="py-6 text-center text-sm text-muted-foreground">
-            {t('empty')}
-          </li>
-        ) : (
-          sortedMessages.map((message) => {
-            const fromStaff =
-              (message.kind === 'TEXT' || message.kind === 'IMAGE') &&
-              message.author &&
-              isStaffRole(message.author.role);
-            const image =
-              message.kind === 'IMAGE' && isImageMetadata(message.metadata)
-                ? message.metadata
-                : null;
-
-            return (
-              <li
+      <div className="flex min-h-[280px] max-h-[min(70vh,36rem)] flex-col overflow-hidden rounded-[var(--radius-md)] border border-border bg-surface">
+        <div className="min-h-0 flex-1 overflow-y-auto py-3">
+          {sortedMessages.length === 0 ? (
+            <p className="py-10 text-center text-sm text-muted-foreground">
+              {t('empty')}
+            </p>
+          ) : (
+            sortedMessages.map((message) => (
+              <DisputeMessageBubble
                 key={message.id}
-                className={cn(
-                  'rounded-md px-3 py-2 text-sm',
-                  message.kind === 'SYSTEM'
-                    ? 'bg-background/80 text-center text-xs text-muted-foreground'
-                    : fromStaff
-                      ? 'border border-[var(--link)]/25 bg-[var(--blue-a12)]'
-                      : 'bg-background',
+                message={message}
+                isOwn={Boolean(
+                  user?.id &&
+                    message.authorId &&
+                    message.authorId === user.id,
                 )}
-              >
-                {message.kind !== 'SYSTEM' ? (
-                  <p className="text-xs text-muted-foreground">
-                    <span
-                      className={cn(
-                        'font-medium',
-                        fromStaff ? 'text-[var(--link)]' : 'text-foreground',
-                      )}
-                    >
-                      {authorLabel(message, t)}
-                    </span>
-                    <span>
-                      {' '}
-                      · {new Date(message.createdAt).toLocaleString()}
-                    </span>
-                  </p>
-                ) : null}
+                locale={locale}
+                enlargeLabel={tChat('thread.enlargeImage')}
+                closeLightboxLabel={tChat('thread.closeImage')}
+                t={t}
+              />
+            ))
+          )}
+        </div>
 
-                {message.kind === 'SYSTEM' ? (
-                  <p className="whitespace-pre-wrap break-words">
-                    {resolveSystemMessage(message, t)}
-                  </p>
-                ) : image ? (
-                  <div className="mt-2 space-y-2">
-                    <a
-                      href={image.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="relative block max-w-xs overflow-hidden rounded-[var(--radius-sm)] border border-border"
-                    >
-                      <AppImage
-                        src={image.url}
-                        alt={t('imageAlt')}
-                        width={image.width ?? 480}
-                        height={image.height ?? 320}
-                        className="h-auto max-h-64 w-full object-contain"
-                        unoptimized
-                      />
-                    </a>
-                    {message.body && message.body !== '[image]' ? (
-                      <p className="whitespace-pre-wrap break-words">
-                        {message.body}
-                      </p>
-                    ) : null}
-                  </div>
-                ) : (
-                  <p className="mt-1 whitespace-pre-wrap break-words">
-                    {message.body}
-                  </p>
-                )}
-              </li>
-            );
-          })
-        )}
-      </ol>
-
-      {!closed ? (
-        staffReplyLocked ? (
-          <p className="text-sm text-muted-foreground">
-            {t('staffClaimRequired')}
-          </p>
+        {!closed ? (
+          staffReplyLock === 'claim' ? (
+            <p className="shrink-0 border-t border-border px-4 py-3 text-sm text-muted-foreground">
+              {t('staffClaimRequired')}
+            </p>
+          ) : (
+            <div className="shrink-0 border-t border-border">
+              <MessageComposer
+                disabled={closed}
+                isSending={isSending}
+                onSendText={handleSendText}
+                onSendImage={handleSendImage}
+              />
+            </div>
+          )
         ) : (
-          <div className="overflow-hidden rounded-md border border-border">
-            <MessageComposer
-              disabled={closed}
-              isSending={isSending || addLotDisputeMessage.isPending}
-              onSendText={handleSendText}
-              onSendImage={handleSendImage}
-            />
-          </div>
-        )
-      ) : (
-        <p className="text-xs text-muted-foreground">{t('closedHint')}</p>
-      )}
+          <p className="shrink-0 border-t border-border px-4 py-3 text-xs text-muted-foreground">
+            {t('closedHint')}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

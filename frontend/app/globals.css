@@ -127,6 +127,8 @@
   --glow-side: oklch(0.58 0.23 296 / 0.1);
   --selection-bg: var(--blue-a24);
   --header-bg: oklch(0.145 0.018 265 / 0.72);
+  --scrollbar-thumb: oklch(0.42 0.03 265 / 0.55);
+  --scrollbar-thumb-hover: oklch(0.55 0.06 270 / 0.75);
 }
 
 [data-theme='light'] {
@@ -177,6 +179,8 @@
     0 8px 30px -6px oklch(0.62 0.19 259 / 0.2);
   --glow-strong: 0 0 24px -2px oklch(0.62 0.19 259 / 0.22),
     0 0 60px -10px oklch(0.58 0.23 296 / 0.16);
+  --scrollbar-thumb: oklch(0.62 0.02 265 / 0.4);
+  --scrollbar-thumb-hover: oklch(0.48 0.04 270 / 0.55);
 }
 
 @theme inline {
@@ -459,6 +463,41 @@ body {
 ::selection {
   background: var(--selection-bg);
   color: var(--foreground);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 :focus-visible {

@@ -1,8 +1,10 @@
 import {
   BadRequestException,
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 import {
   LotDisputeMessageKind,
@@ -19,10 +21,7 @@ import { CHAT_USER_SELECT } from '../../chat/constants/chat.select';
 import { LOT_DISPUTE_SYSTEM_EVENT } from '../constants/lot-dispute.constants';
 import { CreateLotDisputeMessageDto } from '../dto/moderation-lot-dispute.dto';
 import { ModerationNotificationsService } from './moderation-notifications.service';
-import {
-  assertNotOrderDisputeParty,
-  assertStaffCanViewDisputeRoom,
-} from '../policies/moderation-policy';
+import { assertStaffCanViewDisputeRoom } from '../policies/moderation-policy';
 
 const OPEN_TICKET_STATUSES: TicketStatus[] = [
   TicketStatus.OPEN,
@@ -108,6 +107,7 @@ export class ModerationLotDisputeService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: ModerationNotificationsService,
+    @Inject(forwardRef(() => ChatGateway))
     private readonly chatGateway: ChatGateway,
   ) {}
 
@@ -333,17 +333,25 @@ export class ModerationLotDisputeService {
     const isStaff =
       RoleHierarchy[authorRole] >= RoleHierarchy[UserRole.MODERATOR];
 
+    // Staff who are also buyer/seller write as a party — skip claim gate.
+    // Staff moderating someone else's dispute must be the ticket assignee.
     if (isStaff && room.ticket?.id) {
       const order = room.ticket.order;
-      assertNotOrderDisputeParty(authorId, order ?? undefined);
+      const isParty = Boolean(
+        order && (order.buyerId === authorId || order.sellerId === authorId),
+      );
 
-      const ticket = await this.prisma.ticket.findUnique({
-        where: { id: room.ticket.id },
-        select: { assigneeId: true },
-      });
+      if (!isParty) {
+        const ticket = await this.prisma.ticket.findUnique({
+          where: { id: room.ticket.id },
+          select: { assigneeId: true },
+        });
 
-      if (!ticket?.assigneeId || ticket.assigneeId !== authorId) {
-        throw new ForbiddenException({ code: 'errors.ticket_claim_required' });
+        if (!ticket?.assigneeId || ticket.assigneeId !== authorId) {
+          throw new ForbiddenException({
+            code: 'errors.ticket_claim_required',
+          });
+        }
       }
     }
 

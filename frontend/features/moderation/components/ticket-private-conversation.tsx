@@ -24,7 +24,7 @@ export function TicketPrivateConversation({ ticketId }: Props) {
 
   if (!revealed) {
     return (
-      <section className="space-y-2 border-t border-border pt-4">
+      <section className="space-y-2">
         <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {t('privateTitle')}
         </h3>
@@ -42,7 +42,7 @@ export function TicketPrivateConversation({ ticketId }: Props) {
   }
 
   return (
-    <section className="space-y-3 border-t border-border pt-4">
+    <section className="space-y-3">
       <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {t('privateTitle')}
       </h3>
@@ -65,7 +65,7 @@ export function TicketPrivateConversation({ ticketId }: Props) {
             {t('participants')}:{' '}
             {data.participants.map((user) => `@${user.username}`).join(', ')}
           </p>
-          <ol className="space-y-1.5">
+          <ol className="max-h-[min(28rem,50dvh)] space-y-1.5 overflow-y-auto">
             {data.messages.map((message) => {
               const isSystem = message.type === 'SYSTEM';
               return (

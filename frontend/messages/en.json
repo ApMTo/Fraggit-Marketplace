@@ -153,7 +153,7 @@
       "ticketClosed": "The dispute was resolved. This chat is read-only.",
       "ticketClaimed": "@{assignee} took this ticket."
     },
-    "staffClaimRequired": "Take the ticket above before you can write here as staff.",
+    "staffClaimRequired": "Take the dispute above before you can write here as staff.",
     "staffPartyConflict": "You are a party in this dispute and cannot write here as moderation.",
     "orderTitle": "Dispute chat",
     "orderSubtitle": "You, the other party, and moderation. New messages notify everyone in this chat."
@@ -427,6 +427,12 @@
     "disputeActiveTitle": "Dispute in progress",
     "disputeActiveHint": "Both sides wait for a staff decision. You will get a notification when the verdict is ready.",
     "guarantee": "Fraggit guarantee",
+    "chat": {
+      "title": "Chat",
+      "subtitle": "Private messages with the other party.",
+      "loadError": "Could not open the chat.",
+      "retry": "Try again"
+    },
     "confirmDialog": {
       "title": "Confirm order",
       "description": "By confirming, you agree that you have the account, you have changed all credentials, the seller will receive payment, and a refund will no longer be possible.",
@@ -488,6 +494,7 @@
     "thread": {
       "title": "Conversation",
       "back": "Back to conversations",
+      "openFull": "Open in chat",
       "emptyTitle": "No messages yet",
       "emptyDescription": "Say hello — send the first message.",
       "loadError": "Could not load messages",
@@ -1358,7 +1365,7 @@
       "users": "Users",
       "lots": "Lots",
       "reports": "Reports",
-      "tickets": "Tickets",
+      "tickets": "Order disputes",
       "audit": "Audit"
     },
     "actions": {
@@ -1389,7 +1396,7 @@
     },
     "overview": {
       "openReports": "Open reports",
-      "openTickets": "Open tickets",
+      "openTickets": "Open disputes",
       "error": "Could not load overview"
     },
     "users": {
@@ -1409,7 +1416,7 @@
       "reasonTitle": "Confirm action",
       "actionSuccess": "Action completed",
       "actionError": "Action failed",
-      "adminOnlySanctionsHint": "Account sanctions (ban, suspend, restore, force logout) are applied by admins. Investigate via reports and tickets, then use “Send to admin for verdict” on the ticket.",
+      "adminOnlySanctionsHint": "Account sanctions (ban, suspend, restore, force logout) are applied by admins. Investigate via reports and order disputes, then use “Send to admin for verdict” on the dispute.",
       "columns": {
         "user": "User",
         "role": "Role",
@@ -1597,24 +1604,35 @@
       }
     },
     "tickets": {
-      "title": "Tickets",
-      "detailTitle": "Ticket",
-      "listTitle": "All tickets",
-      "listCount": "{count, plural, one {# ticket} other {# tickets}}",
-      "selectTitle": "Select a ticket",
-      "selectDescription": "Pick a ticket, take it if you are staff, then use the dispute chat with buyer and seller.",
-      "backToList": "All tickets",
-      "empty": "No tickets",
-      "error": "Could not load tickets",
+      "title": "Order disputes",
+      "detailTitle": "Dispute",
+      "listTitle": "All order disputes",
+      "listCount": "{count, plural, one {# dispute} other {# disputes}}",
+      "tabsLabel": "Dispute filters",
+      "tabs": {
+        "open": "Open",
+        "closed": "Closed",
+        "mine": "Mine"
+      },
+      "tabsEmpty": {
+        "open": "No open disputes",
+        "closed": "No closed disputes",
+        "mine": "No disputes assigned to you"
+      },
+      "selectTitle": "Select a dispute",
+      "selectDescription": "Pick an order dispute, take it if you are staff, then use the dispute chat with buyer and seller.",
+      "backToList": "All disputes",
+      "empty": "No order disputes",
+      "error": "Could not load order disputes",
       "messages": "Messages",
       "internal": "Internal",
       "messagePlaceholder": "Write a reply…",
       "send": "Send",
       "messageSent": "Message sent",
-      "resolveTitle": "Resolve ticket",
+      "resolveTitle": "Resolve dispute",
       "resolveHint": "Choose an outcome. The buyer and seller will get a notification with your note.",
-      "actionSuccess": "Ticket updated",
-      "actionError": "Could not update ticket",
+      "actionSuccess": "Dispute updated",
+      "actionError": "Could not update dispute",
       "timerPaused": "Auto-confirm paused",
       "resolutionLabel": "Decision",
       "resolutionNoteLabel": "Note for users",
@@ -1647,20 +1665,20 @@
       },
       "workflow": {
         "title": "Dispute parties",
-        "staffHint": "Staff cannot buy or sell on the platform — you join only as moderation. Take the ticket to speak in the shared dispute chat.",
+        "staffHint": "Staff cannot buy or sell on the platform — you join only as moderation. Take the dispute to speak in the shared dispute chat.",
         "buyer": "Buyer",
         "seller": "Seller",
         "openedBy": "Opened by",
         "assignee": "Assignee",
         "unassigned": "Not assigned",
-        "claim": "Take ticket",
-        "claimSuccess": "Ticket assigned to you",
-        "claimError": "Could not take ticket",
-        "youAreAssignee": "You are handling this ticket",
-        "claimBeforeReply": "Take the ticket to reply in the dispute chat",
-        "partyCannotClaim": "You are a party in this dispute and cannot take the ticket as moderation.",
+        "claim": "Take dispute",
+        "claimSuccess": "Dispute assigned to you",
+        "claimError": "Could not take dispute",
+        "youAreAssignee": "You are handling this dispute",
+        "claimBeforeReply": "Take the dispute to reply in the dispute chat",
+        "partyCannotClaim": "You are a party in this dispute and cannot take it as moderation.",
         "handoffTitle": "Hand off to admin",
-        "handoffHint": "When investigation is done, send a summary — admins get a notification and the ticket is marked for verdict.",
+        "handoffHint": "When investigation is done, send a summary — admins get a notification and the dispute is marked for verdict.",
         "requestVerdict": "Send to admin for verdict",
         "requestVerdictTitle": "Summary for admin",
         "requestVerdictSuccess": "Admins were notified",

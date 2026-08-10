@@ -27,6 +27,7 @@ export const CHAT_WS_EVENTS = {
   LOT_SUBSCRIBE: 'lot:subscribe',
   LOT_UNSUBSCRIBE: 'lot:unsubscribe',
   LOT_STATUS_UPDATE: 'lot:status:update',
+  DISPUTE_MESSAGE_SEND: 'dispute:message:send',
   DISPUTE_MESSAGE_NEW: 'dispute:message:new',
   ERROR: 'error',
 } as const;

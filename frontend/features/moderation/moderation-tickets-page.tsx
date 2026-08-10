@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Ticket } from 'lucide-react';
@@ -7,11 +8,22 @@ import { useTranslations } from 'next-intl';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Spinner } from '@/components/ui/spinner';
 import { ModerationShell } from '@/features/moderation/components/moderation-shell';
-import { useModTickets } from '@/hooks/use-moderation';
+import { useAuth, useModTickets } from '@/hooks';
 import { cn } from '@/lib/utils';
 import type { TicketStatus } from '@/types/moderation';
 
 type Props = { title: string; children?: React.ReactNode };
+
+type TicketTab = 'open' | 'closed' | 'mine';
+
+const OPEN_STATUSES: TicketStatus[] = [
+  'OPEN',
+  'IN_PROGRESS',
+  'WAITING_USER',
+  'AWAITING_VERDICT',
+];
+
+const CLOSED_STATUSES: TicketStatus[] = ['RESOLVED', 'CLOSED'];
 
 function statusTone(status: TicketStatus): string {
   switch (status) {
@@ -34,12 +46,54 @@ function statusTone(status: TicketStatus): string {
 export function ModerationTicketsPage({ title, children }: Props) {
   const t = useTranslations('moderation.tickets');
   const pathname = usePathname();
-  const { data, isLoading, isError } = useModTickets({ limit: 50 });
-  const tickets = data?.items ?? [];
+  const { user } = useAuth();
+  const [tab, setTab] = useState<TicketTab>('open');
+  const { data, isLoading, isError } = useModTickets({
+    limit: 50,
+    type: 'ORDER_DISPUTE',
+  });
+
+  const allTickets = data?.items ?? [];
+  const counts = useMemo(() => {
+    const open = allTickets.filter((ticket) =>
+      OPEN_STATUSES.includes(ticket.status),
+    ).length;
+    const closed = allTickets.filter((ticket) =>
+      CLOSED_STATUSES.includes(ticket.status),
+    ).length;
+    const mine = user
+      ? allTickets.filter((ticket) => ticket.assigneeId === user.id).length
+      : 0;
+    return { open, closed, mine };
+  }, [allTickets, user]);
+
+  const tickets = useMemo(() => {
+    if (tab === 'open') {
+      return allTickets.filter((ticket) =>
+        OPEN_STATUSES.includes(ticket.status),
+      );
+    }
+    if (tab === 'closed') {
+      return allTickets.filter((ticket) =>
+        CLOSED_STATUSES.includes(ticket.status),
+      );
+    }
+    if (!user) {
+      return [];
+    }
+    return allTickets.filter((ticket) => ticket.assigneeId === user.id);
+  }, [allTickets, tab, user]);
+
   const selectedId = pathname.startsWith('/moderation/tickets/')
     ? pathname.slice('/moderation/tickets/'.length).split('/')[0] || null
     : null;
   const hasDetail = Boolean(children);
+
+  const tabs: Array<{ id: TicketTab; label: string; count: number }> = [
+    { id: 'open', label: t('tabs.open'), count: counts.open },
+    { id: 'closed', label: t('tabs.closed'), count: counts.closed },
+    { id: 'mine', label: t('tabs.mine'), count: counts.mine },
+  ];
 
   return (
     <ModerationShell title={title}>
@@ -49,7 +103,7 @@ export function ModerationTicketsPage({ title, children }: Props) {
         </div>
       ) : isError || !data ? (
         <EmptyState title={t('error')} />
-      ) : tickets.length === 0 ? (
+      ) : allTickets.length === 0 ? (
         <EmptyState title={t('empty')} />
       ) : (
         <div className="grid min-h-[560px] gap-4 lg:grid-cols-[minmax(240px,320px)_1fr]">
@@ -59,65 +113,107 @@ export function ModerationTicketsPage({ title, children }: Props) {
               hasDetail ? 'hidden lg:flex' : 'flex',
             )}
           >
-            <div className="shrink-0 border-b border-border px-4 py-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                {t('listTitle')}
-              </h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {t('listCount', { count: tickets.length })}
-              </p>
-            </div>
-            <ul className="min-h-0 flex-1 overflow-y-auto p-1">
-              {tickets.map((ticket) => {
-                const isSelected = ticket.id === selectedId;
-                return (
-                  <li key={ticket.id}>
-                    <Link
-                      href={`/moderation/tickets/${ticket.id}`}
+            <div className="shrink-0 space-y-3 border-b border-border px-4 py-3">
+              <div>
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  {t('listTitle')}
+                </h2>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {t('listCount', { count: tickets.length })}
+                </p>
+              </div>
+              <div
+                className="flex gap-1 rounded-[var(--radius-md)] border border-border bg-surface-elevated p-1"
+                role="tablist"
+                aria-label={t('tabsLabel')}
+              >
+                {tabs.map((item) => {
+                  const active = tab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={active}
+                      onClick={() => setTab(item.id)}
                       className={cn(
-                        'flex w-full flex-col gap-1 rounded-md px-3 py-2.5 transition-colors',
-                        isSelected
-                          ? 'bg-foreground text-background'
-                          : 'hover:bg-muted',
+                        'flex flex-1 flex-col items-center rounded-[var(--radius-sm)] px-1.5 py-1.5 text-center transition-colors',
+                        active
+                          ? 'bg-surface text-foreground shadow-sm'
+                          : 'text-muted-foreground hover:text-foreground',
                       )}
                     >
-                      <span className="line-clamp-1 text-sm font-medium">
-                        {ticket.subject}
+                      <span className="text-[11px] font-semibold leading-tight">
+                        {item.label}
                       </span>
-                      <span
+                      <span className="text-[10px] tabular-nums opacity-70">
+                        {item.count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {tickets.length === 0 ? (
+              <div className="flex flex-1 items-center justify-center p-4">
+                <p className="text-center text-sm text-muted-foreground">
+                  {t(`tabsEmpty.${tab}`)}
+                </p>
+              </div>
+            ) : (
+              <ul className="min-h-0 flex-1 overflow-y-auto p-1">
+                {tickets.map((ticket) => {
+                  const isSelected = ticket.id === selectedId;
+                  return (
+                    <li key={ticket.id}>
+                      <Link
+                        href={`/moderation/tickets/${ticket.id}`}
                         className={cn(
-                          'flex flex-wrap items-center gap-2 text-xs',
+                          'flex w-full flex-col gap-1 rounded-md px-3 py-2.5 transition-colors',
                           isSelected
-                            ? 'text-background/70'
-                            : 'text-muted-foreground',
+                            ? 'bg-foreground text-background'
+                            : 'hover:bg-muted',
                         )}
                       >
+                        <span className="line-clamp-1 text-sm font-medium">
+                          {ticket.subject}
+                        </span>
                         <span
                           className={cn(
-                            'inline-flex rounded-[var(--radius-sm)] border px-1.5 py-0.5 text-[10px] font-semibold',
+                            'flex flex-wrap items-center gap-2 text-xs',
                             isSelected
-                              ? 'border-background/30 bg-background/15 text-background'
-                              : statusTone(ticket.status),
+                              ? 'text-background/70'
+                              : 'text-muted-foreground',
                           )}
                         >
-                          {t(`statusLabels.${ticket.status}`)}
-                        </span>
-                        <span>@{ticket.reporter.username}</span>
-                        {ticket.type === 'ORDER_DISPUTE' ? (
-                          <span>
-                            {ticket.assignee
-                              ? t('listAssignee', {
-                                  name: `@${ticket.assignee.username}`,
-                                })
-                              : t('listUnassigned')}
+                          <span
+                            className={cn(
+                              'inline-flex rounded-[var(--radius-sm)] border px-1.5 py-0.5 text-[10px] font-semibold',
+                              isSelected
+                                ? 'border-background/30 bg-background/15 text-background'
+                                : statusTone(ticket.status),
+                            )}
+                          >
+                            {t(`statusLabels.${ticket.status}`)}
                           </span>
-                        ) : null}
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+                          <span>@{ticket.reporter.username}</span>
+                          {ticket.type === 'ORDER_DISPUTE' ? (
+                            <span>
+                              {ticket.assignee
+                                ? t('listAssignee', {
+                                    name: `@${ticket.assignee.username}`,
+                                  })
+                                : t('listUnassigned')}
+                            </span>
+                          ) : null}
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </aside>
 
           <main
