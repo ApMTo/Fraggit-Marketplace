@@ -4,6 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import {
   Strategy,
   type Profile,
+  type StrategyOptions,
   type VerifyCallback,
 } from 'passport-google-oauth20';
 import { GoogleOAuthStateStore } from '../utils/google-oauth-state.store';
@@ -22,16 +23,16 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     const clientSecret = configService.get<string>('google.clientSecret') ?? '';
     const callbackURL = configService.get<string>('google.callbackUrl') ?? '';
 
-    super({
+    const options = {
       clientID: clientID || 'unimplemented',
       clientSecret: clientSecret || 'unimplemented',
       callbackURL:
         callbackURL || 'http://localhost:3000/api/auth/google/callback',
       scope: ['email', 'profile'],
-      // passport-oauth2@1.8+: custom state store must be `store`, not `state`.
-      // `state: <object>` is treated as truthy and falls back to express-session.
       store: stateStore,
-    });
+    } as StrategyOptions;
+
+    super(options);
   }
 
   validate(
