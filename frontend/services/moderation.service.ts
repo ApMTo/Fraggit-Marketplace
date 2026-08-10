@@ -18,6 +18,7 @@ import type {
   ReportStatus,
   TicketResolution,
   TicketStatus,
+  TicketType,
   UpdateUserStatusPayload,
 } from '@/types/moderation';
 import type { UserRole } from '@/types/auth';
@@ -318,6 +319,7 @@ export const moderationService = {
 
   async getTickets(params: {
     status?: TicketStatus;
+    type?: TicketType;
     page?: number;
     limit?: number;
   }): Promise<Paginated<ModTicket>> {

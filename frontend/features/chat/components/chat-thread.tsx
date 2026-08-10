@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, MessageCircle } from 'lucide-react';
+import { ArrowLeft, ExternalLink, MessageCircle } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Spinner } from '@/components/ui/spinner';
@@ -22,6 +22,7 @@ import {
   shouldShowDaySeparator,
 } from '@/lib/chat-time';
 import { resolveApiErrorKey } from '@/lib/api-errors';
+import { cn } from '@/lib/utils';
 import { useAuth } from '@/providers/AuthProvider';
 import { useQueryClient } from '@tanstack/react-query';
 import { chatService } from '@/services/chat.service';
@@ -31,14 +32,23 @@ import type { ConversationListItem } from '@/types/chat';
 type ChatThreadProps = {
   conversationId: string;
   conversation: ConversationListItem | undefined;
+  /** Full inbox page vs compact embed (e.g. order aside). */
+  variant?: 'page' | 'panel';
+  className?: string;
 };
 
-export function ChatThread({ conversationId, conversation }: ChatThreadProps) {
+export function ChatThread({
+  conversationId,
+  conversation,
+  variant = 'page',
+  className,
+}: ChatThreadProps) {
   const t = useTranslations('chat');
   const tErrors = useTranslations('errors');
   const locale = useLocale();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const isPanel = variant === 'panel';
 
   const {
     data,
@@ -172,15 +182,17 @@ export function ChatThread({ conversationId, conversation }: ChatThreadProps) {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className={cn('flex h-full min-h-0 flex-col', className)}>
       <header className="flex shrink-0 items-center gap-3 border-b border-border px-3 py-3 sm:px-4">
-        <Link
-          href="/chat"
-          className="inline-flex size-9 items-center justify-center rounded-[var(--radius-sm)] text-subtle transition-colors hover:bg-surface-hover hover:text-foreground lg:hidden"
-          aria-label={t('thread.back')}
-        >
-          <ArrowLeft className="size-5" />
-        </Link>
+        {!isPanel ? (
+          <Link
+            href="/chat"
+            className="inline-flex size-9 items-center justify-center rounded-[var(--radius-sm)] text-subtle transition-colors hover:bg-surface-hover hover:text-foreground lg:hidden"
+            aria-label={t('thread.back')}
+          >
+            <ArrowLeft className="size-5" />
+          </Link>
+        ) : null}
 
         {other ? (
           <>
@@ -189,7 +201,7 @@ export function ChatThread({ conversationId, conversation }: ChatThreadProps) {
               alt={other.displayName}
               size="sm"
             />
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-foreground">
                 {other.displayName}
               </p>
@@ -197,10 +209,21 @@ export function ChatThread({ conversationId, conversation }: ChatThreadProps) {
             </div>
           </>
         ) : (
-          <p className="text-sm font-semibold text-foreground">
+          <p className="min-w-0 flex-1 text-sm font-semibold text-foreground">
             {t('thread.title')}
           </p>
         )}
+
+        {isPanel ? (
+          <Link
+            href={`/chat/${conversationId}`}
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-subtle transition-colors hover:bg-surface-hover hover:text-foreground"
+            aria-label={t('thread.openFull')}
+            title={t('thread.openFull')}
+          >
+            <ExternalLink className="size-4" />
+          </Link>
+        ) : null}
       </header>
 
       <div

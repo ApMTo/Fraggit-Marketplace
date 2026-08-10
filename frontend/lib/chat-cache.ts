@@ -43,7 +43,7 @@ export function upsertConversationMessage(
   queryClient.setQueriesData<ConversationListResult>(
     { queryKey: chatKeys.conversations() },
     (existing) => {
-      if (!existing) {
+      if (!existing?.items) {
         return existing;
       }
 
@@ -124,7 +124,7 @@ export function clearConversationUnread(
   queryClient.setQueriesData<ConversationListResult>(
     { queryKey: chatKeys.conversations() },
     (existing) => {
-      if (!existing) {
+      if (!existing?.items) {
         return existing;
       }
 

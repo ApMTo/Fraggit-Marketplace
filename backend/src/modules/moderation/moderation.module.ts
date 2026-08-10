@@ -5,6 +5,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { OrdersModule } from '../orders/orders.module';
 import { SessionsModule } from '../sessions/sessions.module';
 import { TelegramModule } from '../telegram/telegram.module';
+import { LotDisputeGateway } from './lot-dispute.gateway';
 import { ModerationController } from './moderation.controller';
 import { ModerationAuditService } from './services/moderation-audit.service';
 import { ModerationChatService } from './services/moderation-chat.service';
@@ -36,6 +37,7 @@ import { ModerationUsersService } from './services/moderation-users.service';
     ModerationReviewsService,
     ModerationReportsService,
     ModerationTicketsService,
+    LotDisputeGateway,
   ],
   exports: [
     ModerationTicketsService,

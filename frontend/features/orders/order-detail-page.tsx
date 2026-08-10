@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { formatLotPrice } from '@/features/listings/lib/format-lot-price';
+import { OrderChatPanel } from '@/features/orders/components/order-chat-panel';
 import { OrderReviewSection } from '@/features/orders/components/order-review-section';
 import { OrderDisputeSection } from '@/features/orders/components/order-dispute-section';
 import { DisputeDialog } from '@/features/orders/components/dispute-dialog';
@@ -69,7 +70,7 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
 
   if (isLoading) {
     return (
-      <div className="mx-auto flex w-full max-w-[960px] justify-center px-5 py-20">
+      <div className="mx-auto flex w-full max-w-[1200px] justify-center px-5 py-20">
         <Spinner size="lg" />
       </div>
     );
@@ -77,7 +78,7 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
 
   if (isError || !order || !user) {
     return (
-      <div className="mx-auto w-full max-w-[960px] px-5 py-10">
+      <div className="mx-auto w-full max-w-[1200px] px-5 py-10">
         <EmptyState
           icon={Package}
           title={t('notFoundTitle')}
@@ -119,6 +120,7 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
     (Boolean(order.buyerAnswer) ||
       Boolean(order.serviceQuestion) ||
       canCompleteService);
+  const isDisputed = order.status === 'DISPUTED';
 
   async function handleSubmitCredentials() {
     const trimmed = credentialsDraft.trim();
@@ -164,7 +166,7 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[960px] flex-col gap-6 px-5 py-10">
+    <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-5 py-6 sm:py-10">
       <Link
         href="/orders"
         className="inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-foreground"
@@ -194,157 +196,9 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
         </span>
       </header>
 
-      <OrderDisputeSection
-        orderId={order.id}
-        active={order.status === 'DISPUTED'}
-      />
-
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,340px)]">
-        <div className="flex min-w-0 flex-col gap-6">
-          <section className="overflow-hidden rounded-[var(--radius-lg)] border border-border bg-surface">
-            <div className="relative aspect-[16/10] bg-surface-elevated">
-              {coverUrl ? (
-                <AppImage
-                  src={coverUrl}
-                  alt=""
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 55vw"
-                  className="object-cover"
-                />
-              ) : (
-                <div className="flex size-full items-center justify-center text-subtle">
-                  <Package className="size-12" aria-hidden="true" />
-                </div>
-              )}
-            </div>
-            <div className="space-y-2 border-t border-border p-5">
-              <p className="font-display text-2xl font-semibold tabular-nums text-success">
-                {formatLotPrice(order.price, locale)}
-              </p>
-              <p className="text-sm text-muted">{t('lotSummary')}</p>
-            </div>
-          </section>
-
-          {showServiceDetails ? (
-            <section className="space-y-4 rounded-[var(--radius-lg)] border border-border bg-surface p-5">
-              <div className="space-y-1">
-                <h2 className="font-display text-lg font-semibold text-foreground">
-                  {t('serviceTitle')}
-                </h2>
-                <p className="text-sm text-muted">
-                  {isSeller
-                    ? t('serviceSellerHint')
-                    : t('serviceBuyerHint')}
-                </p>
-              </div>
-
-              {order.serviceQuestion ? (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium uppercase tracking-wide text-subtle">
-                    {t('serviceQuestionLabel')}
-                  </p>
-                  <p className="whitespace-pre-wrap rounded-[var(--radius-sm)] border border-border bg-surface-elevated px-4 py-3 text-sm text-foreground">
-                    {order.serviceQuestion}
-                  </p>
-                </div>
-              ) : null}
-
-              {order.buyerAnswer ? (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium uppercase tracking-wide text-subtle">
-                    {t('buyerAnswerLabel')}
-                  </p>
-                  <pre className="overflow-x-auto whitespace-pre-wrap rounded-[var(--radius-sm)] border border-border bg-surface-elevated px-4 py-3 font-mono text-sm text-foreground">
-                    {order.buyerAnswer}
-                  </pre>
-                </div>
-              ) : null}
-
-              {canCompleteService ? (
-                <div className="space-y-3">
-                  {formError ? <FormError>{formError}</FormError> : null}
-                  <Button
-                    type="button"
-                    className="w-full sm:w-auto"
-                    isLoading={completeService.isPending}
-                    onClick={() => void handleCompleteService()}
-                  >
-                    {t('completeService')}
-                  </Button>
-                </div>
-              ) : order.status === 'PENDING' ? (
-                <p className="text-sm text-muted">{t('serviceWaiting')}</p>
-              ) : null}
-            </section>
-          ) : null}
-
-          {showCredentials ? (
-            <section className="space-y-3 rounded-[var(--radius-lg)] border border-border bg-surface p-5">
-              <div className="space-y-1">
-                <h2 className="font-display text-lg font-semibold text-foreground">
-                  {t('credentialsTitle')}
-                </h2>
-                <p className="text-sm text-muted">
-                  {isSeller
-                    ? t('credentialsSellerHint')
-                    : t('credentialsBuyerHint')}
-                </p>
-              </div>
-
-              {canSubmitCredentials ? (
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="order-credentials">
-                      {t('credentialsLabel')}
-                    </Label>
-                    <Textarea
-                      id="order-credentials"
-                      value={credentialsDraft}
-                      onChange={(event) => {
-                        setCredentialsDraft(event.target.value);
-                        if (formError) {
-                          setFormError(null);
-                        }
-                      }}
-                      placeholder={t('credentialsPlaceholder')}
-                      rows={6}
-                      hasError={Boolean(formError)}
-                      disabled={submitCredentials.isPending}
-                    />
-                    {formError ? <FormError>{formError}</FormError> : null}
-                  </div>
-                  <Button
-                    type="button"
-                    className="w-full sm:w-auto"
-                    isLoading={submitCredentials.isPending}
-                    onClick={() => void handleSubmitCredentials()}
-                  >
-                    {t('submitCredentials')}
-                  </Button>
-                </div>
-              ) : order.credentials ? (
-                <pre className="overflow-x-auto whitespace-pre-wrap rounded-[var(--radius-sm)] border border-border bg-surface-elevated px-4 py-3 font-mono text-sm text-foreground">
-                  {order.credentials}
-                </pre>
-              ) : (
-                <p className="text-sm text-muted">{t('credentialsWaiting')}</p>
-              )}
-            </section>
-          ) : !isService && isBuyer && order.status === 'PENDING' ? (
-            <section className="space-y-2 rounded-[var(--radius-lg)] border border-border bg-surface p-5">
-              <h2 className="font-display text-lg font-semibold text-foreground">
-                {t('credentialsTitle')}
-              </h2>
-              <p className="text-sm text-muted">{t('credentialsWaiting')}</p>
-            </section>
-          ) : null}
-
-          {order.status === 'APPROVED' ? (
-            <OrderReviewSection orderId={order.id} canWrite={isBuyer} />
-          ) : null}
-        </div>
-
-        <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
+      {/* Left: role + lot · Right: chat (hidden on mobile while disputed) */}
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-6">
+        <div className="order-1 flex min-w-0 flex-col gap-4">
           <div className="flex flex-col gap-4 rounded-[var(--radius-lg)] border border-border bg-surface p-5 shadow-[var(--shadow-md)]">
             <div className="space-y-1">
               <p className="text-xs font-medium uppercase tracking-wide text-subtle">
@@ -390,7 +244,7 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
               </div>
             </Link>
 
-            {isBuyer && order.status !== 'APPROVED' && order.status !== 'DISPUTED' ? (
+            {isBuyer && order.status !== 'APPROVED' && !isDisputed ? (
               <div className="space-y-2">
                 <Button
                   type="button"
@@ -410,7 +264,7 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
               </div>
             ) : null}
 
-            {order.status === 'DISPUTED' ? (
+            {isDisputed ? (
               <div className="space-y-2 rounded-[var(--radius-md)] border border-destructive/30 bg-destructive/5 p-3 text-center">
                 <p className="text-sm font-semibold text-destructive">
                   {t('disputeActiveTitle')}
@@ -451,8 +305,167 @@ export function OrderDetailPage({ orderId }: OrderDetailPageProps) {
               {t('guarantee')}
             </p>
           </div>
-        </aside>
+        </div>
+
+        <div
+          className={
+            isDisputed
+              ? 'order-3 max-lg:hidden lg:sticky lg:top-24 lg:order-2 lg:row-span-2'
+              : 'order-3 lg:sticky lg:top-24 lg:order-2 lg:row-span-2'
+          }
+        >
+          <OrderChatPanel
+            counterparty={counterparty}
+            className="h-[min(32rem,60dvh)] w-full lg:h-[min(36rem,70dvh)] lg:w-[400px]"
+          />
+        </div>
+
+        <div className="order-2 flex min-w-0 flex-col gap-4 lg:order-3">
+          <section className="overflow-hidden rounded-[var(--radius-lg)] border border-border bg-surface">
+            <div className="relative aspect-[16/10] bg-surface-elevated">
+              {coverUrl ? (
+                <AppImage
+                  src={coverUrl}
+                  alt=""
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 340px"
+                  className="object-cover"
+                />
+              ) : (
+                <div className="flex size-full items-center justify-center text-subtle">
+                  <Package className="size-10" aria-hidden="true" />
+                </div>
+              )}
+            </div>
+            <div className="space-y-1 border-t border-border p-4">
+              <p className="font-display text-xl font-semibold tabular-nums text-success">
+                {formatLotPrice(order.price, locale)}
+              </p>
+              <p className="text-xs text-muted">{t('lotSummary')}</p>
+            </div>
+          </section>
+
+          {showServiceDetails ? (
+            <section className="space-y-4 rounded-[var(--radius-lg)] border border-border bg-surface p-4">
+              <div className="space-y-1">
+                <h2 className="font-display text-base font-semibold text-foreground">
+                  {t('serviceTitle')}
+                </h2>
+                <p className="text-sm text-muted">
+                  {isSeller
+                    ? t('serviceSellerHint')
+                    : t('serviceBuyerHint')}
+                </p>
+              </div>
+
+              {order.serviceQuestion ? (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-subtle">
+                    {t('serviceQuestionLabel')}
+                  </p>
+                  <p className="whitespace-pre-wrap rounded-[var(--radius-sm)] border border-border bg-surface-elevated px-3 py-2.5 text-sm text-foreground">
+                    {order.serviceQuestion}
+                  </p>
+                </div>
+              ) : null}
+
+              {order.buyerAnswer ? (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wide text-subtle">
+                    {t('buyerAnswerLabel')}
+                  </p>
+                  <pre className="overflow-x-auto whitespace-pre-wrap rounded-[var(--radius-sm)] border border-border bg-surface-elevated px-3 py-2.5 font-mono text-sm text-foreground">
+                    {order.buyerAnswer}
+                  </pre>
+                </div>
+              ) : null}
+
+              {canCompleteService ? (
+                <div className="space-y-3">
+                  {formError ? <FormError>{formError}</FormError> : null}
+                  <Button
+                    type="button"
+                    className="w-full"
+                    isLoading={completeService.isPending}
+                    onClick={() => void handleCompleteService()}
+                  >
+                    {t('completeService')}
+                  </Button>
+                </div>
+              ) : order.status === 'PENDING' ? (
+                <p className="text-sm text-muted">{t('serviceWaiting')}</p>
+              ) : null}
+            </section>
+          ) : null}
+
+          {showCredentials ? (
+            <section className="space-y-3 rounded-[var(--radius-lg)] border border-border bg-surface p-4">
+              <div className="space-y-1">
+                <h2 className="font-display text-base font-semibold text-foreground">
+                  {t('credentialsTitle')}
+                </h2>
+                <p className="text-sm text-muted">
+                  {isSeller
+                    ? t('credentialsSellerHint')
+                    : t('credentialsBuyerHint')}
+                </p>
+              </div>
+
+              {canSubmitCredentials ? (
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="order-credentials">
+                      {t('credentialsLabel')}
+                    </Label>
+                    <Textarea
+                      id="order-credentials"
+                      value={credentialsDraft}
+                      onChange={(event) => {
+                        setCredentialsDraft(event.target.value);
+                        if (formError) {
+                          setFormError(null);
+                        }
+                      }}
+                      placeholder={t('credentialsPlaceholder')}
+                      rows={5}
+                      hasError={Boolean(formError)}
+                      disabled={submitCredentials.isPending}
+                    />
+                    {formError ? <FormError>{formError}</FormError> : null}
+                  </div>
+                  <Button
+                    type="button"
+                    className="w-full"
+                    isLoading={submitCredentials.isPending}
+                    onClick={() => void handleSubmitCredentials()}
+                  >
+                    {t('submitCredentials')}
+                  </Button>
+                </div>
+              ) : order.credentials ? (
+                <pre className="overflow-x-auto whitespace-pre-wrap rounded-[var(--radius-sm)] border border-border bg-surface-elevated px-3 py-2.5 font-mono text-sm text-foreground">
+                  {order.credentials}
+                </pre>
+              ) : (
+                <p className="text-sm text-muted">{t('credentialsWaiting')}</p>
+              )}
+            </section>
+          ) : !isService && isBuyer && order.status === 'PENDING' ? (
+            <section className="space-y-2 rounded-[var(--radius-lg)] border border-border bg-surface p-4">
+              <h2 className="font-display text-base font-semibold text-foreground">
+                {t('credentialsTitle')}
+              </h2>
+              <p className="text-sm text-muted">{t('credentialsWaiting')}</p>
+            </section>
+          ) : null}
+
+          {order.status === 'APPROVED' ? (
+            <OrderReviewSection orderId={order.id} canWrite={isBuyer} />
+          ) : null}
+        </div>
       </div>
+
+      <OrderDisputeSection orderId={order.id} active={isDisputed} />
 
       <ConfirmDialog
         open={confirmOpen}

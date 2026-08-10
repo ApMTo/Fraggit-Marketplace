@@ -16,6 +16,7 @@ import type {
   ReportStatus,
   TicketResolution,
   TicketStatus,
+  TicketType,
   UpdateUserStatusPayload,
 } from '@/types/moderation';
 import type { UserRole } from '@/types/auth';
@@ -171,6 +172,7 @@ export function useTicketConversation(ticketId: string | null) {
 
 export function useModTickets(params: {
   status?: TicketStatus;
+  type?: TicketType;
   page?: number;
   limit?: number;
 }) {

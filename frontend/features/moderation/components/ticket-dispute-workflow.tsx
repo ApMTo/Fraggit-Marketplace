@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { useModerationMutations } from '@/hooks/use-moderation';
 import { userProfileHref } from '@/lib/app-nav';
 import { resolveApiErrorKey } from '@/lib/api-errors';
-import { cn } from '@/lib/utils';
 import { isStaffRole } from '@/lib/staff';
 import type { ModTicket, TicketStatus } from '@/types/moderation';
 import type { UserRole } from '@/types/auth';
@@ -17,6 +16,8 @@ type Props = {
   ticketId: string;
   currentUserId: string;
   currentUserRole: UserRole;
+  /** Compact claim CTA for the ticket header. */
+  variant?: 'full' | 'claimOnly';
 };
 
 function isOpenStatus(status: TicketStatus): boolean {
@@ -28,11 +29,69 @@ function isOpenStatus(status: TicketStatus): boolean {
   );
 }
 
+function isDisputePartyUser(
+  ticket: ModTicket,
+  currentUserId: string,
+): boolean {
+  const order = ticket.order;
+  return Boolean(
+    order &&
+      (order.buyerId === currentUserId || order.sellerId === currentUserId),
+  );
+}
+
+export function canClaimOrderDispute(options: {
+  ticket: ModTicket;
+  currentUserId: string;
+  currentUserRole: UserRole;
+}): boolean {
+  const { ticket, currentUserId, currentUserRole } = options;
+  if (ticket.type !== 'ORDER_DISPUTE' || !ticket.order) {
+    return false;
+  }
+  if (!isStaffRole(currentUserRole)) {
+    return false;
+  }
+  if (!isOpenStatus(ticket.status)) {
+    return false;
+  }
+  if (ticket.assigneeId === currentUserId) {
+    return false;
+  }
+  if (isDisputePartyUser(ticket, currentUserId)) {
+    return false;
+  }
+  return true;
+}
+
+/** Staff should see the claim control whenever the dispute is open and not theirs yet. */
+export function shouldShowClaimControl(options: {
+  ticket: ModTicket;
+  currentUserId: string;
+  currentUserRole: UserRole;
+}): boolean {
+  const { ticket, currentUserId, currentUserRole } = options;
+  if (ticket.type !== 'ORDER_DISPUTE' || !ticket.order) {
+    return false;
+  }
+  if (!isStaffRole(currentUserRole)) {
+    return false;
+  }
+  if (!isOpenStatus(ticket.status)) {
+    return false;
+  }
+  if (ticket.assigneeId === currentUserId) {
+    return false;
+  }
+  return true;
+}
+
 export function TicketDisputeWorkflow({
   ticket,
   ticketId,
   currentUserId,
   currentUserRole,
+  variant = 'full',
 }: Props) {
   const t = useTranslations('moderation.tickets.workflow');
   const { claimTicket } = useModerationMutations();
@@ -40,19 +99,56 @@ export function TicketDisputeWorkflow({
   const isStaff = isStaffRole(currentUserRole);
   const isAssignee = ticket.assigneeId === currentUserId;
   const order = ticket.order;
-  const isDisputeParty = Boolean(
-    order &&
-      (order.buyerId === currentUserId || order.sellerId === currentUserId),
-  );
-  const canClaim =
-    isStaff &&
-    !isDisputeParty &&
-    isOpenStatus(ticket.status) &&
-    !isAssignee &&
-    ticket.status !== 'AWAITING_VERDICT';
+  const isDisputeParty = isDisputePartyUser(ticket, currentUserId);
+  const canClaim = canClaimOrderDispute({
+    ticket,
+    currentUserId,
+    currentUserRole,
+  });
+  const showClaim = shouldShowClaimControl({
+    ticket,
+    currentUserId,
+    currentUserRole,
+  });
+
+  async function handleClaim() {
+    try {
+      await claimTicket.mutateAsync(ticketId);
+      toast.success(t('claimSuccess'));
+    } catch (err) {
+      const key = resolveApiErrorKey(err);
+      toast.error(
+        key === 'errors.ticket_claim_party_conflict'
+          ? t('partyCannotClaim')
+          : t('claimError'),
+      );
+    }
+  }
 
   if (ticket.type !== 'ORDER_DISPUTE' || !order) {
     return null;
+  }
+
+  if (variant === 'claimOnly') {
+    if (!showClaim) {
+      return null;
+    }
+    return (
+      <div className="flex flex-col gap-2 rounded-[var(--radius-md)] border border-[var(--link)]/25 bg-[var(--blue-a12)] p-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm text-foreground">
+          {isDisputeParty ? t('partyCannotClaim') : t('claimBeforeReply')}
+        </p>
+        <Button
+          type="button"
+          className="w-full shrink-0 sm:w-auto"
+          disabled={!canClaim || claimTicket.isPending}
+          isLoading={claimTicket.isPending}
+          onClick={() => void handleClaim()}
+        >
+          {t('claim')}
+        </Button>
+      </div>
+    );
   }
 
   return (
@@ -104,48 +200,11 @@ export function TicketDisputeWorkflow({
       </dl>
 
       {isStaff ? (
-        <div
-          className={cn(
-            'mt-4 flex flex-wrap items-center gap-3',
-            isAssignee && 'text-sm text-[var(--success)]',
-          )}
-        >
-          {canClaim ? (
-            <Button
-              type="button"
-              size="sm"
-              disabled={claimTicket.isPending}
-              onClick={async () => {
-                try {
-                  await claimTicket.mutateAsync(ticketId);
-                  toast.success(t('claimSuccess'));
-                } catch (err) {
-                  const key = resolveApiErrorKey(err);
-                  toast.error(
-                    key === 'errors.ticket_claim_party_conflict'
-                      ? t('partyCannotClaim')
-                      : t('claimError'),
-                  );
-                }
-              }}
-            >
-              {t('claim')}
-            </Button>
-          ) : null}
+        <div className="mt-4 space-y-2">
           {isAssignee ? (
-            <span className="text-sm font-medium text-[var(--link)]">
+            <p className="text-sm font-medium text-[var(--link)]">
               {t('youAreAssignee')}
-            </span>
-          ) : null}
-          {isDisputeParty ? (
-            <span className="text-sm text-[var(--warning)]">
-              {t('partyCannotClaim')}
-            </span>
-          ) : null}
-          {!isAssignee && !isDisputeParty && isOpenStatus(ticket.status) ? (
-            <span className="text-sm text-muted-foreground">
-              {t('claimBeforeReply')}
-            </span>
+            </p>
           ) : null}
         </div>
       ) : null}

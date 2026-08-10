@@ -6,9 +6,15 @@ import { Spinner } from '@/components/ui/spinner';
 import { LotMediationThread } from '@/features/moderation/components/lot-mediation-thread';
 import { useTicketLotDispute } from '@/hooks/use-moderation';
 
-type Props = { ticketId: string; staffReplyLocked?: boolean };
+type Props = {
+  ticketId: string;
+  staffReplyLock?: 'claim' | null;
+};
 
-export function TicketLotMediation({ ticketId, staffReplyLocked }: Props) {
+export function TicketLotMediation({
+  ticketId,
+  staffReplyLock = null,
+}: Props) {
   const t = useTranslations('moderation.reports.lotDispute');
   const tChat = useTranslations('lotDispute');
   const { data, isLoading, isError, refetch } = useTicketLotDispute(ticketId);
@@ -35,7 +41,7 @@ export function TicketLotMediation({ ticketId, staffReplyLocked }: Props) {
         <LotMediationThread
           roomId={data.room.id}
           initialData={data}
-          staffReplyLocked={staffReplyLocked}
+          staffReplyLock={staffReplyLock}
         />
       ) : (
         <p className="text-sm text-muted-foreground">{t('error')}</p>

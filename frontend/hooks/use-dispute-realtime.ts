@@ -5,9 +5,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   acquireChatSocket,
   CHAT_WS_EVENTS,
+  getChatSocket,
   releaseChatSocket,
 } from '@/lib/chat-socket';
-import { moderationKeys } from '@/services/moderation.service';
+import { moderationKeys, moderationService } from '@/services/moderation.service';
 import { orderKeys } from '@/services/orders.service';
 import type {
   LotDisputeMessage,
@@ -24,9 +25,18 @@ export type DisputeMessageNewPayload = {
   message: LotDisputeMessage;
 };
 
+export type SendDisputeMessagePayload = {
+  body?: string;
+  url?: string;
+  mimeType?: string;
+  size?: number;
+  width?: number;
+  height?: number;
+};
+
 function upsertDisputeMessage(
   prev: LotDisputeRoomDetail | undefined,
-  payload: DisputeMessageNewPayload,
+  payload: Pick<DisputeMessageNewPayload, 'message' | 'roomStatus'>,
 ): LotDisputeRoomDetail | undefined {
   if (!prev) {
     return prev;
@@ -49,6 +59,80 @@ function upsertDisputeMessage(
       ? { ...prev.room, status: payload.roomStatus }
       : prev.room,
   };
+}
+
+export function applyDisputeMessageToCache(
+  queryClient: ReturnType<typeof useQueryClient>,
+  roomId: string,
+  message: LotDisputeMessage,
+  meta?: { orderId?: string | null; ticketId?: string | null },
+): void {
+  const patch = { message } as const;
+
+  queryClient.setQueryData<LotDisputeRoomDetail>(
+    moderationKeys.lotDisputeRoom(roomId),
+    (prev) => upsertDisputeMessage(prev, patch),
+  );
+
+  const cached = queryClient.getQueryData<LotDisputeRoomDetail>(
+    moderationKeys.lotDisputeRoom(roomId),
+  );
+  const orderId = meta?.orderId ?? cached?.room.orderId ?? null;
+  const ticketId = meta?.ticketId ?? cached?.room.ticketId ?? null;
+
+  if (orderId) {
+    queryClient.setQueryData<LotDisputeRoomDetail>(
+      moderationKeys.orderDisputeRoom(orderId),
+      (prev) => upsertDisputeMessage(prev, patch),
+    );
+  }
+
+  if (ticketId) {
+    queryClient.setQueryData<LotDisputeRoomDetail>(
+      moderationKeys.ticketLotDispute(ticketId),
+      (prev) => upsertDisputeMessage(prev, patch),
+    );
+  }
+}
+
+/**
+ * Send via socket when connected; REST fallback otherwise (same as private chat).
+ */
+export async function sendDisputeMessage(
+  roomId: string,
+  payload: SendDisputeMessagePayload,
+): Promise<LotDisputeMessage> {
+  const socket = getChatSocket();
+
+  if (!socket?.connected) {
+    const data = await moderationService.addLotDisputeMessage(roomId, payload);
+    return data.message;
+  }
+
+  return new Promise<LotDisputeMessage>((resolve, reject) => {
+    socket
+      .timeout(15_000)
+      .emit(
+        CHAT_WS_EVENTS.DISPUTE_MESSAGE_SEND,
+        { roomId, ...payload },
+        (
+          err: Error | null,
+          response: { message?: LotDisputeMessage } | undefined,
+        ) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+
+          if (!response?.message) {
+            reject(new Error('dispute_message_empty'));
+            return;
+          }
+
+          resolve(response.message);
+        },
+      );
+  });
 }
 
 /**

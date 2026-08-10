@@ -32,7 +32,7 @@ export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const hideHeader = isAuthRoute(pathname);
   const lockViewport = isChatRoute(pathname);
-  const showLegalFooter = shouldShowLegalFooter(pathname);
+  const showLegalFooter = shouldShowLegalFooter(pathname) && !lockViewport;
   const showBottomNav = !hideHeader;
 
   return (

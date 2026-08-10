@@ -79,3 +79,19 @@ export function useStartConversation() {
     },
   });
 }
+
+/** Idempotent: resolves the direct conversation id for a participant. */
+export function useEnsureConversation(
+  participantUserId: string | null | undefined,
+  options?: { enabled?: boolean },
+) {
+  const id = participantUserId?.trim() ?? '';
+
+  return useQuery({
+    queryKey: chatKeys.ensureConversation(id),
+    queryFn: () => chatService.startConversation(id),
+    enabled: (options?.enabled ?? true) && id.length > 0,
+    staleTime: Infinity,
+    gcTime: 30 * 60_000,
+  });
+}

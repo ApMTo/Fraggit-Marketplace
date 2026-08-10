@@ -31,8 +31,20 @@ export function ChatPage({ title, conversationId }: ChatPageProps) {
     : undefined;
 
   return (
-    <div className="mx-auto flex h-full min-h-0 w-full max-w-site flex-col gap-4 px-5 py-4 sm:gap-5 sm:py-6">
-      <div className="shrink-0">
+    <div
+      className={cn(
+        'mx-auto flex h-full min-h-0 w-full max-w-site flex-col',
+        conversationId
+          ? 'gap-0 px-0 py-0 lg:gap-5 lg:px-5 lg:py-6'
+          : 'gap-4 px-5 py-4 sm:gap-5 sm:py-6',
+      )}
+    >
+      <div
+        className={cn(
+          'shrink-0',
+          conversationId && 'hidden lg:block',
+        )}
+      >
         <h1 className="page-title text-2xl sm:text-3xl">{title}</h1>
         <p className="mt-1 text-sm text-subtle">{t('subtitle')}</p>
       </div>
@@ -63,7 +75,9 @@ export function ChatPage({ title, conversationId }: ChatPageProps) {
         <main
           className={cn(
             'surface-card flex h-full min-h-0 flex-col overflow-hidden',
-            conversationId ? 'flex' : 'hidden lg:flex',
+            conversationId
+              ? 'flex rounded-none border-0 shadow-none lg:rounded-[var(--radius-lg)] lg:border lg:border-border lg:shadow-[var(--shadow-md)]'
+              : 'hidden lg:flex',
           )}
         >
           {conversationId ? (

@@ -5,7 +5,7 @@ import { HeaderCategorySearch } from '@/components/layout/header-category-search
 import { HeaderPreferences } from '@/components/layout/header-preferences';
 import { SellNavButton } from '@/components/layout/sell-nav-button';
 import { UserMenu } from '@/components/layout/user-menu';
-import { Logo } from '@/components/layout/logo';
+import { HeaderLogo } from '@/components/layout/header-logo';
 import { BrandButton, SecondaryButton } from '@/components/ui/nav-button';
 import { ChatNavIcon } from '@/features/chat/components/chat-nav-icon';
 import { NotificationsBell } from '@/features/notifications/components/notifications-bell';
@@ -21,7 +21,8 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-50 px-3 pt-3 pb-2 md:px-5">
       <div className="glass-header-bar mx-auto flex h-14 max-w-site items-center gap-3 px-4 md:h-[4.25rem] lg:gap-5 lg:px-5">
-        <Logo />
+        <HeaderLogo />
+
 
         <div className="hidden min-w-0 flex-1 md:block">
           <HeaderCategorySearch />

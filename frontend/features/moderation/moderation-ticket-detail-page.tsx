@@ -59,6 +59,10 @@ export function ModerationTicketDetailPage({ title, ticketId }: Props) {
       (ticket.order.buyerId === user.id ||
         ticket.order.sellerId === user.id),
   );
+  const isOrderDispute = ticket?.type === 'ORDER_DISPUTE';
+  const showPrivateChat =
+    Boolean(isOrderDispute && isStaff && (isAssignee || canResolve));
+  const lot = ticket?.order?.lot ?? null;
 
   return (
     <ModerationTicketsPage title={title}>
@@ -76,160 +80,206 @@ export function ModerationTicketDetailPage({ title, ticketId }: Props) {
           >
             ← {t('backToList')}
           </Link>
-          <section>
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <h2 className="text-lg font-semibold">{ticket.subject}</h2>
-              <span
-                className={`inline-flex rounded-[var(--radius-sm)] border px-2.5 py-1 text-xs font-semibold ${statusTone(ticket.status)}`}
-              >
-                {t(`statusLabels.${ticket.status}`)}
-              </span>
-            </div>
-            <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
-              {ticket.body}
-            </p>
-            <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
-              <div>
-                <dt className="text-muted-foreground">{t('columns.type')}</dt>
-                <dd className="font-medium">{t(`typeLabels.${ticket.type}`)}</dd>
+
+          <div
+            className={
+              isOrderDispute
+                ? 'grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,340px)]'
+                : undefined
+            }
+          >
+            <section className="min-w-0">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <h2 className="text-lg font-semibold">{ticket.subject}</h2>
+                <span
+                  className={`inline-flex rounded-[var(--radius-sm)] border px-2.5 py-1 text-xs font-semibold ${statusTone(ticket.status)}`}
+                >
+                  {t(`statusLabels.${ticket.status}`)}
+                </span>
               </div>
-              <div>
-                <dt className="text-muted-foreground">{t('columns.reporter')}</dt>
-                <dd className="font-medium">@{ticket.reporter.username}</dd>
-              </div>
-              {ticket.order ? (
-                <>
-                  <div>
-                    <dt className="text-muted-foreground">{t('columns.order')}</dt>
-                    <dd className="font-medium">
+
+              {isOrderDispute && user && isStaff ? (
+                <div className="mt-4">
+                  <TicketDisputeWorkflow
+                    ticket={ticket}
+                    ticketId={ticketId}
+                    currentUserId={user.id}
+                    currentUserRole={user.role}
+                    variant="claimOnly"
+                  />
+                </div>
+              ) : null}
+              <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
+                {ticket.body}
+              </p>
+              <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+                <div>
+                  <dt className="text-muted-foreground">{t('columns.type')}</dt>
+                  <dd className="font-medium">{t(`typeLabels.${ticket.type}`)}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">{t('columns.reporter')}</dt>
+                  <dd className="font-medium">@{ticket.reporter.username}</dd>
+                </div>
+                {ticket.order ? (
+                  <>
+                    <div>
+                      <dt className="text-muted-foreground">{t('columns.order')}</dt>
+                      <dd className="font-medium">
+                        <Link
+                          href={`/orders/${ticket.order.id}`}
+                          className="underline-offset-2 hover:underline"
+                        >
+                          #{ticket.order.orderNumber}
+                        </Link>
+                        {' · '}
+                        {ticket.order.status === 'PENDING' ||
+                        ticket.order.status === 'AWAITING_BUYER_CONFIRMATION' ||
+                        ticket.order.status === 'DISPUTED' ||
+                        ticket.order.status === 'APPROVED'
+                          ? tOrders(`status.${ticket.order.status}`)
+                          : ticket.order.status}
+                      </dd>
+                    </div>
+                    {lot && !isOrderDispute ? (
+                      <div>
+                        <dt className="text-muted-foreground">{t('columns.lot')}</dt>
+                        <dd className="font-medium">{lot.title}</dd>
+                      </div>
+                    ) : null}
+                    {ticket.order.autoApproveRemainingMs != null ? (
+                      <div>
+                        <dt className="text-muted-foreground">
+                          {t('columns.timerPaused')}
+                        </dt>
+                        <dd className="font-medium">{t('timerPaused')}</dd>
+                      </div>
+                    ) : null}
+                  </>
+                ) : null}
+                {ticket.status === 'RESOLVED' && ticket.resolution !== 'NONE' ? (
+                  <div className="sm:col-span-3 rounded-md border border-border/70 bg-muted/30 p-3">
+                    <p className="text-xs text-muted-foreground">
+                      {t('resolutionLabel')}
+                    </p>
+                    <p className="mt-1 font-medium">
+                      {t(`resolutionLabels.${ticket.resolution}`)}
+                    </p>
+                    {ticket.resolutionNote ? (
+                      <>
+                        <p className="mt-3 text-xs text-muted-foreground">
+                          {t('resolutionNoteLabel')}
+                        </p>
+                        <p className="mt-1 whitespace-pre-wrap text-sm">
+                          {ticket.resolutionNote}
+                        </p>
+                      </>
+                    ) : null}
+                  </div>
+                ) : null}
+              </dl>
+
+              {isOrderDispute && user ? (
+                <div className="mt-5">
+                  <TicketDisputeWorkflow
+                    ticket={ticket}
+                    ticketId={ticketId}
+                    currentUserId={user.id}
+                    currentUserRole={user.role}
+                  />
+                </div>
+              ) : null}
+
+              {canResolve && ticket.status !== 'RESOLVED' ? (
+                <div className="mt-5 space-y-3 border-t border-border/60 pt-4">
+                  <p className="text-sm text-muted-foreground">{t('resolveHint')}</p>
+                  <div className="grid gap-2 sm:grid-cols-3">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="h-auto flex-col items-start gap-1 px-3 py-3 text-left"
+                      onClick={() => setResolveTo('BUYER_FAVOR')}
+                    >
+                      <span className="font-medium">{t('resolve.buyer')}</span>
+                      <span className="text-xs font-normal text-muted-foreground">
+                        {t('resolve.buyerHint')}
+                      </span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="h-auto flex-col items-start gap-1 px-3 py-3 text-left"
+                      onClick={() => setResolveTo('SELLER_FAVOR')}
+                    >
+                      <span className="font-medium">{t('resolve.seller')}</span>
+                      <span className="text-xs font-normal text-muted-foreground">
+                        {t('resolve.sellerHint')}
+                      </span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="h-auto flex-col items-start gap-1 px-3 py-3 text-left"
+                      onClick={() => setResolveTo('NO_ACTION')}
+                    >
+                      <span className="font-medium">{t('resolve.none')}</span>
+                      <span className="text-xs font-normal text-muted-foreground">
+                        {t('resolve.noneHint')}
+                      </span>
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+
+              {isStaff && user ? (
+                <div className="mt-5">
+                  <TicketRequestVerdictBlock
+                    ticket={ticket}
+                    ticketId={ticketId}
+                    currentUserId={user.id}
+                    currentUserRole={user.role}
+                  />
+                </div>
+              ) : null}
+            </section>
+
+            {isOrderDispute ? (
+              <aside className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-4 lg:self-start">
+                {lot ? (
+                  <div className="space-y-2 rounded-[var(--radius-lg)] border border-border bg-surface p-4">
+                    <p className="text-xs font-medium uppercase tracking-wide text-subtle">
+                      {t('columns.lot')}
+                    </p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {lot.title}
+                    </p>
+                    {ticket.order ? (
                       <Link
                         href={`/orders/${ticket.order.id}`}
-                        className="underline-offset-2 hover:underline"
+                        className="text-xs text-link hover:underline"
                       >
                         #{ticket.order.orderNumber}
                       </Link>
-                      {' · '}
-                      {ticket.order.status === 'PENDING' ||
-                      ticket.order.status === 'AWAITING_BUYER_CONFIRMATION' ||
-                      ticket.order.status === 'DISPUTED' ||
-                      ticket.order.status === 'APPROVED'
-                        ? tOrders(`status.${ticket.order.status}`)
-                        : ticket.order.status}
-                    </dd>
+                    ) : null}
                   </div>
-                  {ticket.order.lot ? (
-                    <div>
-                      <dt className="text-muted-foreground">{t('columns.lot')}</dt>
-                      <dd className="font-medium">{ticket.order.lot.title}</dd>
-                    </div>
-                  ) : null}
-                  {ticket.order.autoApproveRemainingMs != null ? (
-                    <div>
-                      <dt className="text-muted-foreground">
-                        {t('columns.timerPaused')}
-                      </dt>
-                      <dd className="font-medium">{t('timerPaused')}</dd>
-                    </div>
-                  ) : null}
-                </>
-              ) : null}
-              {ticket.status === 'RESOLVED' && ticket.resolution !== 'NONE' ? (
-                <div className="sm:col-span-3 rounded-md border border-border/70 bg-muted/30 p-3">
-                  <p className="text-xs text-muted-foreground">
-                    {t('resolutionLabel')}
-                  </p>
-                  <p className="mt-1 font-medium">
-                    {t(`resolutionLabels.${ticket.resolution}`)}
-                  </p>
-                  {ticket.resolutionNote ? (
-                    <>
-                      <p className="mt-3 text-xs text-muted-foreground">
-                        {t('resolutionNoteLabel')}
-                      </p>
-                      <p className="mt-1 whitespace-pre-wrap text-sm">
-                        {ticket.resolutionNote}
-                      </p>
-                    </>
-                  ) : null}
-                </div>
-              ) : null}
-            </dl>
+                ) : null}
 
-            {ticket.type === 'ORDER_DISPUTE' && user ? (
-              <div className="mt-5">
-                <TicketDisputeWorkflow
-                  ticket={ticket}
-                  ticketId={ticketId}
-                  currentUserId={user.id}
-                  currentUserRole={user.role}
-                />
-              </div>
+                {showPrivateChat ? (
+                  <div className="rounded-[var(--radius-lg)] border border-border bg-surface p-4">
+                    <TicketPrivateConversation ticketId={ticketId} />
+                  </div>
+                ) : null}
+              </aside>
             ) : null}
+          </div>
 
-            {ticket.type === 'ORDER_DISPUTE' ? (
-              <div className="mt-5">
-                <TicketLotMediation
-                  ticketId={ticketId}
-                  staffReplyLocked={Boolean(
-                    isStaff && (!isAssignee || isDisputeParty),
-                  )}
-                />
-              </div>
-            ) : null}
-
-            {canResolve && ticket.status !== 'RESOLVED' ? (
-              <div className="mt-5 space-y-3 border-t border-border/60 pt-4">
-                <p className="text-sm text-muted-foreground">{t('resolveHint')}</p>
-                <div className="grid gap-2 sm:grid-cols-3">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="h-auto flex-col items-start gap-1 px-3 py-3 text-left"
-                    onClick={() => setResolveTo('BUYER_FAVOR')}
-                  >
-                    <span className="font-medium">{t('resolve.buyer')}</span>
-                    <span className="text-xs font-normal text-muted-foreground">
-                      {t('resolve.buyerHint')}
-                    </span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="h-auto flex-col items-start gap-1 px-3 py-3 text-left"
-                    onClick={() => setResolveTo('SELLER_FAVOR')}
-                  >
-                    <span className="font-medium">{t('resolve.seller')}</span>
-                    <span className="text-xs font-normal text-muted-foreground">
-                      {t('resolve.sellerHint')}
-                    </span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="h-auto flex-col items-start gap-1 px-3 py-3 text-left"
-                    onClick={() => setResolveTo('NO_ACTION')}
-                  >
-                    <span className="font-medium">{t('resolve.none')}</span>
-                    <span className="text-xs font-normal text-muted-foreground">
-                      {t('resolve.noneHint')}
-                    </span>
-                  </Button>
-                </div>
-              </div>
-            ) : null}
-          </section>
-
-          {isStaff && user ? (
-            <TicketRequestVerdictBlock
-              ticket={ticket}
+          {isOrderDispute ? (
+            <TicketLotMediation
               ticketId={ticketId}
-              currentUserId={user.id}
-              currentUserRole={user.role}
+              staffReplyLock={
+                isStaff && !isDisputeParty && !isAssignee ? 'claim' : null
+              }
             />
-          ) : null}
-
-          {ticket.type === 'ORDER_DISPUTE' && isStaff && (isAssignee || canResolve) ? (
-            <TicketPrivateConversation ticketId={ticketId} />
           ) : null}
         </div>
       )}
