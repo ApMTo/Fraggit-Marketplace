@@ -4,7 +4,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { MessageType, Prisma } from '@prisma/client';
+import { isAllowedStoredMediaRef } from '../../../common/utils/media-url.util';
 import { PrismaService } from '../../../database/prisma.service';
+import { MediaUrlService } from '../../cloudinary/media-url.service';
 import {
   CHAT_USER_SELECT,
   ChatMessage,
@@ -33,6 +35,7 @@ export class MessageService {
     private readonly prisma: PrismaService,
     private readonly conversationService: ConversationService,
     private readonly chatRateLimit: ChatRateLimitService,
+    private readonly mediaUrl: MediaUrlService,
   ) {}
 
   async listMessages(
@@ -79,7 +82,7 @@ export class MessageService {
     const nextBeforeMessageId = hasMore ? (items[0]?.id ?? null) : null;
 
     return {
-      items,
+      items: this.mediaUrl.resolveInTree(items),
       hasMore,
       nextBeforeMessageId,
     };
@@ -129,7 +132,7 @@ export class MessageService {
       throw new BadRequestException('invalid_file_type');
     }
 
-    if (!params.url.startsWith('https://')) {
+    if (!isAllowedStoredMediaRef(params.url)) {
       throw new BadRequestException('chat_invalid_attachment_url');
     }
 
@@ -139,7 +142,7 @@ export class MessageService {
       type: MessageType.IMAGE,
       attachments: {
         create: {
-          url: params.url,
+          url: params.url.trim(),
           mimeType: params.mimeType,
           size: params.size,
           width: params.width,
@@ -164,10 +167,12 @@ export class MessageService {
   }
 
   async getMessageById(messageId: string): Promise<ChatMessage | null> {
-    return this.prisma.message.findUnique({
+    const message = await this.prisma.message.findUnique({
       where: { id: messageId },
       select: MESSAGE_SELECT,
     });
+
+    return message ? this.mediaUrl.resolveInTree(message) : null;
   }
 
   private async persistMessage(params: {
@@ -199,7 +204,7 @@ export class MessageService {
       return created;
     });
 
-    return message;
+    return this.mediaUrl.resolveInTree(message);
   }
 
   async getOtherParticipantId(
@@ -235,9 +240,11 @@ export class MessageService {
   }
 
   async getUserPreview(userId: string) {
-    return this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: CHAT_USER_SELECT,
     });
+
+    return user ? this.mediaUrl.resolveInTree(user) : null;
   }
 }

@@ -1,6 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { MessageType } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { MediaUrlService } from '../../cloudinary/media-url.service';
 import { ChatRateLimitService } from './chat-rate-limit.service';
 import { ConversationService } from './conversation.service';
 import { MessageService } from './message.service';
@@ -30,6 +31,9 @@ describe('MessageService', () => {
   };
   let chatRateLimit: {
     assertCanSendMessage: jest.Mock;
+  };
+  let mediaUrl: {
+    resolveInTree: jest.Mock;
   };
 
   const createdMessage = {
@@ -79,10 +83,15 @@ describe('MessageService', () => {
       assertCanSendMessage: jest.fn().mockResolvedValue(undefined),
     };
 
+    mediaUrl = {
+      resolveInTree: jest.fn((value) => value),
+    };
+
     service = new MessageService(
       prisma as unknown as PrismaService,
       conversationService as unknown as ConversationService,
       chatRateLimit as unknown as ChatRateLimitService,
+      mediaUrl as unknown as MediaUrlService,
     );
   });
 
@@ -196,7 +205,7 @@ describe('MessageService', () => {
       ).rejects.toBeInstanceOf(BadRequestException);
     });
 
-    it('rejects non-https attachment url', async () => {
+    it('rejects non-https absolute attachment url', async () => {
       await expect(
         service.sendImageMessage({
           senderId: 'user-1',
@@ -206,6 +215,48 @@ describe('MessageService', () => {
           size: 100,
         }),
       ).rejects.toBeInstanceOf(BadRequestException);
+    });
+
+    it('persists image message with relative media path', async () => {
+      const imageMessage = {
+        ...createdMessage,
+        type: MessageType.IMAGE,
+        content: null,
+        attachments: [
+          {
+            id: 'att-1',
+            url: 'uploads/a.jpg',
+            mimeType: 'image/jpeg',
+            size: 100,
+            width: 10,
+            height: 10,
+          },
+        ],
+      };
+
+      prisma.$transaction.mockImplementation(async (cb) =>
+        cb({
+          message: {
+            create: jest.fn().mockResolvedValue(imageMessage),
+          },
+          conversation: {
+            update: jest.fn().mockResolvedValue({ id: 'conv-1' }),
+          },
+        }),
+      );
+
+      const result = await service.sendImageMessage({
+        senderId: 'user-1',
+        conversationId: 'conv-1',
+        url: 'uploads/a.jpg',
+        mimeType: 'image/jpeg',
+        size: 100,
+        width: 10,
+        height: 10,
+      });
+
+      expect(result.type).toBe(MessageType.IMAGE);
+      expect(result.attachments).toHaveLength(1);
     });
 
     it('persists image message with attachment', async () => {

@@ -277,7 +277,7 @@ export function LotMediationThread({
   async function handleSendImage(file: File) {
     setIsSending(true);
     try {
-      const [{ url }, dimensions] = await Promise.all([
+      const [{ path }, dimensions] = await Promise.all([
         filesService.uploadImage(file),
         readImageDimensions(file).catch(() => ({
           width: undefined as number | undefined,
@@ -286,7 +286,7 @@ export function LotMediationThread({
       ]);
 
       const message = await sendDisputeMessage(roomId, {
-        url,
+        url: path,
         mimeType: file.type,
         size: file.size,
         width: dimensions.width,

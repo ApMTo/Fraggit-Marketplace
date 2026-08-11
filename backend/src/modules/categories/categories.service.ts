@@ -147,7 +147,7 @@ export class CategoriesService {
         : Promise.resolve(undefined),
     ]);
 
-    return [iconUpload?.url, previewUpload?.url];
+    return [iconUpload?.path, previewUpload?.path];
   }
 
   private async assertExists(id: string): Promise<void> {

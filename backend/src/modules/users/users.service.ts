@@ -67,7 +67,7 @@ export class UsersService {
     let avatarUrl: string | undefined;
     if (avatar) {
       const uploaded = await this.filesService.uploadFile(avatar, 'avatars');
-      avatarUrl = uploaded.url;
+      avatarUrl = uploaded.path;
     }
 
     const user = await this.prisma.user.update({

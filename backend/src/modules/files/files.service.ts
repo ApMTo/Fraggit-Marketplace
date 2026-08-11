@@ -1,14 +1,18 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 import { Readable } from 'stream';
+import { MediaUrlService } from '../cloudinary/media-url.service.js';
 
 export interface CloudinaryUploadResult {
+  path: string;
   url: string;
   public_id: string;
 }
 
 @Injectable()
 export class FilesService {
+  constructor(private readonly mediaUrl: MediaUrlService) {}
+
   async uploadFile(
     file: Express.Multer.File,
     folder = 'uploads',
@@ -26,7 +30,13 @@ export class FilesService {
             reject(new InternalServerErrorException('upload_failed'));
             return;
           }
-          resolve({ url: result.secure_url, public_id: result.public_id });
+
+          const path = result.public_id;
+          resolve({
+            path,
+            public_id: path,
+            url: this.mediaUrl.resolve(path) ?? path,
+          });
         },
       );
 

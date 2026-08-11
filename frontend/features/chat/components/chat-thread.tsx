@@ -152,7 +152,7 @@ export function ChatThread({
     stickToBottomRef.current = true;
 
     try {
-      const [{ url }, dimensions] = await Promise.all([
+      const [{ path }, dimensions] = await Promise.all([
         filesService.uploadImage(file),
         readImageDimensions(file).catch(() => ({
           width: undefined as number | undefined,
@@ -161,7 +161,7 @@ export function ChatThread({
       ]);
 
       const message = await chatService.sendImageMessage(conversationId, {
-        url,
+        url: path,
         mimeType: file.type,
         size: file.size,
         width: dimensions.width,

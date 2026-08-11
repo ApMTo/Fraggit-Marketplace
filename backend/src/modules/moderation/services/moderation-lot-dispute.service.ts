@@ -15,8 +15,10 @@ import {
   UserRole,
 } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
+import { isAllowedStoredMediaRef } from '../../../common/utils/media-url.util';
 import { RoleHierarchy } from '../../auth/enums/roles.enum';
 import { ChatGateway } from '../../chat/chat.gateway';
+import { MediaUrlService } from '../../cloudinary/media-url.service';
 import { CHAT_USER_SELECT } from '../../chat/constants/chat.select';
 import { LOT_DISPUTE_SYSTEM_EVENT } from '../constants/lot-dispute.constants';
 import { CreateLotDisputeMessageDto } from '../dto/moderation-lot-dispute.dto';
@@ -109,6 +111,7 @@ export class ModerationLotDisputeService {
     private readonly notifications: ModerationNotificationsService,
     @Inject(forwardRef(() => ChatGateway))
     private readonly chatGateway: ChatGateway,
+    private readonly mediaUrl: MediaUrlService,
   ) {}
 
   async ensureRoomForTicket(ticketId: string) {
@@ -189,7 +192,7 @@ export class ModerationLotDisputeService {
       ticketId: room.ticketId,
       roomStatus: room.status,
       orderStatus: 'DISPUTED',
-      message,
+      message: this.mediaUrl.resolveInTree(message),
     });
 
     return room;
@@ -249,7 +252,11 @@ export class ModerationLotDisputeService {
 
     const participants = await this.collectParticipantsForRoom(room);
 
-    return { room, messages, participants };
+    return {
+      room,
+      messages: this.mediaUrl.resolveInTree(messages),
+      participants: this.mediaUrl.resolveInTree(participants),
+    };
   }
 
   async findRoomByTicket(
@@ -367,7 +374,7 @@ export class ModerationLotDisputeService {
         throw new BadRequestException({ code: 'errors.invalid_file_type' });
       }
 
-      if (!imageUrl.startsWith('https://')) {
+      if (!isAllowedStoredMediaRef(imageUrl)) {
         throw new BadRequestException({
           code: 'errors.chat_invalid_attachment_url',
         });
@@ -401,6 +408,8 @@ export class ModerationLotDisputeService {
       select: MESSAGE_SELECT,
     });
 
+    const resolvedMessage = this.mediaUrl.resolveInTree(message);
+
     const recipientIds = this.recipientIdsForRoom(room);
     if (!room.orderId) {
       throw new ForbiddenException({ code: 'errors.lot_dispute_forbidden' });
@@ -412,7 +421,7 @@ export class ModerationLotDisputeService {
       roomId: room.id,
       orderId: room.orderId,
       ticketId: room.ticket?.id ?? null,
-      message,
+      message: resolvedMessage,
     });
 
     await this.notifications.notifyLotDisputeMessage({
@@ -421,7 +430,7 @@ export class ModerationLotDisputeService {
       lotId: room.lotId,
       lotTitle: room.lot.title,
       reportId: room.report?.id,
-      authorUsername: message.author?.username,
+      authorUsername: resolvedMessage.author?.username,
       preview:
         kind === LotDisputeMessageKind.IMAGE
           ? '[image]'
@@ -429,7 +438,7 @@ export class ModerationLotDisputeService {
       href,
     });
 
-    return { message };
+    return { message: resolvedMessage };
   }
 
   async onTicketClaimed(ticketId: string, assigneeUsername: string) {
@@ -470,7 +479,7 @@ export class ModerationLotDisputeService {
       roomId: room.id,
       orderId: room.orderId,
       ticketId: room.ticketId,
-      message,
+      message: this.mediaUrl.resolveInTree(message),
     });
   }
 
@@ -535,7 +544,7 @@ export class ModerationLotDisputeService {
           orderId: room.orderId,
           ticketId: room.ticketId,
           roomStatus: LotDisputeRoomStatus.CLOSED,
-          message,
+          message: this.mediaUrl.resolveInTree(message),
         },
       );
     }

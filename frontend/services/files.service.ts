@@ -1,6 +1,7 @@
 import api from '@/lib/api';
 
 export type UploadedFileResult = {
+  path: string;
   url: string;
   public_id: string;
 };

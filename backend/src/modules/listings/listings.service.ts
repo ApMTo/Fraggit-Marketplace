@@ -87,7 +87,7 @@ export class ListingsService {
       throw new NotFoundException('category_not_found');
     }
 
-    const previewUrl = uploadedPreview?.url ?? category.previewUrl ?? null;
+    const previewUrl = uploadedPreview?.path ?? category.previewUrl ?? null;
     const serviceQuestion =
       dto.type === LotType.SERVICE
         ? (dto.serviceQuestion?.trim() ?? null)
@@ -115,7 +115,7 @@ export class ListingsService {
           },
           images: {
             create: uploadedPhotos.map((photo, index) => ({
-              url: photo.url,
+              url: photo.path,
               sortOrder: index,
             })),
           },
@@ -323,7 +323,7 @@ export class ListingsService {
         await tx.lotImage.createMany({
           data: uploadedPhotos.map((photo, index) => ({
             lotId: id,
-            url: photo.url,
+            url: photo.path,
             sortOrder: dto.keepImageIds.length + index,
           })),
         });
@@ -341,7 +341,7 @@ export class ListingsService {
           ...(serviceQuestionUpdate !== undefined
             ? { serviceQuestion: serviceQuestionUpdate }
             : {}),
-          ...(uploadedPreview ? { previewUrl: uploadedPreview.url } : {}),
+          ...(uploadedPreview ? { previewUrl: uploadedPreview.path } : {}),
           attributes: {
             create: attributeValues,
           },

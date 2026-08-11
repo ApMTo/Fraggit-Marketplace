@@ -9,6 +9,7 @@ import { AppModule } from './app.module';
 import { PrismaFilter } from './common/filters/prisma.filter';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { MediaUrlService } from './modules/cloudinary/media-url.service';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
@@ -40,7 +41,7 @@ async function bootstrap(): Promise<void> {
     }),
   );
 
-  app.useGlobalInterceptors(new ResponseInterceptor());
+  app.useGlobalInterceptors(new ResponseInterceptor(app.get(MediaUrlService)));
 
   app.useGlobalFilters(new AllExceptionsFilter(), new PrismaFilter());
 

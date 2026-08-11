@@ -236,7 +236,7 @@ export class BlogService {
 
   private async uploadCover(file: Express.Multer.File): Promise<string> {
     const uploaded = await this.filesService.uploadFile(file, 'blog/covers');
-    return uploaded.url;
+    return uploaded.path;
   }
 
   private async assertExists(id: string): Promise<void> {

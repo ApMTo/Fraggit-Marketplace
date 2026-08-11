@@ -80,5 +80,11 @@ export default () => {
         process.env.GOOGLE_CALLBACK_URL ||
         `${process.env.FRONTEND_URL || 'http://localhost:3000'}/api/auth/google/callback`,
     },
+    cloudinary: {
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME || '',
+      apiKey: process.env.CLOUDINARY_API_KEY || '',
+      apiSecret: process.env.CLOUDINARY_API_SECRET || '',
+      baseUrl: process.env.CLOUDINARY_BASE_URL || '',
+    },
   };
 };
