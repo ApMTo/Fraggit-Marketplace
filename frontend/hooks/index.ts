@@ -65,3 +65,9 @@ export {
   useModAudit,
   useModerationMutations,
 } from './use-moderation';
+export {
+  useBlogPosts,
+  useBlogLatest,
+  useBlogPost,
+  useBlogMutations,
+} from './use-blog';

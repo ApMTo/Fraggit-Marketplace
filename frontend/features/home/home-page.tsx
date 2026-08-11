@@ -9,17 +9,23 @@ import { FaqSection } from './components/faq-section';
 import { HeroSection } from './components/hero-section';
 import { HowItWorksSection } from './components/how-it-works-section';
 import { LandingFooter } from './components/landing-footer';
+import { LatestBlogSection } from './components/latest-blog-section';
 import { WhyFraggitSection } from './components/why-fraggit-section';
 import { getLandingLinks } from './lib/get-landing-links';
+import type { BlogPostCard } from '@/types/blog';
 
 type HomePageProps = {
   isAuthenticated: boolean;
+  latestPosts: BlogPostCard[];
 };
 
-export async function HomePage({ isAuthenticated }: HomePageProps) {
+export async function HomePage({
+  isAuthenticated,
+  latestPosts,
+}: HomePageProps) {
   const t = await getTranslations('landing');
   const links = getLandingLinks({ isAuthenticated });
-  
+
   const currentYear = new Date().getFullYear();
 
   return (
@@ -44,6 +50,8 @@ export async function HomePage({ isAuthenticated }: HomePageProps) {
           t(`categories.items.${key}.description` as Parameters<typeof t>[0])
         }
       />
+
+      <LatestBlogSection posts={latestPosts} />
 
       <WhyFraggitSection
         title={t('benefits.title')}
@@ -100,6 +108,7 @@ export async function HomePage({ isAuthenticated }: HomePageProps) {
           { label: t('footer.sellerPolicy'), href: '/seller-policy' },
           { label: t('footer.support'), href: '#support' },
           { label: t('footer.contacts'), href: '#contacts' },
+          { label: t('footer.blog'), href: '/blog' },
         ]}
         socialLinks={[
           { label: t('footer.telegram'), href: 'https://t.me/fraggit' },

@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { getAppNavItems, isNavItemActive } from './app-nav';
 
 describe('app nav', () => {
-  it('returns only listings in header for guests', () => {
+  it('returns listings and blog in header for guests', () => {
     expect(
       getAppNavItems({ isAuthenticated: false, group: 'header' }).map(
         (item) => item.id,
       ),
-    ).toEqual(['listings']);
+    ).toEqual(['listings', 'blog']);
   });
 
   it('returns account links for authenticated users', () => {

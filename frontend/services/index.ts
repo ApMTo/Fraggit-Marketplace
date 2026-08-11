@@ -14,4 +14,5 @@ export {
 export { ordersService, orderKeys } from './orders.service';
 export { reviewsService, reviewKeys } from './reviews.service';
 export { moderationService, moderationKeys } from './moderation.service';
+export { blogService, blogKeys } from './blog.service';
 

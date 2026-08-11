@@ -13,6 +13,7 @@
       "closeMenu": "Close menu",
       "home": "Home",
       "listings": "Listings",
+      "blog": "Blog",
       "search": "Search",
       "chats": "Chats",
       "orders": "Orders",
@@ -308,6 +309,12 @@
       "startShopping": "Start shopping",
       "createAccount": "Create account"
     },
+    "blog": {
+      "title": "From the blog",
+      "subtitle": "Guides, product updates, and marketplace tips",
+      "readMore": "Read",
+      "viewAll": "View all posts"
+    },
     "footer": {
       "tagline": "A modern marketplace for digital goods and services",
       "about": "About",
@@ -317,9 +324,80 @@
       "sellerPolicy": "Seller Policy",
       "support": "Support",
       "contacts": "Contacts",
+      "blog": "Blog",
       "telegram": "Telegram",
       "discord": "Discord",
       "copyright": "© {year} Fraggit. All rights reserved."
+    }
+  },
+  "blog": {
+    "title": "Blog",
+    "subtitle": "News, guides, and updates from the Fraggit team",
+    "readMore": "Read",
+    "newPost": "New post",
+    "editPost": "Edit",
+    "backToList": "Back to blog",
+    "byAuthor": "By {name}",
+    "emptyTitle": "No posts yet",
+    "emptyDescription": "Check back soon for guides and product updates.",
+    "pagination": {
+      "prev": "Previous",
+      "next": "Next",
+      "page": "Page {page} of {total}"
+    },
+    "editor": {
+      "createTitle": "New blog post",
+      "editTitle": "Edit blog post",
+      "subtitle": "Write every language in Markdown with a live preview. Cover image is required for new posts.",
+      "title": "Title",
+      "slug": "Slug",
+      "slugPlaceholder": "optional-url-slug",
+      "slugHint": "Leave empty to generate from the English title. Shared across languages.",
+      "cover": "Cover image",
+      "addCover": "Add cover image",
+      "changeCover": "Change",
+      "removeCover": "Remove cover",
+      "coverFormats": "JPG, PNG or WebP · up to 5 MB",
+      "coverRequired": "Cover image is required.",
+      "coverTooLarge": "Cover must be 5 MB or smaller.",
+      "coverKeepHint": "Current cover stays unless you upload a new one.",
+      "localeTabsLabel": "Post language",
+      "localeTabsHint": "Fill title and content for every language before publishing.",
+      "localeRequired": "Add title and content for {locale}.",
+      "content": "Content",
+      "contentPlaceholder": "## Heading\n\nParagraph with a [link](https://example.com).\n\n- List item\n- Another item",
+      "writeTab": "Write",
+      "previewTab": "Preview",
+      "previewEmpty": "Start writing — the preview will appear here.",
+      "linkHint": "Link format: [visible text](https://example.com). Select text and press Link, or type it manually.",
+      "toolbar": {
+        "bold": "Bold",
+        "italic": "Italic",
+        "underline": "Underline",
+        "link": "Link",
+        "heading": "Heading",
+        "list": "List",
+        "placeholders": {
+          "bold": "bold text",
+          "italic": "italic text",
+          "underline": "underlined text",
+          "link": "link text",
+          "heading": "Heading",
+          "list": "List item"
+        }
+      },
+      "create": "Publish",
+      "save": "Save changes",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "createSuccess": "Post published",
+      "updateSuccess": "Post updated",
+      "createError": "Could not publish the post",
+      "updateError": "Could not update the post",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this post permanently?",
+      "deleteSuccess": "Post deleted",
+      "deleteError": "Could not delete the post"
     }
   },
   "legal": {
@@ -360,6 +438,7 @@
     "register": "Register Page",
     "profile": "Profile Page",
     "listings": "Listings Page",
+    "blog": "Blog",
     "orders": "Orders Page",
     "chat": "Chat Page",
     "admin": "Admin Page",
@@ -1449,7 +1528,8 @@
         "restore": "Restore",
         "revokeSessions": "Force logout",
         "reset2fa": "Reset 2FA",
-        "makeModerator": "Make moderator"
+        "makeModerator": "Make moderator",
+        "makeMedia": "Make media"
       }
     },
     "lots": {

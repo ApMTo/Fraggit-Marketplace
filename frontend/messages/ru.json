@@ -13,6 +13,7 @@
       "closeMenu": "Закрыть меню",
       "home": "Главная",
       "listings": "Объявления",
+      "blog": "Блог",
       "search": "Поиск",
       "chats": "Чаты",
       "orders": "Заказы",
@@ -308,6 +309,12 @@
       "startShopping": "Начать покупки",
       "createAccount": "Создать аккаунт"
     },
+    "blog": {
+      "title": "Из блога",
+      "subtitle": "Гайды, обновления продукта и советы по маркетплейсу",
+      "readMore": "Читать",
+      "viewAll": "Все посты"
+    },
     "footer": {
       "tagline": "Современный маркетплейс цифровых товаров и услуг",
       "about": "О нас",
@@ -317,9 +324,80 @@
       "sellerPolicy": "Для продавцов",
       "support": "Поддержка",
       "contacts": "Контакты",
+      "blog": "Блог",
       "telegram": "Telegram",
       "discord": "Discord",
       "copyright": "© {year} Fraggit. Все права защищены."
+    }
+  },
+  "blog": {
+    "title": "Блог",
+    "subtitle": "Новости, гайды и обновления от команды Fraggit",
+    "readMore": "Читать",
+    "newPost": "Новый пост",
+    "editPost": "Редактировать",
+    "backToList": "Назад к блогу",
+    "byAuthor": "Автор: {name}",
+    "emptyTitle": "Пока нет постов",
+    "emptyDescription": "Скоро здесь появятся гайды и обновления продукта.",
+    "pagination": {
+      "prev": "Назад",
+      "next": "Далее",
+      "page": "Страница {page} из {total}"
+    },
+    "editor": {
+      "createTitle": "Новый пост",
+      "editTitle": "Редактировать пост",
+      "subtitle": "Пишите каждый язык в Markdown с live-превью. Для нового поста обложка обязательна.",
+      "title": "Заголовок",
+      "slug": "Slug",
+      "slugPlaceholder": "optional-url-slug",
+      "slugHint": "Оставьте пустым — сгенерируем из английского заголовка. Один slug на все языки.",
+      "cover": "Обложка",
+      "addCover": "Добавить обложку",
+      "changeCover": "Заменить",
+      "removeCover": "Убрать обложку",
+      "coverFormats": "JPG, PNG или WebP · до 5 МБ",
+      "coverRequired": "Обложка обязательна.",
+      "coverTooLarge": "Обложка должна быть не больше 5 МБ.",
+      "coverKeepHint": "Текущая обложка останется, пока не загрузите новую.",
+      "localeTabsLabel": "Язык поста",
+      "localeTabsHint": "Заполните заголовок и текст на каждом языке перед публикацией.",
+      "localeRequired": "Добавьте заголовок и текст для языка: {locale}.",
+      "content": "Контент",
+      "contentPlaceholder": "## Заголовок\n\nАбзац со [ссылкой](https://example.com).\n\n- Пункт списка\n- Ещё пункт",
+      "writeTab": "Текст",
+      "previewTab": "Превью",
+      "previewEmpty": "Начните писать — превью появится здесь.",
+      "linkHint": "Ссылка: [текст](https://example.com). Выделите текст и нажмите «Ссылка», или введите вручную.",
+      "toolbar": {
+        "bold": "Жирный",
+        "italic": "Курсив",
+        "underline": "Подчёркивание",
+        "link": "Ссылка",
+        "heading": "Заголовок",
+        "list": "Список",
+        "placeholders": {
+          "bold": "жирный текст",
+          "italic": "курсив",
+          "underline": "подчёркнутый текст",
+          "link": "текст ссылки",
+          "heading": "Заголовок",
+          "list": "Пункт списка"
+        }
+      },
+      "create": "Опубликовать",
+      "save": "Сохранить",
+      "saving": "Сохранение…",
+      "cancel": "Отмена",
+      "createSuccess": "Пост опубликован",
+      "updateSuccess": "Пост обновлён",
+      "createError": "Не удалось опубликовать пост",
+      "updateError": "Не удалось обновить пост",
+      "delete": "Удалить",
+      "deleteConfirm": "Удалить этот пост навсегда?",
+      "deleteSuccess": "Пост удалён",
+      "deleteError": "Не удалось удалить пост"
     }
   },
   "legal": {
@@ -360,6 +438,7 @@
     "register": "Страница регистрации",
     "profile": "Страница профиля",
     "listings": "Страница объявлений",
+    "blog": "Блог",
     "orders": "Страница заказов",
     "chat": "Страница чата",
     "admin": "Страница администратора",
@@ -1449,7 +1528,8 @@
         "restore": "Восстановить",
         "revokeSessions": "Сбросить сессии",
         "reset2fa": "Сбросить 2FA",
-        "makeModerator": "Сделать модератором"
+        "makeModerator": "Сделать модератором",
+        "makeMedia": "Сделать media"
       }
     },
     "lots": {

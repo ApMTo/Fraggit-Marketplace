@@ -9,6 +9,11 @@ export type LocalizedName = {
   ru?: string;
 };
 
+/** Blog (and similar) copy where every app locale is required. */
+export type LocalizedText = {
+  [K in AppLocale]: string;
+};
+
 export function isAppLocale(value: string): value is AppLocale {
   return (APP_LOCALES as readonly string[]).includes(value);
 }
@@ -110,4 +115,21 @@ export function toLocalizedNameInput(name: LocalizedName): LocalizedName {
   }
 
   return result;
+}
+
+export function parseLocalizedText(value: unknown): LocalizedText {
+  const translations = parseLocalizedName(value);
+  const en = translations.en.trim();
+
+  return {
+    en,
+    ru: translations.ru?.trim() ? translations.ru.trim() : en,
+  };
+}
+
+export function toLocalizedTextInput(text: LocalizedText): LocalizedText {
+  return {
+    en: text.en.trim(),
+    ru: text.ru.trim(),
+  };
 }

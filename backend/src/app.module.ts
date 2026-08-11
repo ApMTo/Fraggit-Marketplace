@@ -28,6 +28,7 @@ import { FilesModule } from './modules/files/files.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { SubcategoriesModule } from './modules/subcategories/subcategories.module';
 import { AttributeDefinitionsModule } from './modules/attribute-definitions/attribute-definitions.module';
+import { BlogModule } from './modules/blog/blog.module';
 
 @Module({
   imports: [
@@ -98,6 +99,7 @@ import { AttributeDefinitionsModule } from './modules/attribute-definitions/attr
     CategoriesModule,
     SubcategoriesModule,
     AttributeDefinitionsModule,
+    BlogModule,
   ],
   providers: [
     RequestLoggingMiddleware,

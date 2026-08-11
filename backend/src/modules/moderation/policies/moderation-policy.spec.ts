@@ -81,8 +81,17 @@ describe('moderation-policy', () => {
   describe('isStaffRole', () => {
     it('detects staff roles', () => {
       expect(isStaffRole(UserRole.USER)).toBe(false);
+      expect(isStaffRole(UserRole.MEDIA)).toBe(false);
       expect(isStaffRole(UserRole.MODERATOR)).toBe(true);
       expect(isStaffRole(UserRole.OWNER)).toBe(true);
+    });
+  });
+
+  describe('assertCanAssignRole MEDIA', () => {
+    it('allows super admin to assign MEDIA', () => {
+      expect(() =>
+        assertCanAssignRole(UserRole.SUPER_ADMIN, UserRole.MEDIA),
+      ).not.toThrow();
     });
   });
 

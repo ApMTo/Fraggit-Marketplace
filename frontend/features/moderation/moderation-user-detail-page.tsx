@@ -171,16 +171,26 @@ export function ModerationUserDetailPage({ title, userId }: Props) {
                 </Button>
               ) : null}
               {canSuper ? (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  onClick={() =>
-                    setAction({ type: 'role', role: 'MODERATOR' })
-                  }
-                >
-                  {t('actions.makeModerator')}
-                </Button>
+                <>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() =>
+                      setAction({ type: 'role', role: 'MODERATOR' })
+                    }
+                  >
+                    {t('actions.makeModerator')}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setAction({ type: 'role', role: 'MEDIA' })}
+                  >
+                    {t('actions.makeMedia')}
+                  </Button>
+                </>
               ) : null}
             </div>
           </section>

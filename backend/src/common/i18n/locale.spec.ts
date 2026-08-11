@@ -3,8 +3,10 @@ import {
   normalizeLocale,
   parseAcceptLanguageHeader,
   parseLocalizedName,
+  parseLocalizedText,
   resolveLocalizedName,
   toLocalizedNameInput,
+  toLocalizedTextInput,
 } from './locale';
 
 describe('locale i18n helpers', () => {
@@ -58,5 +60,19 @@ describe('locale i18n helpers', () => {
     expect(
       toLocalizedNameInput({ en: '  Accounts  ', ru: '  Аккаунты  ' }),
     ).toEqual({ en: 'Accounts', ru: 'Аккаунты' });
+  });
+
+  it('parses and trims required localized text', () => {
+    expect(parseLocalizedText({ en: ' Hello ', ru: ' Привет ' })).toEqual({
+      en: 'Hello',
+      ru: 'Привет',
+    });
+    expect(parseLocalizedText({ en: 'Hello' })).toEqual({
+      en: 'Hello',
+      ru: 'Hello',
+    });
+    expect(toLocalizedTextInput({ en: '  Hello  ', ru: '  Привет  ' })).toEqual(
+      { en: 'Hello', ru: 'Привет' },
+    );
   });
 });

@@ -4,6 +4,8 @@ export { UserRole };
 
 export const RoleHierarchy: Record<UserRole, number> = {
   [UserRole.USER]: 0,
+  /** Editorial role — not staff; only blog CMS via @StrictRoles(MEDIA). */
+  [UserRole.MEDIA]: 0,
   [UserRole.MODERATOR]: 1,
   [UserRole.ADMIN]: 2,
   [UserRole.SUPER_ADMIN]: 3,

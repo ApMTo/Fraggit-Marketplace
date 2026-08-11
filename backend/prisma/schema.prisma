@@ -8,6 +8,7 @@ datasource db {
 
 enum UserRole {
   USER
+  MEDIA
   MODERATOR
   ADMIN
   SUPER_ADMIN
@@ -95,8 +96,29 @@ model User {
   ticketMessages  TicketMessage[]
 
   lotDisputeMessages LotDisputeMessage[]
+  blogPosts          BlogPost[]
 
   @@unique([provider, providerId])
+}
+
+model BlogPost {
+  id String @id @default(uuid())
+
+  /// Localized title: { "en": "...", "ru": "..." }. All app locales required.
+  title Json
+  slug  String @unique
+  /// Localized markdown body: { "en": "...", "ru": "..." }. All app locales required.
+  content  Json
+  coverUrl String
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  publishedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([publishedAt(sort: Desc)])
 }
 
 enum AttributeType {
