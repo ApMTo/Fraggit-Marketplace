@@ -10,6 +10,7 @@ export type MarkReadResult = {
   conversationId: string;
   lastReadMessageId: string;
   lastReadAt: Date;
+  participantIds: string[];
 };
 
 @Injectable()
@@ -28,10 +29,11 @@ export class ChatReadService {
     conversationId: string,
     lastReadMessageId: string,
   ): Promise<MarkReadResult> {
-    await this.conversationService.assertUserIsParticipant(
-      conversationId,
-      userId,
-    );
+    const participantIds =
+      await this.conversationService.assertUserIsParticipant(
+        conversationId,
+        userId,
+      );
 
     const message = await this.prisma.message.findFirst({
       where: { id: lastReadMessageId, conversationId },
@@ -94,6 +96,7 @@ export class ChatReadService {
       conversationId: updated.conversationId,
       lastReadMessageId: updated.lastReadMessageId,
       lastReadAt: updated.lastReadAt,
+      participantIds,
     };
   }
 }

@@ -59,15 +59,17 @@ export class ChatNotificationService {
   async notifyAboutNewMessage(
     message: ChatMessage,
     senderDisplayName: string,
+    participantIds: string[],
   ): Promise<void> {
     if (!message.senderId) {
       return;
     }
 
-    const recipientId = await this.messageService.getOtherParticipantId(
-      message.conversationId,
-      message.senderId,
-    );
+    const recipientId = participantIds.find((id) => id !== message.senderId);
+
+    if (!recipientId) {
+      return;
+    }
 
     const isOnline = await this.chatPresence.isOnline(recipientId);
 

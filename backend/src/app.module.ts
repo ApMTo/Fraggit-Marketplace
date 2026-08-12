@@ -29,6 +29,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { SubcategoriesModule } from './modules/subcategories/subcategories.module';
 import { AttributeDefinitionsModule } from './modules/attribute-definitions/attribute-definitions.module';
 import { BlogModule } from './modules/blog/blog.module';
+import { CatalogModule } from './modules/catalog/catalog.module';
 
 @Module({
   imports: [
@@ -82,6 +83,7 @@ import { BlogModule } from './modules/blog/blog.module';
     }),
     PrismaModule,
     RedisModule,
+    CatalogModule,
     SessionsModule,
     AuthModule,
     UsersModule,

@@ -4,45 +4,38 @@ import { LANDING_CATEGORIES } from './data/categories';
 import { LANDING_FAQ } from './data/faq';
 import { LANDING_STEPS } from './data/steps';
 import { CategoriesSection } from './components/categories-section';
-import { CtaSection } from './components/cta-section';
+import { CtaSectionWithAuth } from './components/cta-section-with-auth';
 import { FaqSection } from './components/faq-section';
-import { HeroSection } from './components/hero-section';
+import { HeroSectionWithAuth } from './components/hero-section-with-auth';
 import { HowItWorksSection } from './components/how-it-works-section';
 import { LandingFooter } from './components/landing-footer';
 import { LatestBlogSection } from './components/latest-blog-section';
 import { WhyFraggitSection } from './components/why-fraggit-section';
-import { getLandingLinks } from './lib/get-landing-links';
 import type { BlogPostCard } from '@/types/blog';
 
 type HomePageProps = {
-  isAuthenticated: boolean;
   latestPosts: BlogPostCard[];
 };
 
-export async function HomePage({
-  isAuthenticated,
-  latestPosts,
-}: HomePageProps) {
+export async function HomePage({ latestPosts }: HomePageProps) {
   const t = await getTranslations('landing');
-  const links = getLandingLinks({ isAuthenticated });
 
   const currentYear = new Date().getFullYear();
 
   return (
     <>
-      <HeroSection
+      <HeroSectionWithAuth
         title={t('hero.title')}
         subtitle={t('hero.subtitle')}
         startShoppingLabel={t('hero.startShopping')}
         becomeSellerLabel={t('hero.becomeSeller')}
-        links={links}
       />
 
       <CategoriesSection
         title={t('categories.title')}
         subtitle={t('categories.subtitle')}
         categories={LANDING_CATEGORIES}
-        listingsHref={links.startShopping}
+        listingsHref="/listings"
         getCategoryName={(key) =>
           t(`categories.items.${key}.name` as Parameters<typeof t>[0])
         }
@@ -89,12 +82,11 @@ export async function HomePage({
         }
       />
 
-      <CtaSection
+      <CtaSectionWithAuth
         title={t('cta.title')}
         subtitle={t('cta.subtitle')}
         startShoppingLabel={t('cta.startShopping')}
         createAccountLabel={t('cta.createAccount')}
-        links={links}
       />
 
       <LandingFooter

@@ -45,9 +45,11 @@ export class PrismaService
   private readonly pool: Pool;
 
   constructor(private readonly configService: ConfigService) {
-    const pool = new Pool(
-      buildPoolConfig(configService.get<string>('database.url')),
-    );
+    const poolMax = configService.get<number>('database.poolMax', 25);
+    const pool = new Pool({
+      ...buildPoolConfig(configService.get<string>('database.url')),
+      max: poolMax,
+    });
     const adapter = new PrismaPg(pool);
 
     super({ adapter });

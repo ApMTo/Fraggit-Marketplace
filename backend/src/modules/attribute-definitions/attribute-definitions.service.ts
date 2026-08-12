@@ -6,6 +6,8 @@ import {
 } from '@nestjs/common';
 import { AttributeType, Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { CatalogCacheService } from '../catalog/catalog-cache.service';
+import { CATALOG_CACHE_KEYS } from '../catalog/constants/catalog-cache.constants';
 import {
   ATTRIBUTE_DEFINITION_ADMIN_SELECT,
   ATTRIBUTE_DEFINITION_PUBLIC_SELECT,
@@ -22,7 +24,10 @@ import { UpdateAttributeDefinitionDto } from './dto/update-attribute-definition.
 
 @Injectable()
 export class AttributeDefinitionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly catalogCache: CatalogCacheService,
+  ) {}
 
   findGlobalByCategoryId(
     categoryId: string,
@@ -47,7 +52,38 @@ export class AttributeDefinitionsService {
     );
   }
 
-  findFilterableForSubcategory(
+  async findFilterableForSubcategory(
+    subcategoryId: string,
+  ): Promise<AttributeDefinitionForValidation[]> {
+    const cacheKey = CATALOG_CACHE_KEYS.filterableAttributes(subcategoryId);
+    const cached =
+      await this.catalogCache.get<AttributeDefinitionForValidation[]>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const rows = await this.loadFilterableForSubcategory(subcategoryId);
+    await this.catalogCache.set(cacheKey, rows);
+    return rows;
+  }
+
+  async findFilterablePublicForSubcategory(
+    subcategoryId: string,
+  ): Promise<AttributeDefinitionPublic[]> {
+    const cacheKey =
+      CATALOG_CACHE_KEYS.filterableAttributesPublic(subcategoryId);
+    const cached =
+      await this.catalogCache.get<AttributeDefinitionPublic[]>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const rows = await this.loadFilterablePublicForSubcategory(subcategoryId);
+    await this.catalogCache.set(cacheKey, rows);
+    return rows;
+  }
+
+  private async loadFilterableForSubcategory(
     subcategoryId: string,
   ): Promise<AttributeDefinitionForValidation[]> {
     return this.resolveSubcategoryContext(subcategoryId).then(
@@ -60,7 +96,7 @@ export class AttributeDefinitionsService {
     );
   }
 
-  findFilterablePublicForSubcategory(
+  private async loadFilterablePublicForSubcategory(
     subcategoryId: string,
   ): Promise<AttributeDefinitionPublic[]> {
     return this.resolveSubcategoryContext(subcategoryId).then(
@@ -108,7 +144,7 @@ export class AttributeDefinitionsService {
     await this.assertGlobalKeyAvailable(categoryId, dto.key);
 
     try {
-      return await this.prisma.attributeDefinition.create({
+      const created = await this.prisma.attributeDefinition.create({
         data: {
           categoryId,
           subcategoryId: null,
@@ -122,6 +158,8 @@ export class AttributeDefinitionsService {
         },
         select: ATTRIBUTE_DEFINITION_ADMIN_SELECT,
       });
+      await this.catalogCache.invalidateAllFilterableAttributes();
+      return created;
     } catch (error) {
       this.rethrowUniqueConflict(error);
     }
@@ -140,7 +178,7 @@ export class AttributeDefinitionsService {
     );
 
     try {
-      return await this.prisma.attributeDefinition.create({
+      const created = await this.prisma.attributeDefinition.create({
         data: {
           categoryId,
           subcategoryId,
@@ -154,6 +192,8 @@ export class AttributeDefinitionsService {
         },
         select: ATTRIBUTE_DEFINITION_ADMIN_SELECT,
       });
+      await this.catalogCache.invalidateFilterableAttributes(subcategoryId);
+      return created;
     } catch (error) {
       this.rethrowUniqueConflict(error);
     }
@@ -211,19 +251,39 @@ export class AttributeDefinitionsService {
     }
 
     try {
-      return await this.prisma.attributeDefinition.update({
+      const updated = await this.prisma.attributeDefinition.update({
         where: { id },
         data,
         select: ATTRIBUTE_DEFINITION_ADMIN_SELECT,
       });
+      if (current.subcategoryId) {
+        await this.catalogCache.invalidateFilterableAttributes(
+          current.subcategoryId,
+        );
+      } else {
+        await this.catalogCache.invalidateAllFilterableAttributes();
+      }
+      return updated;
     } catch (error) {
       this.rethrowUniqueConflict(error);
     }
   }
 
   async remove(id: string): Promise<void> {
+    const existing = await this.prisma.attributeDefinition.findUnique({
+      where: { id },
+      select: { subcategoryId: true, isGlobal: true },
+    });
+
     try {
       await this.prisma.attributeDefinition.delete({ where: { id } });
+      if (existing?.subcategoryId) {
+        await this.catalogCache.invalidateFilterableAttributes(
+          existing.subcategoryId,
+        );
+      } else if (existing?.isGlobal) {
+        await this.catalogCache.invalidateAllFilterableAttributes();
+      }
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&

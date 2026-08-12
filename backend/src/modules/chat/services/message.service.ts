@@ -29,6 +29,11 @@ export type MessageListResult = {
   nextBeforeMessageId: string | null;
 };
 
+export type SendMessageResult = {
+  message: ChatMessage;
+  participantIds: string[];
+};
+
 @Injectable()
 export class MessageService {
   constructor(
@@ -92,12 +97,13 @@ export class MessageService {
     senderId: string;
     conversationId: string;
     content: string;
-  }): Promise<ChatMessage> {
+  }): Promise<SendMessageResult> {
     await this.chatRateLimit.assertCanSendMessage(params.senderId);
-    await this.conversationService.assertUserIsParticipant(
-      params.conversationId,
-      params.senderId,
-    );
+    const participantIds =
+      await this.conversationService.assertUserIsParticipant(
+        params.conversationId,
+        params.senderId,
+      );
 
     const content = sanitizeMessageText(params.content);
 
@@ -105,12 +111,14 @@ export class MessageService {
       throw new BadRequestException('chat_message_empty');
     }
 
-    return this.persistMessage({
+    const message = await this.persistMessage({
       conversationId: params.conversationId,
       senderId: params.senderId,
       type: MessageType.TEXT,
       content,
     });
+
+    return { message, participantIds };
   }
 
   async sendImageMessage(params: {
@@ -121,12 +129,13 @@ export class MessageService {
     size: number;
     width?: number;
     height?: number;
-  }): Promise<ChatMessage> {
+  }): Promise<SendMessageResult> {
     await this.chatRateLimit.assertCanSendMessage(params.senderId);
-    await this.conversationService.assertUserIsParticipant(
-      params.conversationId,
-      params.senderId,
-    );
+    const participantIds =
+      await this.conversationService.assertUserIsParticipant(
+        params.conversationId,
+        params.senderId,
+      );
 
     if (!ALLOWED_IMAGE_MIME_TYPES.has(params.mimeType)) {
       throw new BadRequestException('invalid_file_type');
@@ -136,7 +145,7 @@ export class MessageService {
       throw new BadRequestException('chat_invalid_attachment_url');
     }
 
-    return this.persistMessage({
+    const message = await this.persistMessage({
       conversationId: params.conversationId,
       senderId: params.senderId,
       type: MessageType.IMAGE,
@@ -150,6 +159,8 @@ export class MessageService {
         },
       },
     });
+
+    return { message, participantIds };
   }
 
   async sendSystemMessage(params: {

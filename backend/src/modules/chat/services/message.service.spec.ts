@@ -164,7 +164,10 @@ describe('MessageService', () => {
       });
 
       expect(chatRateLimit.assertCanSendMessage).toHaveBeenCalledWith('user-1');
-      expect(result).toEqual(createdMessage);
+      expect(result).toEqual({
+        message: createdMessage,
+        participantIds: ['user-1', 'user-2'],
+      });
       expect(tx.message.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
@@ -255,8 +258,9 @@ describe('MessageService', () => {
         height: 10,
       });
 
-      expect(result.type).toBe(MessageType.IMAGE);
-      expect(result.attachments).toHaveLength(1);
+      expect(result.message.type).toBe(MessageType.IMAGE);
+      expect(result.message.attachments).toHaveLength(1);
+      expect(result.participantIds).toEqual(['user-1', 'user-2']);
     });
 
     it('persists image message with attachment', async () => {
@@ -297,8 +301,9 @@ describe('MessageService', () => {
         height: 10,
       });
 
-      expect(result.type).toBe(MessageType.IMAGE);
-      expect(result.attachments).toHaveLength(1);
+      expect(result.message.type).toBe(MessageType.IMAGE);
+      expect(result.message.attachments).toHaveLength(1);
+      expect(result.participantIds).toEqual(['user-1', 'user-2']);
     });
   });
 

@@ -204,7 +204,20 @@ export class TelegramService {
     action?: { href: string; label: string },
   ): Promise<boolean> {
     const delivery = await this.getLinkedDelivery(userId);
-    if (!delivery || !this.bot.isReady()) {
+    if (!delivery) {
+      return false;
+    }
+
+    return this.sendToDelivery(userId, delivery, text, action);
+  }
+
+  private async sendToDelivery(
+    userId: string,
+    delivery: { telegramId: string; locale: TelegramLocale },
+    text: string,
+    action?: { href: string; label: string },
+  ): Promise<boolean> {
+    if (!this.bot.isReady()) {
       return false;
     }
 
@@ -251,7 +264,7 @@ export class TelegramService {
       'openChat',
     );
 
-    return this.tryNotifyUser(params.recipientUserId, text, {
+    return this.sendToDelivery(params.recipientUserId, delivery, text, {
       href,
       label: tBot(delivery.locale, 'openChat'),
     });
@@ -278,7 +291,7 @@ export class TelegramService {
       'openOrder',
     );
 
-    return this.tryNotifyUser(params.recipientUserId, text, {
+    return this.sendToDelivery(params.recipientUserId, delivery, text, {
       href: params.href,
       label: tBot(delivery.locale, 'openOrder'),
     });
@@ -351,7 +364,7 @@ export class TelegramService {
       'openLot',
     );
 
-    await this.tryNotifyUser(params.sellerId, text, {
+    await this.sendToDelivery(params.sellerId, delivery, text, {
       href,
       label: tBot(delivery.locale, 'openLot'),
     });

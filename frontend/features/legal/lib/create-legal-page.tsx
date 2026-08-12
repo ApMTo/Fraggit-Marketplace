@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getLocale, getTranslations } from 'next-intl/server';
 import type { Locale } from '@/i18n/config';
+import { CACHE_TTL } from '@/lib/cache-config';
 import {
   LegalDocumentPage,
   getAllLegalDocuments,
@@ -46,5 +47,5 @@ export function createLegalPage({ slug, metadataKey }: LegalPageConfig) {
     );
   }
 
-  return { generateMetadata, Page };
+  return { generateMetadata, Page, revalidate: CACHE_TTL.legal };
 }

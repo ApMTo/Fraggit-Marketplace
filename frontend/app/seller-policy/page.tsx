@@ -1,9 +1,9 @@
 import { createLegalPage } from '@/features/legal/lib/create-legal-page';
 
-const { generateMetadata, Page } = createLegalPage({
+const { generateMetadata, Page, revalidate } = createLegalPage({
   slug: 'seller-policy',
   metadataKey: 'sellerPolicy',
 });
 
-export { generateMetadata };
+export { generateMetadata, revalidate };
 export default Page;

@@ -64,13 +64,14 @@ export class ChatService {
     conversationId: string,
     dto: SendTextMessageDto,
   ): Promise<ChatMessage> {
-    const message = await this.messageService.sendTextMessage({
-      senderId: user.id,
-      conversationId,
-      content: dto.content,
-    });
+    const { message, participantIds } =
+      await this.messageService.sendTextMessage({
+        senderId: user.id,
+        conversationId,
+        content: dto.content,
+      });
 
-    await this.emitNewMessage(conversationId, message, user.displayName);
+    await this.emitNewMessage(participantIds, message, user.displayName);
 
     return message;
   }
@@ -80,42 +81,39 @@ export class ChatService {
     conversationId: string,
     dto: SendImageMessageDto,
   ): Promise<ChatMessage> {
-    const message = await this.messageService.sendImageMessage({
-      senderId: user.id,
-      conversationId,
-      url: dto.url,
-      mimeType: dto.mimeType,
-      size: dto.size,
-      width: dto.width,
-      height: dto.height,
-    });
+    const { message, participantIds } =
+      await this.messageService.sendImageMessage({
+        senderId: user.id,
+        conversationId,
+        url: dto.url,
+        mimeType: dto.mimeType,
+        size: dto.size,
+        width: dto.width,
+        height: dto.height,
+      });
 
-    await this.emitNewMessage(conversationId, message, user.displayName);
+    await this.emitNewMessage(participantIds, message, user.displayName);
 
     return message;
   }
 
   private async emitNewMessage(
-    conversationId: string,
+    participantIds: string[],
     message: ChatMessage,
     senderDisplayName: string,
   ): Promise<void> {
-    const participantIds =
-      await this.conversationService.getConversationParticipantIds(
-        conversationId,
-      );
-
     this.chatGateway.emitMessageToParticipants(participantIds, message);
 
     try {
       await this.chatNotificationService.notifyAboutNewMessage(
         message,
         senderDisplayName,
+        participantIds,
       );
     } catch (error: unknown) {
       this.logger.warn(
         {
-          conversationId,
+          conversationId: message.conversationId,
           messageId: message.id,
           err: error instanceof Error ? error.message : String(error),
         },
@@ -124,12 +122,15 @@ export class ChatService {
     }
   }
 
-  markAsRead(user: AuthUser, conversationId: string, dto: MarkReadDto) {
-    return this.chatReadService.markAsRead(
-      user.id,
-      conversationId,
-      dto.lastReadMessageId,
-    );
+  async markAsRead(user: AuthUser, conversationId: string, dto: MarkReadDto) {
+    const { participantIds: _participantIds, ...result } =
+      await this.chatReadService.markAsRead(
+        user.id,
+        conversationId,
+        dto.lastReadMessageId,
+      );
+
+    return result;
   }
 
   onOrderCreated(params: Parameters<ChatOrderService['onOrderCreated']>[0]) {

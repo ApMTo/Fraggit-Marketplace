@@ -26,6 +26,7 @@ export default () => {
     frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
     database: {
       url: process.env.DATABASE_URL,
+      poolMax: parseInt(process.env.DATABASE_POOL_MAX || '25', 10),
     },
     redis: {
       host: redisFromUrl?.host || process.env.REDIS_HOST || 'localhost',

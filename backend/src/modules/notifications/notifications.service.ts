@@ -40,42 +40,45 @@ export class NotificationsService {
       return [];
     }
 
-    const created: NotificationItem[] = [];
+    return this.prisma.$transaction((tx) =>
+      Promise.all(inputs.map((input) => this.upsertNotification(tx, input))),
+    );
+  }
 
-    for (const input of inputs) {
-      const notification = await this.prisma.notification.upsert({
-        where: {
-          userId_type_entityId: {
-            userId: input.userId,
-            type: input.type,
-            entityId: input.entityId ?? '',
-          },
-        },
-        create: {
+  private upsertNotification(
+    tx: Prisma.TransactionClient,
+    input: CreateNotificationInput,
+  ): Promise<NotificationItem> {
+    const entityId = input.entityId ?? '';
+
+    return tx.notification.upsert({
+      where: {
+        userId_type_entityId: {
           userId: input.userId,
           type: input.type,
-          title: input.title,
-          body: input.body,
-          href: input.href,
-          entityType: input.entityType,
-          entityId: input.entityId ?? '',
-          metadata: input.metadata,
+          entityId,
         },
-        update: {
-          title: input.title,
-          body: input.body,
-          href: input.href,
-          entityType: input.entityType,
-          metadata: input.metadata,
-          readAt: null,
-        },
-        select: NOTIFICATION_SELECT,
-      });
-
-      created.push(notification);
-    }
-
-    return created;
+      },
+      create: {
+        userId: input.userId,
+        type: input.type,
+        title: input.title,
+        body: input.body,
+        href: input.href,
+        entityType: input.entityType,
+        entityId,
+        metadata: input.metadata,
+      },
+      update: {
+        title: input.title,
+        body: input.body,
+        href: input.href,
+        entityType: input.entityType,
+        metadata: input.metadata,
+        readAt: null,
+      },
+      select: NOTIFICATION_SELECT,
+    });
   }
 
   async findMany(

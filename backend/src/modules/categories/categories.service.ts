@@ -7,6 +7,8 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { slugify } from '../../common/utils/slug.util';
 import { FilesService } from '../files/files.service';
+import { CatalogCacheService } from '../catalog/catalog-cache.service';
+import { CATALOG_CACHE_KEYS } from '../catalog/constants/catalog-cache.constants';
 import {
   CATEGORY_ADMIN_SELECT,
   CATEGORY_PUBLIC_SELECT,
@@ -21,13 +23,23 @@ export class CategoriesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly filesService: FilesService,
+    private readonly catalogCache: CatalogCacheService,
   ) {}
 
-  findAll(): Promise<CategoryPublic[]> {
-    return this.prisma.category.findMany({
+  async findAll(): Promise<CategoryPublic[]> {
+    const cacheKey = CATALOG_CACHE_KEYS.categories();
+    const cached = await this.catalogCache.get<CategoryPublic[]>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const categories = await this.prisma.category.findMany({
       select: CATEGORY_PUBLIC_SELECT,
       orderBy: { name: 'asc' },
     });
+
+    await this.catalogCache.set(cacheKey, categories);
+    return categories;
   }
 
   async findById(id: string): Promise<CategoryAdmin> {
@@ -57,7 +69,7 @@ export class CategoriesService {
     );
 
     try {
-      return await this.prisma.category.create({
+      const created = await this.prisma.category.create({
         data: {
           name: dto.name,
           slug,
@@ -66,6 +78,8 @@ export class CategoriesService {
         },
         select: CATEGORY_ADMIN_SELECT,
       });
+      await this.invalidateCatalogCache();
+      return created;
     } catch (error) {
       this.rethrowUniqueConflict(error);
     }
@@ -108,11 +122,13 @@ export class CategoriesService {
     }
 
     try {
-      return await this.prisma.category.update({
+      const updated = await this.prisma.category.update({
         where: { id },
         data,
         select: CATEGORY_ADMIN_SELECT,
       });
+      await this.invalidateCatalogCache(dto.slug !== undefined);
+      return updated;
     } catch (error) {
       this.rethrowUniqueConflict(error);
     }
@@ -121,6 +137,7 @@ export class CategoriesService {
   async remove(id: string): Promise<void> {
     try {
       await this.prisma.category.delete({ where: { id } });
+      await this.invalidateCatalogCache(true);
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
@@ -131,6 +148,13 @@ export class CategoriesService {
         }
       }
       throw error;
+    }
+  }
+
+  private async invalidateCatalogCache(invalidateSlugs = false): Promise<void> {
+    await this.catalogCache.invalidateCategories();
+    if (invalidateSlugs) {
+      await this.catalogCache.invalidateAllSlugResolutions();
     }
   }
 

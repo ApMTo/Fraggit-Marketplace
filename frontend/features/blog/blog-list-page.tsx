@@ -1,6 +1,6 @@
-import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { EmptyState } from '@/components/ui/empty-state';
+import { BlogManageNewLink } from '@/features/blog/components/blog-manage-new-link';
 import { BlogPagination } from '@/features/blog/components/blog-pagination';
 import { BlogPostCardView } from '@/features/blog/components/blog-post-card';
 import { formatBlogDate } from '@/features/blog/lib/format-blog-date';
@@ -8,10 +8,9 @@ import type { BlogPostListResult } from '@/types/blog';
 
 type BlogListPageProps = {
   posts: BlogPostListResult;
-  canManage: boolean;
 };
 
-export async function BlogListPage({ posts, canManage }: BlogListPageProps) {
+export async function BlogListPage({ posts }: BlogListPageProps) {
   const t = await getTranslations('blog');
   const locale = await getLocale();
   const totalPages = Math.max(1, Math.ceil(posts.total / posts.limit));
@@ -24,14 +23,7 @@ export async function BlogListPage({ posts, canManage }: BlogListPageProps) {
           <p className="text-base text-muted sm:text-lg">{t('subtitle')}</p>
         </div>
 
-        {canManage ? (
-          <Link
-            href="/blog/new"
-            className="inline-flex h-10 items-center justify-center rounded-[var(--radius-md)] bg-accent px-4 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
-          >
-            {t('newPost')}
-          </Link>
-        ) : null}
+        <BlogManageNewLink label={t('newPost')} />
       </header>
 
       {posts.items.length === 0 ? (

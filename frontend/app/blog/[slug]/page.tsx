@@ -2,10 +2,7 @@ import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { BlogPostPage } from '@/features/blog';
-import { getSessionUser } from '@/lib/auth.server';
-import { serverGet } from '@/lib/api-server';
-import { isMediaRole } from '@/lib/media';
-import type { BlogPostDetail } from '@/types/blog';
+import { fetchBlogPostBySlug } from '@/features/blog/lib/blog.server';
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -15,29 +12,26 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const { data } = await serverGet<BlogPostDetail>(`/blog/${slug}`);
+  const post = await fetchBlogPostBySlug(slug);
   const t = await getTranslations('blog');
 
-  if (!data) {
+  if (!post) {
     return { title: `${t('title')} | Fraggit` };
   }
 
   return {
-    title: `${data.title} | Fraggit`,
+    title: `${post.title} | Fraggit`,
     description: t('subtitle'),
   };
 }
 
 export default async function Page({ params }: PageProps) {
   const { slug } = await params;
-  const user = await getSessionUser();
-  const { data } = await serverGet<BlogPostDetail>(`/blog/${slug}`);
+  const post = await fetchBlogPostBySlug(slug);
 
-  if (!data) {
+  if (!post) {
     notFound();
   }
 
-  return (
-    <BlogPostPage post={data} canManage={isMediaRole(user?.role)} />
-  );
+  return <BlogPostPage post={post} />;
 }

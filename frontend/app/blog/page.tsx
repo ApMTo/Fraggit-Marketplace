@@ -1,10 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { BlogListPage } from '@/features/blog';
-import { getSessionUser } from '@/lib/auth.server';
-import { serverGet } from '@/lib/api-server';
-import { isMediaRole } from '@/lib/media';
-import { BLOG_PAGE_SIZE, type BlogPostListResult } from '@/types/blog';
+import { fetchBlogList } from '@/features/blog/lib/blog.server';
 
 type PageProps = {
   searchParams: Promise<{ page?: string }>;
@@ -30,23 +27,7 @@ function parsePage(value: string | undefined): number {
 export default async function Page({ searchParams }: PageProps) {
   const params = await searchParams;
   const page = parsePage(params.page);
-  const user = await getSessionUser();
+  const posts = await fetchBlogList(page);
 
-  const { data } = await serverGet<BlogPostListResult>('/blog', {
-    query: {
-      page: String(page),
-      limit: String(BLOG_PAGE_SIZE),
-    },
-  });
-
-  const posts: BlogPostListResult = data ?? {
-    items: [],
-    total: 0,
-    page,
-    limit: BLOG_PAGE_SIZE,
-  };
-
-  return (
-    <BlogListPage posts={posts} canManage={isMediaRole(user?.role)} />
-  );
+  return <BlogListPage posts={posts} />;
 }

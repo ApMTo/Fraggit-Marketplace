@@ -1,16 +1,16 @@
 import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
 import { AppImage } from '@/components/ui/app-image';
+import { BlogPostEditLink } from '@/features/blog/components/blog-post-edit-link';
 import { BlogMarkdown } from '@/features/blog/components/blog-markdown';
 import { formatBlogDate } from '@/features/blog/lib/format-blog-date';
 import type { BlogPostDetail } from '@/types/blog';
 
 type BlogPostPageProps = {
   post: BlogPostDetail;
-  canManage: boolean;
 };
 
-export async function BlogPostPage({ post, canManage }: BlogPostPageProps) {
+export async function BlogPostPage({ post }: BlogPostPageProps) {
   const t = await getTranslations('blog');
   const locale = await getLocale();
 
@@ -35,16 +35,7 @@ export async function BlogPostPage({ post, canManage }: BlogPostPageProps) {
           {t('byAuthor', { name: post.author.displayName })}
         </p>
 
-        {canManage ? (
-          <div className="flex flex-wrap gap-3 pt-1">
-            <Link
-              href={`/blog/${post.slug}/edit`}
-              className="text-sm font-medium text-accent-foreground hover:underline"
-            >
-              {t('editPost')}
-            </Link>
-          </div>
-        ) : null}
+        <BlogPostEditLink slug={post.slug} label={t('editPost')} />
       </header>
 
       <div className="relative my-8 aspect-[16/9] overflow-hidden rounded-[var(--radius-lg)] bg-surface-elevated sm:my-10">

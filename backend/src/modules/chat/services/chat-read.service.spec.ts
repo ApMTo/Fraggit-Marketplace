@@ -62,6 +62,7 @@ describe('ChatReadService', () => {
       conversationId: 'conv-1',
       lastReadMessageId: 'msg-2',
       lastReadAt: message.createdAt,
+      participantIds: ['user-1', 'user-2'],
     });
     expect(prisma.conversationParticipant.update).toHaveBeenCalledWith(
       expect.objectContaining({

@@ -4,7 +4,6 @@ import { cookies } from 'next/headers';
 import { getLocale, getMessages } from 'next-intl/server';
 import { Toaster } from 'react-hot-toast';
 import { AppShell } from '@/components/layout/app-shell';
-import { getSessionUser } from '@/lib/auth.server';
 import { getTheme } from '@/lib/theme.server';
 import { AuthProvider } from '@/providers/AuthProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
@@ -46,7 +45,6 @@ export default async function RootLayout({
   const messages = await getMessages();
   const cookieStore = await cookies();
   const initialSessionActive = Boolean(cookieStore.get('sessionId'));
-  const initialUser = await getSessionUser();
   const theme = await getTheme();
 
   return (
@@ -61,7 +59,7 @@ export default async function RootLayout({
           <QueryProvider>
             <ThemeProvider theme={theme}>
               <AuthProvider
-                initialUser={initialUser}
+                initialUser={null}
                 initialSessionActive={initialSessionActive}
               >
                 <AppShell>{children}</AppShell>

@@ -20,7 +20,6 @@ describe('ChatNotificationService', () => {
     enqueueOfflineOrderNotification: jest.Mock;
   };
   let messageService: {
-    getOtherParticipantId: jest.Mock;
     getUserEmail: jest.Mock;
   };
   let mailQueue: { enqueue: jest.Mock };
@@ -56,7 +55,6 @@ describe('ChatNotificationService', () => {
       enqueueOfflineOrderNotification: jest.fn().mockResolvedValue(undefined),
     };
     messageService = {
-      getOtherParticipantId: jest.fn().mockResolvedValue('user-2'),
       getUserEmail: jest.fn().mockResolvedValue('bob@test.com'),
     };
     mailQueue = { enqueue: jest.fn().mockResolvedValue(undefined) };
@@ -83,10 +81,13 @@ describe('ChatNotificationService', () => {
     );
   });
 
+  const participantIds = ['user-1', 'user-2'];
+
   it('skips notification for system messages without sender', async () => {
     await service.notifyAboutNewMessage(
       { ...message, senderId: null },
       'Alice',
+      participantIds,
     );
 
     expect(chatPresence.isOnline).not.toHaveBeenCalled();
@@ -98,7 +99,7 @@ describe('ChatNotificationService', () => {
   it('skips email queue when recipient is online', async () => {
     chatPresence.isOnline.mockResolvedValue(true);
 
-    await service.notifyAboutNewMessage(message, 'Alice');
+    await service.notifyAboutNewMessage(message, 'Alice', participantIds);
 
     expect(chatPresence.isOnline).toHaveBeenCalledWith('user-2');
     expect(
@@ -109,7 +110,7 @@ describe('ChatNotificationService', () => {
   it('enqueues offline notification when recipient is offline', async () => {
     chatPresence.isOnline.mockResolvedValue(false);
 
-    await service.notifyAboutNewMessage(message, 'Alice');
+    await service.notifyAboutNewMessage(message, 'Alice', participantIds);
 
     expect(redis.setIfNotExists).toHaveBeenCalledWith(
       `${CHAT_NOTIFY_COOLDOWN_KEY_PREFIX}user-2:user-1`,
@@ -131,7 +132,7 @@ describe('ChatNotificationService', () => {
     chatPresence.isOnline.mockResolvedValue(false);
     redis.setIfNotExists.mockResolvedValue(false);
 
-    await service.notifyAboutNewMessage(message, 'Alice');
+    await service.notifyAboutNewMessage(message, 'Alice', participantIds);
 
     expect(
       chatNotificationQueue.enqueueOfflineNotification,
@@ -142,7 +143,7 @@ describe('ChatNotificationService', () => {
     chatPresence.isOnline.mockResolvedValue(false);
     redis.setIfNotExists.mockResolvedValue(null);
 
-    await service.notifyAboutNewMessage(message, 'Alice');
+    await service.notifyAboutNewMessage(message, 'Alice', participantIds);
 
     expect(chatNotificationQueue.enqueueOfflineNotification).toHaveBeenCalled();
   });

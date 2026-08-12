@@ -17,6 +17,7 @@ import {
   LOT_LIST_SELECT,
   LotDetail,
   LotListItem,
+  buildDescriptionPreview,
   formatLotListItem,
 } from './constants/lot.select';
 import { CreateLotDto } from './dto/create-lot.dto';
@@ -97,11 +98,14 @@ export class ListingsService {
       throw new BadRequestException('service_question_required');
     }
 
+    const description = dto.description ?? null;
+
     const lot = await this.prisma.$transaction(async (tx) => {
       return tx.lot.create({
         data: {
           title: dto.title,
-          description: dto.description ?? null,
+          description,
+          descriptionPreview: buildDescriptionPreview(description),
           previewUrl,
           type: dto.type,
           serviceQuestion,
@@ -336,6 +340,7 @@ export class ListingsService {
         data: {
           title: dto.title,
           description: dto.description ?? null,
+          descriptionPreview: buildDescriptionPreview(dto.description),
           price: dto.price,
           stock: dto.stock ?? 1,
           ...(serviceQuestionUpdate !== undefined

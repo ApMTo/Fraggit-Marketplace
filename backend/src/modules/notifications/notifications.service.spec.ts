@@ -35,8 +35,9 @@ describe('NotificationsService', () => {
     service = new NotificationsService(prisma as unknown as PrismaService);
   });
 
-  it('upserts notifications for each recipient', async () => {
-    prisma.notification.upsert
+  it('upserts notifications for each recipient in one transaction', async () => {
+    const upsert = jest
+      .fn()
       .mockResolvedValueOnce({
         id: 'n-1',
         userId: 'seller-1',
@@ -47,6 +48,10 @@ describe('NotificationsService', () => {
         userId: 'buyer-1',
         type: NotificationType.ORDER_CREATED,
       });
+
+    prisma.$transaction.mockImplementation(async (callback) =>
+      callback({ notification: { upsert } }),
+    );
 
     const result = await service.createMany([
       {
@@ -64,7 +69,15 @@ describe('NotificationsService', () => {
     ]);
 
     expect(result).toHaveLength(2);
-    expect(prisma.notification.upsert).toHaveBeenCalledTimes(2);
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(upsert).toHaveBeenCalledTimes(2);
+  });
+
+  it('returns empty array without hitting the database', async () => {
+    const result = await service.createMany([]);
+
+    expect(result).toEqual([]);
+    expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
   it('returns unread count', async () => {

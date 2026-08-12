@@ -9,6 +9,8 @@ import type { AppLocale } from '../../common/i18n/locale';
 import { toLocalizedNameInput } from '../../common/i18n/locale';
 import { PrismaService } from '../../database/prisma.service';
 import { slugify } from '../../common/utils/slug.util';
+import { CatalogCacheService } from '../catalog/catalog-cache.service';
+import { CATALOG_CACHE_KEYS } from '../catalog/constants/catalog-cache.constants';
 import {
   formatSubcategoryAdmin,
   formatSubcategoryPublic,
@@ -22,17 +24,33 @@ import { UpdateSubcategoryDto } from './dto/update-subcategory.dto';
 
 @Injectable()
 export class SubcategoriesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly catalogCache: CatalogCacheService,
+  ) {}
 
   async findByCategoryId(
     categoryId: string,
     locale?: AppLocale | null,
   ): Promise<SubcategoryPublic[]> {
-    const rows = await this.prisma.subcategory.findMany({
-      where: { categoryId },
-      select: SUBCATEGORY_PUBLIC_SELECT,
-      orderBy: { slug: 'asc' },
-    });
+    const cacheKey = CATALOG_CACHE_KEYS.subcategories(categoryId);
+    const cached = await this.catalogCache.get<
+      Prisma.SubcategoryGetPayload<{
+        select: typeof SUBCATEGORY_PUBLIC_SELECT;
+      }>[]
+    >(cacheKey);
+
+    const rows =
+      cached ??
+      (await this.prisma.subcategory.findMany({
+        where: { categoryId },
+        select: SUBCATEGORY_PUBLIC_SELECT,
+        orderBy: { slug: 'asc' },
+      }));
+
+    if (!cached) {
+      await this.catalogCache.set(cacheKey, rows);
+    }
 
     return rows.map((row) => formatSubcategoryPublic(row, locale));
   }
@@ -89,6 +107,7 @@ export class SubcategoriesService {
         });
       });
 
+      await this.invalidateCategorySubcategories(categoryId, true);
       return formatSubcategoryAdmin(subcategory, locale);
     } catch (error) {
       this.rethrowUniqueConflict(error, 'subcategory_slug_already_exists');
@@ -167,6 +186,10 @@ export class SubcategoriesService {
         });
       });
 
+      await this.invalidateCategorySubcategories(
+        existing.categoryId,
+        dto.slug !== undefined,
+      );
       return formatSubcategoryAdmin(subcategory, locale);
     } catch (error) {
       this.rethrowUniqueConflict(error, 'subcategory_slug_already_exists');
@@ -175,8 +198,16 @@ export class SubcategoriesService {
   }
 
   async remove(id: string): Promise<void> {
+    const existing = await this.prisma.subcategory.findUnique({
+      where: { id },
+      select: { categoryId: true },
+    });
+
     try {
       await this.prisma.subcategory.delete({ where: { id } });
+      if (existing) {
+        await this.invalidateCategorySubcategories(existing.categoryId, true);
+      }
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
@@ -210,6 +241,19 @@ export class SubcategoriesService {
     categorySlug: string,
     subcategorySlug: string,
   ): Promise<{ categoryId: string; subcategoryId: string }> {
+    const cacheKey = CATALOG_CACHE_KEYS.slugResolution(
+      categorySlug,
+      subcategorySlug,
+    );
+    const cached = await this.catalogCache.get<{
+      categoryId: string;
+      subcategoryId: string;
+    }>(cacheKey);
+
+    if (cached) {
+      return cached;
+    }
+
     const category = await this.prisma.category.findUnique({
       where: { slug: categorySlug },
       select: { id: true },
@@ -228,7 +272,23 @@ export class SubcategoriesService {
       throw new NotFoundException('subcategory_not_found');
     }
 
-    return { categoryId: category.id, subcategoryId: subcategory.id };
+    const result = {
+      categoryId: category.id,
+      subcategoryId: subcategory.id,
+    };
+
+    await this.catalogCache.set(cacheKey, result);
+    return result;
+  }
+
+  private async invalidateCategorySubcategories(
+    categoryId: string,
+    invalidateSlugs = false,
+  ): Promise<void> {
+    await this.catalogCache.invalidateSubcategories(categoryId);
+    if (invalidateSlugs) {
+      await this.catalogCache.invalidateAllSlugResolutions();
+    }
   }
 
   private async assertCategoryExists(categoryId: string): Promise<void> {

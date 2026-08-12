@@ -51,6 +51,8 @@ describe('ChatService', () => {
     attachments: [],
   };
 
+  const participantIds = ['user-1', 'user-2'];
+
   beforeEach(() => {
     conversationService = {
       listConversations: jest
@@ -69,11 +71,14 @@ describe('ChatService', () => {
         hasMore: false,
         nextBeforeMessageId: null,
       }),
-      sendTextMessage: jest.fn().mockResolvedValue(message),
+      sendTextMessage: jest.fn().mockResolvedValue({ message, participantIds }),
       sendImageMessage: jest.fn().mockResolvedValue({
-        ...message,
-        type: MessageType.IMAGE,
-        content: null,
+        message: {
+          ...message,
+          type: MessageType.IMAGE,
+          content: null,
+        },
+        participantIds,
       }),
     };
     chatReadService = {
@@ -134,13 +139,17 @@ describe('ChatService', () => {
       conversationId: 'conv-1',
       content: 'hello',
     });
+    expect(
+      conversationService.getConversationParticipantIds,
+    ).not.toHaveBeenCalled();
     expect(chatGateway.emitMessageToParticipants).toHaveBeenCalledWith(
-      ['user-1', 'user-2'],
+      participantIds,
       message,
     );
     expect(chatNotificationService.notifyAboutNewMessage).toHaveBeenCalledWith(
       message,
       'Alice',
+      participantIds,
     );
     expect(result).toEqual(message);
   });

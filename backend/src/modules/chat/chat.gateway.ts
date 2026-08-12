@@ -23,7 +23,6 @@ import { ChatAuthService } from './services/chat-auth.service';
 import { ChatPresenceService } from './services/chat-presence.service';
 import { ChatReadService } from './services/chat-read.service';
 import { ChatNotificationService } from './services/chat-notification.service';
-import { ConversationService } from './services/conversation.service';
 import { MessageService } from './services/message.service';
 
 type AuthenticatedSocket = Socket<
@@ -47,7 +46,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly chatAuthService: ChatAuthService,
     private readonly chatPresenceService: ChatPresenceService,
-    private readonly conversationService: ConversationService,
     private readonly messageService: MessageService,
     private readonly chatReadService: ChatReadService,
     private readonly chatNotificationService: ChatNotificationService,
@@ -148,28 +146,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const user = this.requireUser(client);
 
-    const message = await this.messageService.sendTextMessage({
-      senderId: user.id,
-      conversationId: dto.conversationId,
-      content: dto.content,
-    });
+    const { message, participantIds } =
+      await this.messageService.sendTextMessage({
+        senderId: user.id,
+        conversationId: dto.conversationId,
+        content: dto.content,
+      });
 
-    const participantIds =
-      await this.conversationService.getConversationParticipantIds(
-        dto.conversationId,
-      );
-
-    for (const participantId of participantIds) {
-      this.server
-        .to(this.userRoom(participantId))
-        .emit(CHAT_WS_EVENTS.MESSAGE_NEW, { message });
-    }
+    this.emitMessageToParticipants(participantIds, message);
 
     client.emit(CHAT_WS_EVENTS.MESSAGE_SENT, { message });
 
     await this.chatNotificationService.notifyAboutNewMessage(
       message,
       user.displayName,
+      participantIds,
     );
 
     return { message };
@@ -195,12 +186,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       dto.lastReadMessageId,
     );
 
-    const participantIds =
-      await this.conversationService.getConversationParticipantIds(
-        dto.conversationId,
-      );
-
-    const otherParticipantId = participantIds.find((id) => id !== user.id);
+    const otherParticipantId = result.participantIds.find(
+      (id) => id !== user.id,
+    );
 
     if (otherParticipantId) {
       this.server

@@ -233,6 +233,8 @@ model Lot {
 
   description String? @db.Text
 
+  descriptionPreview String? @db.VarChar(160)
+
   /// Cover image for browse/detail. Falls back to category.previewUrl when omitted on create.
   previewUrl String?
 
@@ -269,6 +271,7 @@ model Lot {
   @@index([sellerId, status])
   @@index([categoryId])
   @@index([subcategoryId])
+  @@index([subcategoryId, status, createdAt(sort: Desc)])
   @@index([status])
   @@index([price])
   @@index([createdAt])

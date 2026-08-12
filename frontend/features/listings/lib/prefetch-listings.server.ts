@@ -1,7 +1,8 @@
 import { cache } from 'react';
 import { getLocale } from 'next-intl/server';
 import type { QueryClient } from '@tanstack/react-query';
-import { serverGet } from '@/lib/api-server';
+import { CACHE_TAGS, CACHE_TTL } from '@/lib/cache-config';
+import { serverFetchPublic } from '@/lib/api-server-public';
 import {
   parseListingsSearchParams,
   type ListingsBrowseParams,
@@ -63,8 +64,11 @@ export function toFindLotsParams(
 
 export const fetchCategories = cache(
   async (locale?: string): Promise<CategoryPublic[] | null> => {
-    const { data } = await serverGet<CategoryPublic[]>('/categories', {
-      locale,
+    const resolvedLocale = locale ?? (await getLocale());
+    const { data } = await serverFetchPublic<CategoryPublic[]>('/categories', {
+      locale: resolvedLocale,
+      revalidate: CACHE_TTL.catalog,
+      tags: [CACHE_TAGS.categories],
     });
     return data;
   },
@@ -75,9 +79,14 @@ export const fetchSubcategories = cache(
     categoryId: string,
     locale?: string,
   ): Promise<SubcategoryPublic[] | null> => {
-    const { data } = await serverGet<SubcategoryPublic[]>(
+    const resolvedLocale = locale ?? (await getLocale());
+    const { data } = await serverFetchPublic<SubcategoryPublic[]>(
       `/categories/${categoryId}/subcategories`,
-      { locale },
+      {
+        locale: resolvedLocale,
+        revalidate: CACHE_TTL.catalog,
+        tags: [CACHE_TAGS.subcategories(categoryId), CACHE_TAGS.categories],
+      },
     );
     return data;
   },
@@ -88,9 +97,17 @@ export const fetchFilterableAttributes = cache(
     subcategoryId: string,
     locale?: string,
   ): Promise<AttributeDefinitionPublic[] | null> => {
-    const { data } = await serverGet<AttributeDefinitionPublic[]>(
+    const resolvedLocale = locale ?? (await getLocale());
+    const { data } = await serverFetchPublic<AttributeDefinitionPublic[]>(
       `/subcategories/${subcategoryId}/filterable-attributes`,
-      { locale },
+      {
+        locale: resolvedLocale,
+        revalidate: CACHE_TTL.catalog,
+        tags: [
+          CACHE_TAGS.filterAttributes(subcategoryId),
+          CACHE_TAGS.categories,
+        ],
+      },
     );
     return data;
   },
@@ -103,9 +120,18 @@ export const fetchLotsBySlugs = cache(
     params: FindLotsParams,
     locale?: string,
   ): Promise<LotListResult | null> => {
-    const { data } = await serverGet<LotListResult>(
+    const resolvedLocale = locale ?? (await getLocale());
+    const { data } = await serverFetchPublic<LotListResult>(
       `/listings/${categorySlug}/${subcategorySlug}`,
-      { locale, query: buildLotsQuery(params) },
+      {
+        locale: resolvedLocale,
+        query: buildLotsQuery(params),
+        revalidate: CACHE_TTL.listings,
+        tags: [
+          CACHE_TAGS.listings(categorySlug, subcategorySlug),
+          CACHE_TAGS.categories,
+        ],
+      },
     );
     return data;
   },
@@ -113,7 +139,12 @@ export const fetchLotsBySlugs = cache(
 
 export const fetchLotById = cache(
   async (id: string, locale?: string): Promise<LotDetail | null> => {
-    const { data } = await serverGet<LotDetail>(`/listings/${id}`, { locale });
+    const resolvedLocale = locale ?? (await getLocale());
+    const { data } = await serverFetchPublic<LotDetail>(`/listings/${id}`, {
+      locale: resolvedLocale,
+      revalidate: CACHE_TTL.lotDetail,
+      tags: [CACHE_TAGS.lot(id)],
+    });
     return data;
   },
 );

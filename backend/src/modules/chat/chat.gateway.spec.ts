@@ -8,7 +8,6 @@ import { ChatAuthService } from './services/chat-auth.service';
 import { ChatNotificationService } from './services/chat-notification.service';
 import { ChatPresenceService } from './services/chat-presence.service';
 import { ChatReadService } from './services/chat-read.service';
-import { ConversationService } from './services/conversation.service';
 import { MessageService } from './services/message.service';
 
 describe('ChatGateway', () => {
@@ -19,7 +18,6 @@ describe('ChatGateway', () => {
     setOffline: jest.Mock;
     refreshOnline: jest.Mock;
   };
-  let conversationService: { getConversationParticipantIds: jest.Mock };
   let messageService: { sendTextMessage: jest.Mock };
   let chatReadService: { markAsRead: jest.Mock };
   let chatNotificationService: { notifyAboutNewMessage: jest.Mock };
@@ -54,6 +52,8 @@ describe('ChatGateway', () => {
     attachments: [],
   };
 
+  const participantIds = ['user-1', 'user-2'];
+
   beforeEach(() => {
     chatAuthService = {
       authenticateHandshake: jest.fn().mockResolvedValue(user),
@@ -63,13 +63,8 @@ describe('ChatGateway', () => {
       setOffline: jest.fn().mockResolvedValue(undefined),
       refreshOnline: jest.fn().mockResolvedValue(undefined),
     };
-    conversationService = {
-      getConversationParticipantIds: jest
-        .fn()
-        .mockResolvedValue(['user-1', 'user-2']),
-    };
     messageService = {
-      sendTextMessage: jest.fn().mockResolvedValue(message),
+      sendTextMessage: jest.fn().mockResolvedValue({ message, participantIds }),
     };
     chatReadService = {
       markAsRead: jest.fn(),
@@ -86,7 +81,6 @@ describe('ChatGateway', () => {
     gateway = new ChatGateway(
       chatAuthService as unknown as ChatAuthService,
       chatPresenceService as unknown as ChatPresenceService,
-      conversationService as unknown as ConversationService,
       messageService as unknown as MessageService,
       chatReadService as unknown as ChatReadService,
       chatNotificationService as unknown as ChatNotificationService,
@@ -168,6 +162,7 @@ describe('ChatGateway', () => {
     expect(chatNotificationService.notifyAboutNewMessage).toHaveBeenCalledWith(
       message,
       'Alice',
+      participantIds,
     );
     expect(result).toEqual({ message });
 

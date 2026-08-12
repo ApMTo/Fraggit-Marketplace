@@ -72,10 +72,25 @@ export const LOT_LIST_ATTRIBUTE_SELECT = {
 
 export const LOT_LIST_ATTRIBUTE_PREVIEW_TAKE = 3;
 
+export function buildDescriptionPreview(
+  description: string | null | undefined,
+): string | null {
+  if (!description) {
+    return null;
+  }
+
+  const trimmed = description.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  return trimmed.slice(0, 160);
+}
+
 export const LOT_LIST_SELECT = {
   id: true,
   title: true,
-  description: true,
+  descriptionPreview: true,
   previewUrl: true,
   type: true,
   price: true,
@@ -104,17 +119,21 @@ export type LotListItemAttribute = {
   value: string;
 };
 
-export type LotListItem = Omit<LotListItemRaw, 'attributes'> & {
+export type LotListItem = Omit<
+  LotListItemRaw,
+  'attributes' | 'descriptionPreview'
+> & {
   attributes: LotListItemAttribute[];
+  description: string | null;
 };
 
 export function formatLotListItem(item: LotListItemRaw): LotListItem {
+  const { descriptionPreview, attributes, ...rest } = item;
+
   return {
-    ...item,
-    description: item.description
-      ? item.description.slice(0, 160)
-      : item.description,
-    attributes: item.attributes.map(({ value, attribute }) => ({
+    ...rest,
+    description: descriptionPreview ?? null,
+    attributes: attributes.map(({ value, attribute }) => ({
       key: attribute.key,
       label: attribute.label,
       value,
