@@ -1,33 +1,32 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: fragstack-postgres
+    container_name: fraggit-postgres
     restart: unless-stopped
     ports:
-      - '5433:5432'
+      - '5432:5432'
     environment:
-      POSTGRES_USER: fragstack
-      POSTGRES_PASSWORD: fragstack
-      POSTGRES_DB: fragstack
+      POSTGRES_USER: fraggit
+      POSTGRES_PASSWORD: fraggit
+      POSTGRES_DB: fraggit
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U fragstack -d fragstack']
+      test: ['CMD-SHELL', 'pg_isready -U fraggit -d fraggit']
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: fragstack-redis
+    container_name: fraggit-redis
     restart: unless-stopped
-    command: ['redis-server', '--requirepass', '1']
     ports:
       - '6379:6379'
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ['CMD', 'redis-cli', '-a', '1', 'ping']
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5
